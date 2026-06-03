@@ -2609,13 +2609,33 @@ function applyAccentByName(name, save) {
   const sub = document.getElementById('accent-sub');
   if (sub) sub.textContent = name;
 
-  // Update ALL SVG elements that use hardcoded gold stroke/fill
+  // Always update logo chevron paths (regardless of current color)
+  document.querySelectorAll('.logo-chevron svg path').forEach(el => {
+    if (el.getAttribute('stroke')) el.setAttribute('stroke', c.gold);
+    if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', c.gold);
+  });
+
+  // Update logo chevron drop-shadow filter
+  {
+    const hex = c.gold.replace('#','');
+    const r = parseInt(hex.slice(0,2),16);
+    const g = parseInt(hex.slice(2,4),16);
+    const b = parseInt(hex.slice(4,6),16);
+    const filterVal = `drop-shadow(0 0 6px rgba(${r},${g},${b},.7)) drop-shadow(0 0 14px rgba(${r},${g},${b},.3))`;
+    document.querySelectorAll('.logo-chevron svg').forEach(svg => svg.style.filter = filterVal);
+  }
+
+  // Update other SVG elements that use hardcoded gold stroke/fill (GOLD_VALS check)
+  const GOLD_VALS = ['#d4a843','#f0c060','#b8922e','#c47a1a','#e8a030'];
+  // Also include all accent colors so switching between any two works
+  const ALL_ACCENT_VALS = Object.values(ACCENT_COLORS).map(c2=>c2.gold);
+  const ALL_VALS = [...new Set([...GOLD_VALS, ...ALL_ACCENT_VALS])];
   document.querySelectorAll('svg path[stroke], svg path[fill], svg rect[fill], svg circle[stroke], svg circle[fill]').forEach(el => {
+    if (el.closest('.logo-chevron')) return; // already handled above
     const stroke = el.getAttribute('stroke');
     const fill   = el.getAttribute('fill');
-    const GOLD_VALS = ['#d4a843','#f0c060','#b8922e','#c47a1a','#e8a030'];
-    if (stroke && GOLD_VALS.includes(stroke.toLowerCase())) el.setAttribute('stroke', c.gold);
-    if (fill   && GOLD_VALS.includes(fill.toLowerCase()))   el.setAttribute('fill',   c.gold);
+    if (stroke && ALL_VALS.includes(stroke.toLowerCase())) el.setAttribute('stroke', c.gold);
+    if (fill   && ALL_VALS.includes(fill.toLowerCase()))   el.setAttribute('fill',   c.gold);
   });
 
   if (save) saveSettings();
