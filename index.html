@@ -687,7 +687,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
   z-index:590;
   pointer-events:none;
 }
-.ob-dim.show{background:rgba(5,5,5,.74);pointer-events:auto;}
+.ob-dim.show{background:rgba(5,5,5,.72);pointer-events:auto;}
 .ob-float-arrow{
   position:fixed;
   display:flex;flex-direction:column;align-items:center;gap:5px;
@@ -1255,7 +1255,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
     <div class="ob-desc">Set your training rotation once, the app always knows which workout is up next.</div>
     <div style="border-top:1px solid #1a1a1a;padding-top:10px;margin-bottom:14px;"><div class="sc-next-badge" id="sc-badge">NEXT</div><div class="sim-sched"><div class="sc-pill">LEG<br>D1</div><div class="sc-pill">PUSH<br>D1</div><div class="sc-pill next" id="sc-next">PULL<br>D1</div><div class="sc-pill">LEG<br>D2</div><div class="sc-pill">PUSH<br>D2</div><div class="sc-pill">PULL<br>D2</div></div></div>
   </div>
-  <div class="ob-footer"><button class="ob-skip" type="button">Skip</button><button class="ob-next" id="ob-finish" type="button">Let\'s Go ›</button></div>
+  <div class="ob-footer"><button class="ob-skip" type="button">Skip</button><button class="ob-next" id="ob-finish" type="button">Let's Go ›</button></div>
 </div>
 
 <script>
@@ -2834,8 +2834,7 @@ showScreen('home');
     if(dim) dim.classList.add('show');
     document.body.classList.add('ob-lock');
     clearLit();
-    if(t.home) t.home.classList.add('ob-target-layer');
-    if(t.gear) t.gear.classList.add('ob-lit');
+       if(t.gear) t.gear.classList.add('ob-lit');
     if(t.topRight) t.topRight.classList.add('ob-lit');
     showCard(1);
     positionArrow(document.getElementById('fa-settings'), t.gear, 'up');
@@ -2857,8 +2856,7 @@ showScreen('home');
 
   function startStep2(){
     const t = targetEls(); clearLit();
-    if(t.home) t.home.classList.add('ob-target-layer');
-    if(t.gear) t.gear.classList.add('ob-lit');
+       if(t.gear) t.gear.classList.add('ob-lit');
     if(t.topRight) t.topRight.classList.add('ob-lit');
     positionArrow(document.getElementById('fa-settings'), t.gear, 'up');
     const swatches = document.querySelectorAll('.ob-swatch');
@@ -2887,8 +2885,7 @@ showScreen('home');
 
   function startStep3(){
     const t = targetEls(); clearLit();
-    if(t.home) t.home.classList.add('ob-target-layer');
-    if(t.navBtns[0]) t.navBtns[0].classList.add('ob-lit');
+       if(t.navBtns[0]) t.navBtns[0].classList.add('ob-lit');
     positionArrow(document.getElementById('fa-routines'), t.navBtns[0], 'down');
     const rows = ['rr0','rr1','rr2']; let ri = 0;
     routineInterval = setInterval(()=>{
@@ -2900,8 +2897,7 @@ showScreen('home');
 
   function startStep4(){
     const t = targetEls(); clearLit();
-    if(t.home) t.home.classList.add('ob-target-layer');
-    if(t.navBtns[1]) t.navBtns[1].classList.add('ob-lit');
+       if(t.navBtns[1]) t.navBtns[1].classList.add('ob-lit');
     positionArrow(document.getElementById('fa-schedule'), t.navBtns[1], 'down');
     const pills = document.querySelectorAll('.sc-pill'); let pi = 2;
     schedInterval = setInterval(()=>{
