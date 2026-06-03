@@ -1181,6 +1181,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
   <div id="rest-next" class="rest-nxt"></div>
   <div class="rest-btns">
     <button class="btn-ghost" onclick="skipRest()">Skip</button>
+    <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
     <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
   </div>
 </div>
@@ -1628,7 +1629,7 @@ function checkPR(ei,si){
   badge.classList.toggle('show',w>0&&(!cur||w>cur.weight));
 }
 
-let restInt=null, restRem=0;
+let restInt=null, restRem=0, restEndTime=0;
 
 function tickSet(ei,si){
   const ex=session.exercises[ei];
@@ -1660,13 +1661,41 @@ function updProgress(){
 }
 
 function startRest(secs,ei,si){
-  clearInterval(restInt); restRem=secs;
+  clearInterval(restInt);
+  restRem = secs;
+  restEndTime = Date.now() + secs * 1000;
   const nxt=si<session.exercises[ei].sets-1?'Next: '+session.exercises[ei].name+' — Set '+(si+2):ei<session.exercises.length-1?'Next: '+session.exercises[ei+1].name:'';
   document.getElementById('rest-quip').textContent=motivEnabled&&Math.random()<0.2?'"'+pick(REST_QUIPS)+'"':'';
   document.getElementById('rest-next').textContent=nxt;
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
-  restInt=setInterval(()=>{restRem--;updRestDisp();if(restRem<=0){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();}},1000);
+  restInt = setInterval(restTick, 250);
+  // Request notification permission if not granted
+  if (window.Notification && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function restTick(){
+  const rem = Math.ceil((restEndTime - Date.now()) / 1000);
+  if (rem !== restRem) {
+    restRem = Math.max(0, rem);
+    updRestDisp();
+  }
+  if (restRem <= 0) {
+    clearInterval(restInt);
+    document.getElementById('rest-overlay').classList.remove('active');
+    beep();
+    // Fire notification if app is in background
+    if (document.hidden && window.Notification && Notification.permission === 'granted') {
+      new Notification("Alan's Workout", {
+        body: "Rest time's up — next set awaits. 💪",
+        icon: '/Workout/icons/icon-192.png',
+        tag: 'rest-done',
+        requireInteraction: false,
+      });
+    }
+  }
 }
 
 function updRestDisp(){
@@ -1676,7 +1705,11 @@ function updRestDisp(){
 }
 
 function skipRest(){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();}
-function addRestTime(s){restRem+=s;updRestDisp();}
+function addRestTime(s){
+  restRem = Math.max(1, restRem + s);
+  restEndTime = Date.now() + restRem * 1000;
+  updRestDisp();
+}
 
 function beep(){
   try{
@@ -2738,6 +2771,20 @@ let db = null;
 loadDB();
 loadSettings();
 showScreen('home');
+
+// Re-sync rest timer when app returns from background
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && restEndTime > 0 && restRem > 0) {
+    const rem = Math.ceil((restEndTime - Date.now()) / 1000);
+    restRem = Math.max(0, rem);
+    updRestDisp();
+    if (restRem <= 0) {
+      clearInterval(restInt);
+      document.getElementById('rest-overlay').classList.remove('active');
+      beep();
+    }
+  }
+});
 </script>
 
 
