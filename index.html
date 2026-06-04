@@ -1686,18 +1686,8 @@ function startRest(secs,ei,si){
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
   restInt = setInterval(restTick, 250);
-  // Request notification permission if not granted
-  if (window.Notification && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-  // Tell service worker to schedule background notification
-  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'REST_START',
-      endTime: restEndTime,
-      remaining: restRem,
-    });
-  }
+
+
 }
 
 function restTick(){
@@ -1711,10 +1701,7 @@ function restTick(){
     document.getElementById('rest-overlay').classList.remove('active');
     restEndTime = 0; // clear so visibilitychange doesn't re-trigger
     beep();
-    // Cancel SW background notification (app is open, handled here)
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: 'REST_CANCEL' });
-    }
+
   }
 }
 
@@ -1729,9 +1716,6 @@ function skipRest(){
   document.getElementById('rest-overlay').classList.remove('active');
   beep();
   restEndTime = 0;
-  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({ type: 'REST_CANCEL' });
-  }
 }
 function addRestTime(s){
   restRem = Math.max(1, restRem + s);
@@ -2826,12 +2810,6 @@ loadDB();
 loadSettings();
 showScreen('home');
 
-// Register Service Worker for background notifications
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js')
-    .then(reg => console.log('SW registered:', reg.scope))
-    .catch(err => console.log('SW registration failed:', err));
-}
 
 // Show in-app banner when rest finishes in background (iOS fallback)
 function showRestDoneBanner() {
