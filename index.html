@@ -810,11 +810,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .stat-lbl { color:var(--muted); }
 .light-mode .prog-tooltip { background:var(--panel); border-color:var(--line); color:var(--text); }
 .light-mode .tier-modal-btn { color:#000; background:var(--gold); }
-
-@keyframes bannerSlide {
-  from { transform: translateY(-100%); opacity: 0; }
-  to   { transform: translateY(0);     opacity: 1; }
-}
 </style>
 </head>
 <body>
@@ -1188,17 +1183,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
     <button class="btn-ghost" onclick="skipRest()">Skip</button>
     <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
     <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
-  </div>
-</div>
-
-<!-- ══ REST DONE BANNER ══ -->
-<div id="rest-done-banner" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:9999;padding:0 0;">
-  <div style="background:var(--gold);color:#000;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:bannerSlide .3s ease-out;">
-    <div>
-      <div style="font-family:var(--hd);font-size:12px;font-weight:900;letter-spacing:3px;text-transform:uppercase;">Rest Over 💪</div>
-      <div style="font-size:10px;letter-spacing:1px;opacity:.7;margin-top:2px;">Time to hit the next set</div>
-    </div>
-    <button onclick="document.getElementById('rest-done-banner').style.display='none'" style="background:rgba(0,0,0,.2);border:none;color:#000;font-size:14px;cursor:pointer;padding:6px 10px;font-weight:700;letter-spacing:1px;">CLOSE</button>
   </div>
 </div>
 
@@ -1686,8 +1670,10 @@ function startRest(secs,ei,si){
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
   restInt = setInterval(restTick, 250);
-
-
+  // Request notification permission if not granted
+  if (window.Notification && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 }
 
 function restTick(){
@@ -1699,9 +1685,16 @@ function restTick(){
   if (restRem <= 0) {
     clearInterval(restInt);
     document.getElementById('rest-overlay').classList.remove('active');
-    restEndTime = 0; // clear so visibilitychange doesn't re-trigger
     beep();
-
+    // Fire notification if app is in background
+    if (document.hidden && window.Notification && Notification.permission === 'granted') {
+      new Notification("Alan's Workout", {
+        body: "Rest time's up — next set awaits. 💪",
+        icon: '/Workout/icons/icon-192.png',
+        tag: 'rest-done',
+        requireInteraction: false,
+      });
+    }
   }
 }
 
@@ -1711,49 +1704,18 @@ function updRestDisp(){
   el.classList.toggle('urgent',restRem<=5);
 }
 
-function skipRest(){
-  clearInterval(restInt);
-  document.getElementById('rest-overlay').classList.remove('active');
-  beep();
-  restEndTime = 0;
-}
+function skipRest(){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();}
 function addRestTime(s){
   restRem = Math.max(1, restRem + s);
   restEndTime = Date.now() + restRem * 1000;
   updRestDisp();
 }
 
-// Shared AudioContext — created on first user interaction (required by iOS)
-let _audioCtx = null;
-function getAudioCtx() {
-  if (!_audioCtx || _audioCtx.state === 'closed') {
-    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (_audioCtx.state === 'suspended') _audioCtx.resume();
-  return _audioCtx;
-}
-// Unlock AudioContext on first touch (iOS requirement)
-document.addEventListener('touchstart', () => getAudioCtx(), { once: true });
-
-function beep() {
-  // 3 ascending tones: dun dun DUN — like a gym bell
-  try {
-    const ctx = getAudioCtx();
-    const now = ctx.currentTime;
-    const tones = [[660, 0], [880, 180], [1100, 360]];
-    tones.forEach(([freq, delay]) => {
-      const t = now + delay / 1000;
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.frequency.value = freq;
-      o.type = 'triangle';
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.4, t + 0.04);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-      o.start(t); o.stop(t + 0.4);
-    });
-  } catch(e) {}
+function beep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [[880,0],[1100,160]].forEach(([f,d])=>{setTimeout(()=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.35,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.35);o.start(ctx.currentTime);o.stop(ctx.currentTime+.35);},d);});
+  }catch(e){}
 }
 
 function startElapsed(){
@@ -2810,32 +2772,16 @@ loadDB();
 loadSettings();
 showScreen('home');
 
-
-// Show in-app banner when rest finishes in background (iOS fallback)
-function showRestDoneBanner() {
-  const banner = document.getElementById('rest-done-banner');
-  if (!banner) return;
-  banner.style.display = 'block';
-  // Auto-hide after 4 seconds
-  setTimeout(() => { banner.style.display = 'none'; }, 6000);
-}
-
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && restEndTime > 0) {
+  if (!document.hidden && restEndTime > 0 && restRem > 0) {
     const rem = Math.ceil((restEndTime - Date.now()) / 1000);
-    if (rem <= 0) {
-      // Timer expired while in background — show banner regardless
+    restRem = Math.max(0, rem);
+    updRestDisp();
+    if (restRem <= 0) {
       clearInterval(restInt);
-      restRem = 0;
-      restEndTime = 0;
       document.getElementById('rest-overlay').classList.remove('active');
       beep();
-      showRestDoneBanner();
-    } else {
-      // Timer still running — sync the display
-      restRem = rem;
-      updRestDisp();
     }
   }
 });
