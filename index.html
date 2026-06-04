@@ -111,7 +111,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .stepper .set-inp{border-radius:0;border-left:none;border-right:none;width:52px;flex-shrink:0;}
 .set-tick{background:color-mix(in srgb,var(--gold) 8%,transparent);border:1.5px solid color-mix(in srgb,var(--gold) 35%,transparent);color:color-mix(in srgb,var(--gold) 40%,transparent);width:40px;height:40px;font-size:16px;cursor:pointer;transition:all .15s;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-weight:700;position:relative;flex-shrink:0;;align-self:center;;align-self:center;margin-top:14px;}
 .set-tick:hover{background:color-mix(in srgb,var(--gold) 15%,transparent);border-color:color-mix(in srgb,var(--gold) 70%,transparent);color:color-mix(in srgb,var(--gold) 80%,transparent);}
-.set-tick.ticked{background:linear-gradient(135deg,var(--gold3),var(--gold2));border-color:var(--gold);color:#fff;box-shadow:0 0 14px rgba(212,168,67,.5),0 2px 8px rgba(0,0,0,.4);}
+.set-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;box-shadow:0 0 10px var(--glow-color, rgba(212,168,67,.35));}
 .tick-check{font-size:16px;}
 .pr-badge{display:none;position:absolute;top:-6px;right:-6px;background:#7c3aed;color:#fff;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 3px;border-radius:2px;line-height:1;}
 .pr-badge.show{display:block;}
@@ -119,12 +119,44 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .pr-badge.show{opacity:1;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
+/* ── REST SKIP/GO BUTTON ── */
+.rest-skip-btn {
+  width: 100%;
+  max-width: 320px;
+  margin-top: 16px;
+  padding: 20px;
+  background: none;
+  border: 1px solid var(--line2);
+  color: var(--muted);
+  font-family: var(--hd);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .3s, color .3s, border-color .3s;
+}
+.rest-skip-btn.go {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #000;
+}
+.light-mode .rest-skip-btn {
+  border-color: var(--line2);
+  color: var(--muted);
+}
+.light-mode .rest-skip-btn.go {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #000;
+}
+
 /* ── REST OVERLAY ── */
 #rest-overlay{display:none;position:fixed;inset:0;background:var(--overlay-bg-heavy);z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
 #rest-overlay::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
 #rest-overlay.active{display:flex;}
 .rest-lbl{font-size:9px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;font-weight:600;}
-.rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px rgba(212,168,67,.4),0 0 60px rgba(212,168,67,.15);transition:color .3s;}
+.rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color, rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft, rgba(212,168,67,.15));transition:color .3s;}
 .rest-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);animation:pulse .8s infinite;}
 .rest-quip-txt{font-size:11px;color:var(--dim);font-style:italic;text-align:center;padding:0 36px;max-width:300px;line-height:1.6;}
 .rest-nxt{font-size:9px;color:var(--muted);letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;}
@@ -392,7 +424,7 @@ body.light-mode .ex-card{background:#fff;border-color:#ddd;}
 body.light-mode .ex-card-notes{color:#777;}
 body.light-mode .ex-card-meta{color:#888;}
 /* Tick button in light mode */
-body.light-mode .set-tick{background:color-mix(in srgb,var(--gold) 12%,white);border-color:color-mix(in srgb,var(--gold) 50%,transparent);}
+body.light-mode .light-mode .set-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;}
 /* Motiv strip */
 body.light-mode .motiv-strip{background:#e8e8e8;color:var(--gold3);}
 /* Progress bar */
@@ -1180,10 +1212,10 @@ body.ob-lock{overflow:hidden;touch-action:none;}
   <div id="rest-quip" class="rest-quip-txt"></div>
   <div id="rest-next" class="rest-nxt"></div>
   <div class="rest-btns">
-    <button class="btn-ghost" onclick="skipRest()">Skip</button>
     <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
     <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
   </div>
+  <button class="rest-skip-btn" id="rest-skip-btn" onclick="skipRest()">Skip</button>
 </div>
 
 <!-- ══ MODAL ══ -->
@@ -1670,6 +1702,9 @@ function startRest(secs,ei,si){
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
   restInt = setInterval(restTick, 250);
+  // Reset skip button state
+  const skipBtn = document.getElementById('rest-skip-btn');
+  if (skipBtn) { skipBtn.textContent = 'Skip'; skipBtn.classList.remove('go'); }
   // Request notification permission if not granted
   if (window.Notification && Notification.permission === 'default') {
     Notification.requestPermission();
@@ -1684,24 +1719,29 @@ function restTick(){
   }
   if (restRem <= 0) {
     clearInterval(restInt);
-    document.getElementById('rest-overlay').classList.remove('active');
+    restRem = 0;
+    updRestDisp(); // show GO button
     beep();
-    // Fire notification if app is in background
-    if (document.hidden && window.Notification && Notification.permission === 'granted') {
-      new Notification("Alan's Workout", {
-        body: "Rest time's up — next set awaits. 💪",
-        icon: '/Workout/icons/icon-192.png',
-        tag: 'rest-done',
-        requireInteraction: false,
-      });
-    }
+    // Show banner if app in background when timer ends
+    if (document.hidden) showRestDoneBanner && showRestDoneBanner();
   }
 }
 
 function updRestDisp(){
-  const el=document.getElementById('rest-time');
-  el.textContent=Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
-  el.classList.toggle('urgent',restRem<=5);
+  const el = document.getElementById('rest-time');
+  el.textContent = Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
+  el.classList.toggle('urgent', restRem<=5 && restRem>0);
+  // Toggle skip/go button state
+  const skipBtn = document.getElementById('rest-skip-btn');
+  if (skipBtn) {
+    if (restRem <= 0) {
+      skipBtn.textContent = 'Go';
+      skipBtn.classList.add('go');
+    } else {
+      skipBtn.textContent = 'Skip';
+      skipBtn.classList.remove('go');
+    }
+  }
 }
 
 function skipRest(){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();}
@@ -2633,6 +2673,13 @@ function applyAccentByName(name, save) {
   root.style.setProperty('--gold',  c.gold);
   root.style.setProperty('--gold2', c.gold2);
   root.style.setProperty('--gold3', c.gold3);
+  // Set glow colors derived from accent
+  const _h = c.gold.replace('#','');
+  const _r = parseInt(_h.slice(0,2),16);
+  const _g = parseInt(_h.slice(2,4),16);
+  const _b = parseInt(_h.slice(4,6),16);
+  root.style.setProperty('--glow-color',      `rgba(${_r},${_g},${_b},.4)`);
+  root.style.setProperty('--glow-color-soft',  `rgba(${_r},${_g},${_b},.15)`);
 
   // Update swatch active state
   document.querySelectorAll('.swatch').forEach(s => {
