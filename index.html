@@ -1186,6 +1186,14 @@ body.ob-lock{overflow:hidden;touch-action:none;}
   </div>
 </div>
 
+<!-- ══ REST DONE BANNER ══ -->
+<div id="rest-done-banner" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:200;padding:0 0;">
+  <div style="background:var(--gold);color:#000;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid var(--gold3);">
+    <div style="font-family:var(--hd);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;">Rest Over — Next Set 💪</div>
+    <button onclick="document.getElementById('rest-done-banner').style.display='none'" style="background:none;border:none;color:#000;font-size:18px;cursor:pointer;padding:0;line-height:1;font-weight:700;">✕</button>
+  </div>
+</div>
+
 <!-- ══ MODAL ══ -->
 <div id="modal-overlay">
   <div class="modal">
@@ -1693,8 +1701,9 @@ function restTick(){
   if (restRem <= 0) {
     clearInterval(restInt);
     document.getElementById('rest-overlay').classList.remove('active');
+    restEndTime = 0; // clear so visibilitychange doesn't re-trigger
     beep();
-    // Cancel SW background notification (app is open, we handled it here)
+    // Cancel SW background notification (app is open, handled here)
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'REST_CANCEL' });
     }
@@ -1711,6 +1720,7 @@ function skipRest(){
   clearInterval(restInt);
   document.getElementById('rest-overlay').classList.remove('active');
   beep();
+  restEndTime = 0;
   if (navigator.serviceWorker && navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({ type: 'REST_CANCEL' });
   }
@@ -2789,16 +2799,31 @@ if ('serviceWorker' in navigator) {
     .catch(err => console.log('SW registration failed:', err));
 }
 
+// Show in-app banner when rest finishes in background (iOS fallback)
+function showRestDoneBanner() {
+  const banner = document.getElementById('rest-done-banner');
+  if (!banner) return;
+  banner.style.display = 'block';
+  // Auto-hide after 4 seconds
+  setTimeout(() => { banner.style.display = 'none'; }, 4000);
+}
+
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && restEndTime > 0 && restRem > 0) {
+  if (!document.hidden && restEndTime > 0) {
     const rem = Math.ceil((restEndTime - Date.now()) / 1000);
-    restRem = Math.max(0, rem);
-    updRestDisp();
-    if (restRem <= 0) {
+    if (rem <= 0 && restRem > 0) {
+      // Timer expired while in background
+      restRem = 0;
       clearInterval(restInt);
       document.getElementById('rest-overlay').classList.remove('active');
       beep();
+      // Show in-app banner as fallback (especially for iOS)
+      // Only show if SW notification may not have fired
+      showRestDoneBanner();
+    } else if (rem > 0) {
+      restRem = rem;
+      updRestDisp();
     }
   }
 });
