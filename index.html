@@ -1674,6 +1674,14 @@ function startRest(secs,ei,si){
   if (window.Notification && Notification.permission === 'default') {
     Notification.requestPermission();
   }
+  // Tell service worker to schedule background notification
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'REST_START',
+      endTime: restEndTime,
+      remaining: restRem,
+    });
+  }
 }
 
 function restTick(){
@@ -1686,14 +1694,9 @@ function restTick(){
     clearInterval(restInt);
     document.getElementById('rest-overlay').classList.remove('active');
     beep();
-    // Fire notification if app is in background
-    if (document.hidden && window.Notification && Notification.permission === 'granted') {
-      new Notification("Alan's Workout", {
-        body: "Rest time's up — next set awaits. 💪",
-        icon: '/Workout/icons/icon-192.png',
-        tag: 'rest-done',
-        requireInteraction: false,
-      });
+    // Cancel SW background notification (app is open, we handled it here)
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'REST_CANCEL' });
     }
   }
 }
@@ -1704,7 +1707,14 @@ function updRestDisp(){
   el.classList.toggle('urgent',restRem<=5);
 }
 
-function skipRest(){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();}
+function skipRest(){
+  clearInterval(restInt);
+  document.getElementById('rest-overlay').classList.remove('active');
+  beep();
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'REST_CANCEL' });
+  }
+}
 function addRestTime(s){
   restRem = Math.max(1, restRem + s);
   restEndTime = Date.now() + restRem * 1000;
@@ -2771,6 +2781,13 @@ let db = null;
 loadDB();
 loadSettings();
 showScreen('home');
+
+// Register Service Worker for background notifications
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(reg => console.log('SW registered:', reg.scope))
+    .catch(err => console.log('SW registration failed:', err));
+}
 
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
