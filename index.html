@@ -97,7 +97,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .set-row{display:grid;grid-template-columns:22px 1fr 1fr 38px;align-items:flex-start;gap:8px;margin-bottom:1px;}
 .set-n{font-size:9px;color:#999999;text-align:center;font-weight:600;align-self:center;margin-top:14px;}
 .set-field{display:flex;flex-direction:column;gap:2px;}
-.set-field-lbl{font-size:7px;color:#999999;letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;position:absolute;top:0;left:0;right:0;}
+.set-field-lbl{font-size:7px;color:#999999;letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;position:absolute;top:0;left:28px;right:28px;}
 .set-inp{background:#1e1e1e;border:1px solid #383838;color:#f0f0f0;padding:7px 4px;font-family:var(--body);font-size:14px;font-weight:700;text-align:center;width:100%;transition:border-color .15s;border-radius:var(--r);-webkit-appearance:none;}
 .set-inp:focus{outline:none;border-color:var(--gold);}
 .set-inp::placeholder{color:var(--muted);}
@@ -152,9 +152,9 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 }
 
 /* ── REST OVERLAY ── */
-#rest-overlay{display:none;position:fixed;inset:0;background:var(--overlay-bg-heavy);z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
-#rest-overlay::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
-#rest-overlay.active{display:flex;}
+#rest-overlay{display:flex;position:fixed;inset:0;background:transparent;z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:translateY(100%);transition:transform .42s cubic-bezier(.16,1,.3,1);will-change:transform;overflow:hidden;pointer-events:none;}
+#rest-overlay.active::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
+#rest-overlay.active{transform:translateY(0)!important;pointer-events:all;background:var(--overlay-bg-heavy);}
 .rest-lbl{font-size:9px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;font-weight:600;}
 .rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color, rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft, rgba(212,168,67,.15));transition:color .3s;}
 .rest-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);animation:pulse .8s infinite;}
@@ -282,9 +282,9 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .history-date{font-size:9px;color:#666;letter-spacing:1px;}
 .history-val{font-size:12px;color:#c0c0c0;letter-spacing:1px;}
 /* modal */
-#modal-overlay{display:none;position:fixed;inset:0;background:rgba(5,5,5,.9);z-index:200;align-items:center;justify-content:center;padding:14px;}
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(5,5,5,.9);z-index:200;align-items:flex-start;justify-content:center;padding:0;padding-top:env(safe-area-inset-top, 0px);}
 #modal-overlay.active{display:flex;}
-.modal{background:var(--panel);border:1px solid var(--line2);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+.modal{background:var(--panel);border:1px solid var(--line2);width:100%;max-width:480px;height:100%;max-height:100%;overflow-y:auto;}
 .modal-hd{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
 .modal-title{font-family:var(--hd);font-size:18px;font-weight:700;letter-spacing:3px;text-transform:uppercase;}
 .modal-bd{padding:16px 20px;}
@@ -295,7 +295,48 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 select.form-inp option{background:var(--panel);}
 .ex-builder{border:1px solid var(--line);margin-bottom:9px;background:var(--surface);}
 .eb-hd{padding:8px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);}
-.eb-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;padding:9px 11px;}
+.eb-sets-head{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:4px;padding:5px 11px;border-bottom:1px solid rgba(255,255,255,.04);}
+.eb-sets-head span{font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-weight:600;text-align:center;}
+.eb-set-row{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:4px;padding:4px 11px;border-bottom:1px solid rgba(255,255,255,.03);align-items:center;}
+.eb-set-row:last-of-type{border-bottom:none;}
+.eb-set-num{font-size:9px;color:var(--muted);font-family:var(--hd);text-align:center;}
+.eb-set-inp{width:100%;background:var(--lift);border:1px solid var(--line2);color:var(--text);padding:5px 4px;font-family:var(--body);font-size:13px;text-align:center;border-radius:var(--r);outline:none;}
+.eb-set-inp:focus{border-color:var(--gold3);}
+.eb-set-del{background:none;border:none;color:var(--line2);cursor:pointer;font-size:12px;text-align:center;transition:color .15s;padding:0;}
+.eb-set-del:hover{color:var(--danger);}
+.eb-add-set{display:flex;align-items:center;gap:6px;padding:6px 11px;cursor:pointer;border-top:1px solid var(--line);background:none;width:100%;border-left:none;border-right:none;border-bottom:none;}
+.eb-add-set:hover .eb-add-icon{color:var(--gold);}
+.eb-add-icon{color:var(--gold3);font-size:14px;line-height:1;}
+.eb-add-lbl{font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-family:var(--body);}
+.eb-rest-row{display:flex;align-items:center;gap:7px;padding:6px 11px;border-top:1px solid var(--line);}
+.eb-rest-lbl{font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.eb-rest-inp{width:58px;background:var(--lift);border:1px solid var(--line2);color:var(--text);padding:4px 6px;font-family:var(--body);font-size:12px;text-align:center;border-radius:var(--r);outline:none;}
+.eb-rest-inp:focus{border-color:var(--gold3);}
+/* Superset block in routine builder */
+.ss-builder{border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);margin-bottom:9px;background:var(--surface);}
+.ss-builder-hd{padding:8px 11px;display:flex;align-items:center;gap:8px;border-bottom:1px solid color-mix(in srgb,var(--gold) 25%,transparent);background:color-mix(in srgb,var(--gold) 8%,transparent);}
+.ss-builder-lbl{font-size:7px;letter-spacing:3px;color:var(--gold3);text-transform:uppercase;font-weight:700;flex:1;}
+.ss-builder-add-ex{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:3px 8px;font-family:var(--body);font-size:8px;letter-spacing:2px;cursor:pointer;border-radius:var(--r);text-transform:uppercase;}
+.ss-builder-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;}
+.ss-builder-rm:hover{color:var(--danger);}
+.ss-ex-hd{padding:6px 11px;display:flex;align-items:center;gap:7px;border-bottom:1px solid color-mix(in srgb,var(--gold) 15%,transparent);background:color-mix(in srgb,var(--gold) 4%,transparent);}
+.ss-ex-letter{width:18px;height:18px;border-radius:50%;background:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold);font-family:var(--hd);font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ss-ex-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;margin-left:auto;padding:0;}
+.ss-ex-rm:hover{color:var(--danger);}
+.ss-round-sep{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:4px;padding:4px 11px;background:color-mix(in srgb,var(--gold) 6%,transparent);border-top:1px solid color-mix(in srgb,var(--gold) 12%,transparent);border-bottom:1px solid color-mix(in srgb,var(--gold) 12%,transparent);}
+.ss-round-num{font-size:8px;color:var(--gold3);font-family:var(--hd);font-weight:700;text-align:center;align-self:center;}
+.ss-round-num-label{font-size:7px;letter-spacing:2px;color:color-mix(in srgb,var(--gold) 50%,transparent);text-transform:uppercase;grid-column:2/-1;align-self:center;}
+.ss-set-row{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:4px;padding:3px 11px;border-bottom:1px solid rgba(255,255,255,.02);align-items:center;}
+.ss-set-exlbl{font-size:8px;color:var(--gold3);font-family:var(--body);font-weight:600;text-align:center;letter-spacing:1px;}
+.ss-set-inp{width:100%;background:var(--lift);border:1px solid color-mix(in srgb,var(--gold) 25%,transparent);color:var(--text);padding:5px 4px;font-family:var(--body);font-size:13px;text-align:center;border-radius:var(--r);outline:none;}
+.ss-set-inp:focus{border-color:var(--gold3);}
+.ss-add-round{display:flex;align-items:center;gap:6px;padding:6px 11px;cursor:pointer;border-top:1px solid color-mix(in srgb,var(--gold) 20%,transparent);background:none;width:100%;border-left:none;border-right:none;border-bottom:none;}
+.ss-add-round:hover .ss-add-icon{color:var(--gold);}
+.ss-add-icon{color:var(--gold3);font-size:14px;line-height:1;}
+.ss-add-lbl{font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-family:var(--body);}
+.ss-rest-row{display:flex;align-items:center;gap:7px;padding:6px 11px;border-top:1px solid color-mix(in srgb,var(--gold) 20%,transparent);}
+.light-mode .ss-builder{background:var(--surface);border-color:color-mix(in srgb,var(--gold) 40%,transparent);}
+.light-mode .ss-set-inp{background:#e8e8e8;border-color:color-mix(in srgb,var(--gold) 30%,transparent);color:#111;}
 .eb-f label{font-size:7px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:3px;font-weight:600;}
 .form-inp.sm{padding:6px 7px;font-size:12px;}
 .modal-ft{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:7px;justify-content:flex-end;}
@@ -578,8 +619,8 @@ input, select, textarea {
 }
 
 /* ── MODAL ── */
-.modal { max-height: 100vh; max-height: 100dvh; border-radius: 0; }
-#modal-overlay { padding: 0; align-items: flex-end; }
+
+
 .modal { border-bottom: none; }
 
 /* ── CONFIRM OVERLAY ── */
@@ -644,8 +685,8 @@ input, select, textarea {
 
   .eb-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
 
-  #modal-overlay { padding: 0; align-items: stretch; }
-  .modal { border-radius: 0; border-bottom: 1px solid var(--line2); max-height: 100vh; max-height: 100dvh; height: 100%; }
+  
+  
 
   .set-row { grid-template-columns: 22px 1fr 1fr 44px; gap: 8px; }
 }
@@ -804,9 +845,10 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .set-n { color:var(--muted); }
 .light-mode .set-field-lbl { color:var(--muted); }
 .light-mode .last-chip { background:var(--surface); color:var(--muted); border-color:var(--line); }
-.light-mode #rest-overlay { background:var(--overlay-bg-heavy) !important; }
+.light-mode #rest-overlay.active { background:var(--overlay-bg-heavy) !important; }
 .light-mode .rest-lbl { color:var(--muted); }
 .light-mode .rest-time { color:var(--text); }
+.light-mode .rest-mini-time { color:var(--text); }
 .light-mode .rest-quip { color:var(--dim); }
 .light-mode #rest-skip,.light-mode #rest-plus { border-color:var(--line2); color:var(--muted); }
 .light-mode #confirm-overlay { background:var(--overlay-bg) !important; }
@@ -833,6 +875,8 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .modal-bd { background:var(--deep); }
 .light-mode .ex-builder { background:var(--surface); border-color:var(--line); }
 .light-mode .eb-hd { background:var(--surface); border-color:var(--line); color:var(--text); }
+.light-mode .eb-set-inp { background:#e8e8e8; border-color:#ccc; color:#111; }
+.light-mode .eb-rest-inp { background:#e8e8e8; border-color:#ccc; color:#111; }
 .light-mode .notice { color:var(--muted); }
 .light-mode .prog-pill { border-color:var(--line2); color:var(--dim); background:none; }
 .light-mode .prog-pill.active { background:var(--gold); color:#000; border-color:var(--gold); }
@@ -842,6 +886,59 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .stat-lbl { color:var(--muted); }
 .light-mode .prog-tooltip { background:var(--panel); border-color:var(--line); color:var(--text); }
 .light-mode .tier-modal-btn { color:#000; background:var(--gold); }
+
+/* ── REST OVERLAY MINIMIZE ── */
+#rest-overlay.minimized{transform:translateY(-80vh)!important;}
+
+/* Full content wrapper */
+#rest-full{
+  width:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  flex:1;padding-bottom:10px;
+  transition:opacity .2s;
+}
+#rest-overlay.minimized #rest-full{
+  opacity:0;pointer-events:none;
+}
+
+/* Mini bar — at bottom of overlay, visible when minimized (sits at top of screen) */
+#rest-mini{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:8px;width:100%;padding:16px 0 12px;
+  pointer-events:all;
+}
+#rest-overlay:not(.minimized) #rest-mini{
+  display:none;
+}
+.rest-mini-time{font-family:var(--hd);font-size:72px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color,rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft,rgba(212,168,67,.15));transition:color .3s;}
+.rest-mini-chevrons{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  opacity:.45;
+}
+.rest-mini-chevrons span{
+  font-size:10px;line-height:1;color:var(--muted);
+}
+
+/* Slide hint — at bottom of full content */
+.rest-slide-hint{
+  display:flex;flex-direction:column;align-items:center;
+  gap:3px;margin-top:18px;opacity:.35;
+  user-select:none;-webkit-user-select:none;
+}
+.rest-hint-line{
+  width:32px;height:2px;
+  background:var(--muted);border-radius:2px;
+}
+.rest-hint-chevrons{
+  display:flex;flex-direction:column;align-items:center;gap:0px;
+  margin-top:3px;
+}
+.rest-hint-chevrons span{
+  font-size:11px;line-height:1.1;color:var(--muted);
+}
+
+#rest-mini-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);}
 </style>
 </head>
 <body>
@@ -923,7 +1020,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 <!-- ══ FINISH SCREEN ══ -->
 <div id="screen-finish" class="screen">
   <div class="finish-logo"><svg viewBox="0 0 40 32" fill="none"><path d="M2 4 L20 26 L38 4" stroke="#d4a843" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><path d="M2 13 L20 35 L38 13" stroke="#d4a843" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none" opacity="0.35"/></svg></div>
-  <div id="fin-headline" class="finish-headline">Beast Mode</div>
+  <div id="fin-headline" class="finish-headline">Session Complete</div>
   <div id="fin-sub" class="finish-sub">Session Complete</div>
   <div id="fin-quote" class="finish-quote"></div>
   <div class="finish-grid">
@@ -1067,7 +1164,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 <div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--panel);border:1px solid var(--gold);padding:28px 24px;width:100%;max-width:320px;text-align:center;">
     <div style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:3px;color:var(--text);text-transform:uppercase;margin-bottom:10px;">Quit Workout?</div>
-    <div style="font-size:12px;color:var(--soft);margin-bottom:22px;letter-spacing:1px;line-height:1.6;">No pain, no gain.<br>Progress will not be saved.</div>
+    <div style="font-size:12px;color:var(--soft);margin-bottom:22px;letter-spacing:1px;line-height:1.6;">Progress will not be saved.</div>
     <div style="display:flex;gap:10px;">
       <button onclick="confirmQuit(false)" style="flex:1;background:none;border:1px solid var(--line2);color:var(--muted);padding:12px;font-family:var(--hd);font-size:11px;letter-spacing:3px;cursor:pointer;text-transform:uppercase;">Keep Going</button>
       <button onclick="confirmQuit(true)" style="flex:1;background:var(--danger);border:none;color:#fff;padding:12px;font-family:var(--hd);font-size:11px;letter-spacing:3px;cursor:pointer;text-transform:uppercase;">Quit</button>
@@ -1142,6 +1239,8 @@ body.ob-lock{overflow:hidden;touch-action:none;}
       <div class="accent-swatches" id="accent-swatches">
         <div class="swatch active" data-name="Gold" data-gold="#d4a843" data-gold2="#f0c060" data-gold3="#b8922e" onclick="setAccent(this)" style="background:linear-gradient(135deg,#f0c060,#b8922e);" title="Gold"></div>
         <div class="swatch" data-name="Orange" data-gold="#e8722a" data-gold2="#ff8c42" data-gold3="#c45a18" onclick="setAccent(this)" style="background:linear-gradient(135deg,#ff8c42,#c45a18);" title="Orange"></div>
+        <div class="swatch" data-name="Red" data-gold="#e84040" data-gold2="#ff5555" data-gold3="#c42020" onclick="setAccent(this)" style="background:linear-gradient(135deg,#ff5555,#c42020);" title="Red"></div>
+        <div class="swatch" data-name="Rosa" data-gold="#e8529a" data-gold2="#ff70b8" data-gold3="#c43580" onclick="setAccent(this)" style="background:linear-gradient(135deg,#ff70b8,#c43580);" title="Rosa"></div>
         <div class="swatch" data-name="Sky Blue" data-gold="#3a9fd4" data-gold2="#58c4f0" data-gold3="#2178a8" onclick="setAccent(this)" style="background:linear-gradient(135deg,#58c4f0,#2178a8);" title="Sky Blue"></div>
         <div class="swatch" data-name="Navy" data-gold="#4a6fa8" data-gold2="#6b8fc4" data-gold3="#2e4f82" onclick="setAccent(this)" style="background:linear-gradient(135deg,#6b8fc4,#2e4f82);" title="Navy"></div>
         <div class="swatch" data-name="Emerald" data-gold="#2ecc71" data-gold2="#4edd88" data-gold3="#1aaa58" onclick="setAccent(this)" style="background:linear-gradient(135deg,#4edd88,#1aaa58);" title="Emerald"></div>
@@ -1188,15 +1287,35 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 
 <!-- ══ REST OVERLAY ══ -->
 <div id="rest-overlay">
-  <div class="rest-lbl">Rest</div>
-  <div id="rest-time" class="rest-time">0:00</div>
-  <div id="rest-quip" class="rest-quip-txt"></div>
-  <div id="rest-next" class="rest-nxt"></div>
-  <div class="rest-btns">
-    <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
-    <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
+  <!-- Full content (expanded state) -->
+  <div id="rest-full">
+    <div class="rest-lbl">Rest</div>
+    <div id="rest-time" class="rest-time">0:00</div>
+    <div id="rest-quip" class="rest-quip-txt"></div>
+    <div class="rest-btns">
+      <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
+      <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
+    </div>
+    <button class="rest-skip-btn" id="rest-skip-btn" onclick="skipRest()">Skip</button>
+    <!-- Slide hint at bottom -->
+    <div class="rest-slide-hint">
+      <div class="rest-hint-line"></div>
+      <div class="rest-hint-line"></div>
+      <div class="rest-hint-chevrons">
+        <span>&#8963;</span>
+        <span>&#8963;</span>
+      </div>
+    </div>
   </div>
-  <button class="rest-skip-btn" id="rest-skip-btn" onclick="skipRest()">Skip</button>
+
+  <!-- Mini bar — sits at bottom of overlay, appears at top of screen when minimized -->
+  <div id="rest-mini" onclick="restExpand()">
+    <div id="rest-mini-time" class="rest-mini-time">0:00</div>
+    <div class="rest-mini-chevrons">
+      <span>&#8964;</span>
+      <span>&#8964;</span>
+    </div>
+  </div>
 </div>
 
 <!-- ══ MODAL ══ -->
@@ -1236,6 +1355,8 @@ body.ob-lock{overflow:hidden;touch-action:none;}
     <div class="ob-swatches">
       <div class="ob-swatch sel" style="background:linear-gradient(135deg,#f0c060,#b8922e);" data-c="#d4a843" data-n="Gold"></div>
       <div class="ob-swatch" style="background:linear-gradient(135deg,#ff8c42,#c45a18);" data-c="#e8722a" data-n="Orange"></div>
+      <div class="ob-swatch" style="background:linear-gradient(135deg,#ff5555,#c42020);" data-c="#e84040" data-n="Red"></div>
+      <div class="ob-swatch" style="background:linear-gradient(135deg,#ff70b8,#c43580);" data-c="#e8529a" data-n="Rosa"></div>
       <div class="ob-swatch" style="background:linear-gradient(135deg,#58c4f0,#2178a8);" data-c="#3a9fd4" data-n="Sky Blue"></div>
       <div class="ob-swatch" style="background:linear-gradient(135deg,#6b8fc4,#2e4f82);" data-c="#4a6fa8" data-n="Navy"></div>
       <div class="ob-swatch" style="background:linear-gradient(135deg,#4edd88,#1aaa58);" data-c="#2ecc71" data-n="Emerald"></div>
@@ -1456,17 +1577,24 @@ function restoreSession(){
     renderWoScreen();
     showScreen('workout');
     startElapsed();
-    if(snap.restEndTime&&snap.restEndTime>Date.now()){
-      restRem=Math.ceil((snap.restEndTime-Date.now())/1000);
-      restEndTime=snap.restEndTime;
-      document.getElementById('rest-overlay').classList.add('active');
+    // Only restore rest overlay if timer is still running
+    if(snap.restEndTime && snap.restEndTime > Date.now()){
+      restRem = Math.ceil((snap.restEndTime - Date.now()) / 1000);
+      restEndTime = snap.restEndTime;
+      _restMinimized = false;
+      const ov = document.getElementById('rest-overlay');
+      if(ov){ ov.style.transform=''; ov.classList.add('active'); }
       updRestDisp();
-      restInt=setInterval(restTick,250);
+      restInt = setInterval(restTick, 250);
+    } else {
+      // Timer expired or no timer — make sure overlay is fully hidden
+      restRem = 0; restEndTime = 0;
+      const ov = document.getElementById('rest-overlay');
+      if(ov){ ov.style.transform='translateY(100%)'; ov.classList.remove('active','minimized'); }
     }
     return true;
-  }catch(e){return false;}
+  }catch(e){ return false; }
 }
-
 function loadDB() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -1685,7 +1813,7 @@ function renderWoScreen(){
             <button class="stepper-btn" onclick="stepVal(${ei},${s},'r',1)">&#43;</button>
           </div>
         </div>
-        <button class="set-tick" id="t-${ei}-${s}" onclick="tickSet(${ei},${s})"><span class="tick-check">&#10003;</span><span class="pr-badge" id="pr-${ei}-${s}">PR</span></button>
+        <button class="set-tick ${ex.tickedSets.includes(s)?'ticked':''}" id="t-${ei}-${s}" onclick="tickSet(${ei},${s})"><span class="tick-check">&#10003;</span><span class="pr-badge" id="pr-${ei}-${s}">PR</span></button>
       </div>`;
     }
     const notesHtml=ex.notes?`<div class="ex-card-notes">${ex.notes}</div>`:'';
@@ -1694,6 +1822,16 @@ function renderWoScreen(){
     body.appendChild(card);
   });
   updProgress();
+  // Re-apply card done/active state and PR badges
+  session.exercises.forEach((ex,ei)=>{
+    const card=document.getElementById('exc-'+ei);
+    if(!card) return;
+    const done=ex.tickedSets.length===ex.sets;
+    card.classList.toggle('done',done);
+    card.classList.toggle('active',!done&&ex.tickedSets.length>0);
+    // Re-check PRs for ticked sets
+    ex.tickedSets.forEach(si=>checkPR(ei,si));
+  });
 }
 
 function updSet(ei,si,t,v){
@@ -1723,6 +1861,7 @@ function checkPR(ei,si){
 let restInt=null, restRem=0, restEndTime=0;
 
 function tickSet(ei,si){
+  if(_restMinimized && restRem > 0) return;
   const ex=session.exercises[ei];
   const btn=document.getElementById('t-'+ei+'-'+si);
   session.exercises[ei].actualWeight[si]=parseFloat(document.getElementById('w-'+ei+'-'+si).value)||0;
@@ -1757,10 +1896,17 @@ function startRest(secs,ei,si){
   restEndTime = Date.now() + secs * 1000;
   const nxt=si<session.exercises[ei].sets-1?'Next: '+session.exercises[ei].name+' — Set '+(si+2):ei<session.exercises.length-1?'Next: '+session.exercises[ei+1].name:'';
   document.getElementById('rest-quip').textContent=motivEnabled&&Math.random()<0.2?'"'+pick(REST_QUIPS)+'"':'';
-  document.getElementById('rest-next').textContent=nxt;
+
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
   restInt = setInterval(restTick, 250);
+  // Reset minimize state
+  _restMinimized = false;
+  const _ov = document.getElementById('rest-overlay');
+  _ov.style.transition = '';
+  _ov.classList.remove('minimized');
+  const _sb = document.getElementById('rest-skip-btn');
+  if(_sb){ _sb.textContent='Skip'; _sb.classList.remove('go'); }
   restWakeLockOn(); // keep screen on during rest
   // Reset skip button state
   const skipBtn = document.getElementById('rest-skip-btn');
@@ -1780,9 +1926,11 @@ function restTick(){
   if (restRem <= 0) {
     clearInterval(restInt);
     restRem = 0;
+    restEndTime = 0; // mark as expired
     updRestDisp(); // show GO button
     beep();
     restWakeLockOff(); // screen can sleep now
+    saveSession(); // save so restore doesn't re-open timer
     // Show banner if app in background when timer ends
     if (document.hidden) showRestDoneBanner && showRestDoneBanner();
   }
@@ -1792,6 +1940,12 @@ function updRestDisp(){
   const el = document.getElementById('rest-time');
   el.textContent = Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
   el.classList.toggle('urgent', restRem<=5 && restRem>0);
+  // Update mini time display
+  const _mt = document.getElementById('rest-mini-time');
+  if(_mt){
+    _mt.textContent = Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
+    _mt.classList.toggle('urgent', restRem<=5 && restRem>0);
+  }
   // Toggle skip/go button state
   const skipBtn = document.getElementById('rest-skip-btn');
   if (skipBtn) {
@@ -1805,8 +1959,18 @@ function updRestDisp(){
   }
 }
 
-function skipRest(){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();
-  restWakeLockOff();}
+function skipRest(){
+  clearInterval(restInt);
+  restRem = 0; restEndTime = 0;
+  _restMinimized = false;
+  const _ov = document.getElementById('rest-overlay');
+  _ov.style.transition = 'transform .42s cubic-bezier(.16,1,.3,1)';
+  _ov.style.transform = '';
+  _ov.classList.remove('active','minimized');
+  beep();
+  restWakeLockOff();
+  saveSession(); // save so restore doesn't re-open timer
+}
 function addRestTime(s){
   restRem = Math.max(1, restRem + s);
   restEndTime = Date.now() + restRem * 1000;
@@ -1838,7 +2002,7 @@ function confirmQuit(yes){
   if(!yes) return;
   clearInterval(elTimer);
   clearInterval(restInt);
-  document.getElementById('rest-overlay').classList.remove('active');
+  document.getElementById('rest-overlay').classList.remove('active','minimized'); document.getElementById('rest-overlay').style.transform='';
   session=null;
   clearSession();
   showScreen('home');
@@ -1848,7 +2012,7 @@ function confirmQuit(yes){
 function finishWorkout(){
   clearInterval(elTimer);clearInterval(restInt);
   clearSession();
-  document.getElementById('rest-overlay').classList.remove('active');
+  document.getElementById('rest-overlay').classList.remove('active','minimized'); document.getElementById('rest-overlay').style.transform='';
 
   const dur=Math.floor((Date.now()-session.startTime)/1000);
 
@@ -1986,56 +2150,221 @@ function delRoutine(id){
 
 function openRoutineModal(editId){
   const editing=editId?db.routines.find(r=>r.id===editId):null;
-  let exs=editing?JSON.parse(JSON.stringify(editing.exercises)):[];
+  // Migrate old format → new: each item is {type:'ex',...} or {type:'ss',...}
+  function migrateEx(re){
+    if(re.type==='ex'||re.type==='ss') return re;
+    const rows=[];
+    for(let s=0;s<(re.sets||1);s++) rows.push({kg:re.weight||0, reps:re.reps||10});
+    return {type:'ex', id:re.id, setRows:rows, rest:re.rest||getDefaultRest(re.id)};
+  }
+  let items=editing?JSON.parse(JSON.stringify(editing.exercises)).map(migrateEx):[];
   function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+
+  function buildExSelect(exId, onchangeStr, idStr){
+    const muscles=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core'];
+    let h='';
+    muscles.forEach(m=>{
+      h+=`<optgroup label="${m}">`;
+      db.exercises.filter(e=>e.muscle===m).forEach(e=>{
+        h+=`<option value="${e.id}"${e.id===exId?' selected':''}>${e.name}</option>`;
+      });
+      h+='</optgroup>';
+    });
+    return `<select class="form-inp sm" style="flex:1;margin-right:7px" ${idStr?`id="${idStr}"`:''}onchange="${onchangeStr}">${h}</select>`;
+  }
+
+  function buildExBlock(re, i){
+    const setRowsHtml=re.setRows.map((sr,si)=>`
+      <div class="eb-set-row" id="ebr-${i}-${si}">
+        <span class="eb-set-num">${si+1}</span>
+        <input class="eb-set-inp" type="number" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].setRows[${si}].kg=parseFloat(this.value)||0">
+        <input class="eb-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].setRows[${si}].reps=parseInt(this.value)||0">
+        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set">✕</button>
+      </div>`).join('');
+    return `
+      <div class="ex-builder" id="exb-${i}">
+        <div class="eb-hd">
+          ${buildExSelect(re.id, `mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value);`, `eid-${i}`)}
+          <button class="btn-ico del" onclick="rmItem(${i})">✕</button>
+        </div>
+        <div class="eb-sets-head">
+          <span>Set</span><span>KG</span><span>Reps</span><span></span>
+        </div>
+        ${setRowsHtml}
+        <button class="eb-add-set" onclick="addSet(${i})">
+          <span class="eb-add-icon">+</span>
+          <span class="eb-add-lbl">Add Set</span>
+        </button>
+        <div class="eb-rest-row">
+          <span class="eb-rest-lbl">Rest</span>
+          <input class="eb-rest-inp" id="ebrest-${i}" type="number" inputmode="numeric" value="${re.rest}" onchange="mItems[${i}].rest=parseInt(this.value)||60; this._userEdited=true;">
+          <span class="eb-rest-lbl">sec</span>
+        </div>
+      </div>`;
+  }
+
+  function buildSSBlock(ss, i){
+    const rounds=ss.sets.length, exCount=ss.exercises.length;
+    let rowsHtml=`<div class="eb-sets-head" style="border-color:color-mix(in srgb,var(--gold) 20%,transparent);">
+      <span>Rnd</span><span>KG</span><span>Reps</span><span></span>
+    </div>`;
+    for(let r=0;r<rounds;r++){
+      rowsHtml+=`<div class="ss-round-sep">
+        <span class="ss-round-num">${r+1}</span>
+        <span class="ss-round-num-label"></span>
+      </div>`;
+      for(let e=0;e<exCount;e++){
+        const sr=ss.sets[r][e];
+        const canDel=rounds>1 && e===0;
+        rowsHtml+=`<div class="ss-set-row" id="ssr-${i}-${r}-${e}">
+          <span class="ss-set-exlbl">${String.fromCharCode(65+e)}</span>
+          <input class="ss-set-inp" type="number" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].sets[${r}][${e}].kg=parseFloat(this.value)||0">
+          <input class="ss-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].sets[${r}][${e}].reps=parseInt(this.value)||0">
+          ${canDel?`<button class="eb-set-del" onclick="rmSSRound(${i},${r})" title="Remove round">✕</button>`:'<span></span>'}
+        </div>`;
+      }
+    }
+    const exSelects=ss.exercises.map((ex,e)=>`
+      <div class="ss-ex-hd" id="ssexhd-${i}-${e}">
+        <span class="ss-ex-letter">${String.fromCharCode(65+e)}</span>
+        ${buildExSelect(ex.id, `mItems[${i}].exercises[${e}].id=this.value;`, '')}
+        ${exCount>2?`<button class="ss-ex-rm" onclick="rmSSEx(${i},${e})">✕</button>`:'<span></span>'}
+      </div>`).join('');
+    return `
+      <div class="ss-builder" id="exb-${i}">
+        <div class="ss-builder-hd">
+          <span class="ss-builder-lbl">Superset</span>
+          <button class="ss-builder-add-ex" onclick="addSSEx(${i})">+ Exercise</button>
+          <button class="ss-builder-rm" onclick="rmItem(${i})">✕</button>
+        </div>
+        ${exSelects}
+        ${rowsHtml}
+        <button class="ss-add-round" onclick="addSSRound(${i})">
+          <span class="ss-add-icon">+</span>
+          <span class="ss-add-lbl">Add Round</span>
+        </button>
+        <div class="ss-rest-row">
+          <span class="eb-rest-lbl" style="color:var(--gold3)">Rest</span>
+          <input class="eb-rest-inp" id="ebrest-${i}" type="number" inputmode="numeric" value="${ss.rest||90}" style="border-color:var(--gold3)" onchange="mItems[${i}].rest=parseInt(this.value)||60; this._userEdited=true;">
+          <span class="eb-rest-lbl" style="color:var(--gold3)">sec</span>
+        </div>
+      </div>`;
+  }
+
   function rdr(){
     document.getElementById('modal-title').textContent=editing?'Edit Workout':'New Workout';
-    const builders=exs.map((re,i)=>`
-      <div class="ex-builder">
-        <div class="eb-hd">
-          <select class="form-inp sm" style="flex:1;margin-right:7px" onchange="mExs[${i}].id=this.value; const ri=document.getElementById('ex-'+${i}); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value);" id="eid-${i}">
-            ${(()=>{const muscles=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core'];let h='';muscles.forEach(m=>{h+=`<optgroup label="${m} Exercises">`;db.exercises.filter(e=>e.muscle===m).forEach(e=>{h+=`<option value="${e.id}"${e.id===re.id?' selected':''}>${e.name}</option>`;});h+='</optgroup>';});return h;})()}
-          </select>
-          <button class="btn-ico del" onclick="rmEx(${i})">✕</button>
-        </div>
-        <div class="eb-grid">
-          <div class="eb-f"><label>Sets</label><input class="form-inp sm" type="number" inputmode="numeric" value="${re.sets}" min="1" onchange="mExs[${i}].sets=parseInt(this.value)||1" id="es-${i}"></div>
-          <div class="eb-f"><label>Reps</label><input class="form-inp sm" type="number" inputmode="numeric" value="${re.reps}" min="1" onchange="mExs[${i}].reps=parseInt(this.value)||1" id="er-${i}"></div>
-          <div class="eb-f"><label>KG</label><input class="form-inp sm" type="number" inputmode="decimal" value="${re.weight}" onchange="mExs[${i}].weight=parseFloat(this.value)||0" id="ew-${i}"></div>
-          <div class="eb-f"><label>Rest(s)</label><input class="form-inp sm" type="number" inputmode="numeric" value="${re.rest}" min="0" onchange="mExs[${i}].rest=parseInt(this.value)||60" id="ex-${i}"></div>
-        </div>
-      </div>`).join('');
+    const builders=items.map((re,i)=>re.type==='ss'?buildSSBlock(re,i):buildExBlock(re,i)).join('');
     document.getElementById('modal-body').innerHTML=`
       <div class="form-grp"><label class="form-lbl">Workout Name</label><input class="form-inp" id="rn-inp" placeholder="e.g. Leg Day 1" value="${editing?editing.name:''}"></div>
       <div class="form-lbl" style="margin-bottom:7px">Exercises</div>
       <div id="ex-bldrs">${builders}</div>
-      <button class="btn-new" style="width:100%;margin-top:4px;text-align:center;padding:9px" onclick="addEx()">+ Add Exercise</button>`;
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="btn-new" style="flex:1;text-align:center;padding:9px" onclick="addEx()">+ Add Exercise</button>
+        <button class="btn-new" style="flex:1;text-align:center;padding:9px;" onclick="addSS()">+ Superset</button>
+      </div>`;
     document.getElementById('modal-footer').innerHTML=`
       <button class="btn-ghost" onclick="closeModal()">Cancel</button>
       <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveRoutine()">Save</button>`;
   }
-  window.mExs=exs;
+
+  window.mItems=items;
+  window.mExs=items; // legacy alias
+
   window.addEx=function(){
-  const firstId=db.exercises[0].id;
-  mExs.push({id:firstId,sets:3,reps:10,weight:0,rest:getDefaultRest(firstId)});
-  rdr();
-};
-  window.rmEx=function(i){mExs.splice(i,1);rdr();};
+    const firstId=db.exercises[0].id;
+    items.push({type:'ex', id:firstId, setRows:[{kg:0,reps:10},{kg:0,reps:10},{kg:0,reps:10}], rest:getDefaultRest(firstId)});
+    rdr();
+  };
+  window.addSS=function(){
+    const ex1=db.exercises[0].id, ex2=(db.exercises[1]||db.exercises[0]).id;
+    const sets=[];
+    for(let r=0;r<3;r++) sets.push([{kg:0,reps:10},{kg:0,reps:10}]);
+    items.push({type:'ss', exercises:[{id:ex1,reps:10},{id:ex2,reps:10}], sets, rest:90});
+    rdr();
+  };
+  window.rmItem=function(i){items.splice(i,1);rdr();};
+  window.addSet=function(i){
+    const rows=items[i].setRows;
+    const last=rows.length?rows[rows.length-1]:{kg:0,reps:10};
+    rows.push({kg:last.kg,reps:last.reps}); rdr();
+  };
+  window.rmSet=function(i,si){
+    if(items[i].setRows.length<=1){alert('At least one set required.');return;}
+    items[i].setRows.splice(si,1); rdr();
+  };
+  window.addSSEx=function(i){
+    const ss=items[i];
+    const newId=(db.exercises[ss.exercises.length]||db.exercises[0]).id;
+    ss.exercises.push({id:newId,reps:10});
+    ss.sets.forEach(round=>round.push({kg:0,reps:10}));
+    rdr();
+  };
+  window.rmSSEx=function(i,e){
+    const ss=items[i];
+    if(ss.exercises.length<=2){alert('A superset needs at least 2 exercises.');return;}
+    ss.exercises.splice(e,1);
+    ss.sets.forEach(round=>round.splice(e,1));
+    rdr();
+  };
+  window.addSSRound=function(i){
+    const ss=items[i];
+    const last=ss.sets[ss.sets.length-1];
+    ss.sets.push(last.map(s=>({kg:s.kg,reps:s.reps}))); rdr();
+  };
+  window.rmSSRound=function(i,r){
+    const ss=items[i];
+    if(ss.sets.length<=1){alert('At least one round required.');return;}
+    ss.sets.splice(r,1); rdr();
+  };
   window.saveRoutine=function(){
     const name=document.getElementById('rn-inp').value.trim();
     if(!name){alert('Name your routine.');return;}
-    mExs.forEach((re,i)=>{
-      const eid=document.getElementById('eid-'+i),s=document.getElementById('es-'+i),r=document.getElementById('er-'+i),w=document.getElementById('ew-'+i),x=document.getElementById('ex-'+i);
-      if(eid) re.id=eid.value; if(s) re.sets=parseInt(s.value)||1; if(r) re.reps=parseInt(r.value)||1; if(w) re.weight=parseFloat(w.value)||0; if(x) re.rest=parseInt(x.value)||60;
+    if(!items.length){alert('Add at least one exercise.');return;}
+    items.forEach((re,i)=>{
+      if(re.type==='ex'){
+        const eid=document.getElementById('eid-'+i);
+        const rest=document.getElementById('ebrest-'+i);
+        if(eid) re.id=eid.value;
+        if(rest) re.rest=parseInt(rest.value)||60;
+        re.setRows.forEach((sr,si)=>{
+          const kg=document.querySelector(`#ebr-${i}-${si} .eb-set-inp:first-of-type`);
+          const rp=document.querySelector(`#ebr-${i}-${si} .eb-set-inp:last-of-type`);
+          if(kg) sr.kg=parseFloat(kg.value)||0;
+          if(rp) sr.reps=parseInt(rp.value)||0;
+        });
+      } else if(re.type==='ss'){
+        const rest=document.getElementById('ebrest-'+i);
+        if(rest) re.rest=parseInt(rest.value)||60;
+        re.sets.forEach((round,r)=>{
+          round.forEach((sr,e)=>{
+            const kg=document.querySelector(`#ssr-${i}-${r}-${e} .ss-set-inp:first-of-type`);
+            const rp=document.querySelector(`#ssr-${i}-${r}-${e} .ss-set-inp:last-of-type`);
+            if(kg) sr.kg=parseFloat(kg.value)||0;
+            if(rp) sr.reps=parseInt(rp.value)||0;
+          });
+        });
+      }
     });
-    if(!mExs.length){alert('Add at least one exercise.');return;}
-    if(editing){const idx=db.routines.findIndex(r=>r.id===editing.id);db.routines[idx]={...editing,name,exercises:mExs};}
-    else db.routines.push({id:uid(),name,exercises:mExs});
+    const exercises=[];
+    items.forEach(re=>{
+      if(re.type==='ex'){
+        exercises.push({id:re.id,sets:re.setRows.length,reps:re.setRows[0]?re.setRows[0].reps:10,weight:re.setRows[0]?re.setRows[0].kg:0,rest:re.rest,setRows:re.setRows});
+      } else if(re.type==='ss'){
+        const groupId='ss-'+uid();
+        re.exercises.forEach((ex,e)=>{
+          const setRows=re.sets.map(round=>({kg:round[e].kg,reps:round[e].reps}));
+          exercises.push({id:ex.id,sets:re.sets.length,reps:setRows[0]?setRows[0].reps:10,weight:setRows[0]?setRows[0].kg:0,rest:e===re.exercises.length-1?re.rest:0,setRows,ssGroup:groupId,ssGroupRest:re.rest});
+        });
+      }
+    });
+    if(editing){const idx=db.routines.findIndex(r=>r.id===editing.id);db.routines[idx]={...editing,name,exercises};}
+    else db.routines.push({id:uid(),name,exercises});
     saveDB(); closeModal(); renderRoutines();
   };
   rdr();
   document.getElementById('modal-overlay').classList.add('active');
 }
+
 
 // ═══════════════════════════════════════════
 //  SCHEDULE
@@ -2688,6 +3017,8 @@ function toggleRtDim(i){
 const ACCENT_COLORS = {
   'Gold':    {gold:'#d4a843', gold2:'#f0c060', gold3:'#b8922e'},
   'Orange':  {gold:'#e8722a', gold2:'#ff8c42', gold3:'#c45a18'},
+  'Red':     {gold:'#e84040', gold2:'#ff5555', gold3:'#c42020'},
+  'Rosa':    {gold:'#e8529a', gold2:'#ff70b8', gold3:'#c43580'},
   'Sky Blue':{gold:'#3a9fd4', gold2:'#58c4f0', gold3:'#2178a8'},
   'Navy':    {gold:'#4a6fa8', gold2:'#6b8fc4', gold3:'#2e4f82'},
   'Emerald': {gold:'#2ecc71', gold2:'#4edd88', gold3:'#1aaa58'},
@@ -2894,11 +3225,99 @@ document.addEventListener('visibilitychange', () => {
     updRestDisp();
     if (restRem <= 0) {
       clearInterval(restInt);
-      document.getElementById('rest-overlay').classList.remove('active');
+      document.getElementById('rest-overlay').classList.remove('active','minimized'); document.getElementById('rest-overlay').style.transform='';
       beep();
     }
   }
 });
+
+
+// ── REST OVERLAY MINIMIZE (Spotify-style) ──
+let _restMinimized = false;
+
+function restExpand() {
+  _restMinimized = false;
+  const ov = document.getElementById('rest-overlay');
+  ov.style.transition = 'transform .38s cubic-bezier(.16,1,.3,1)';
+  ov.style.transform = '';
+  ov.classList.remove('minimized');
+}
+
+// Spotify-style drag — events directly on overlay, no document listeners
+(function(){
+  const getOv = () => document.getElementById('rest-overlay');
+  const VH    = () => window.innerHeight;
+  let startY = 0, dy = 0, lastY = 0, lastT = 0, velY = 0, dragging = false;
+
+  function setT(ov, y) {
+    ov.style.transition = 'none';
+    ov.style.transform  = 'translateY(' + y + 'px)';
+  }
+  function snap(ov, minimize) {
+    ov.style.transition = 'transform .38s cubic-bezier(.16,1,.3,1)';
+    ov.style.transform  = '';
+    _restMinimized = minimize;
+    if (minimize) ov.classList.add('minimized');
+    else ov.classList.remove('minimized');
+  }
+
+  // Attach once DOM is ready
+  window.addEventListener('load', function() {
+    const ov = getOv();
+    if (!ov) return;
+
+    // ── Drag on full overlay (only when expanded) ──
+    ov.addEventListener('touchstart', function(e) {
+      if (_restMinimized) return; // mini bar has its own handler
+      if (!ov.classList.contains('active')) return;
+      startY = e.touches[0].clientY;
+      dy = 0; lastY = startY; lastT = Date.now(); velY = 0;
+      dragging = true;
+      e.stopPropagation(); // block workout screen touch
+    }, {passive: true});
+
+    ov.addEventListener('touchmove', function(e) {
+      if (!dragging || _restMinimized) return;
+      const y  = e.touches[0].clientY;
+      const dt = Date.now() - lastT;
+      if (dt > 0) velY = (y - lastY) / dt;
+      lastY = y; lastT = Date.now();
+      dy = y - startY;
+      if (dy > 12) { dragging = false; return; } // no downward drag when expanded
+      // Clamp upward only: dy<0 = finger going up = overlay goes up
+      const clamped = Math.min(0, Math.max(-VH() * 0.85, dy));
+      setT(ov, clamped);
+      e.preventDefault();
+      e.stopPropagation();
+    }, {passive: false});
+
+    ov.addEventListener('touchend', function(e) {
+      if (!dragging) return;
+      dragging = false;
+      e.stopPropagation();
+      // Minimize if dragged >15% screen height OR fast upward flick
+      snap(ov, dy < -(VH() * 0.15) || velY < -0.4);
+    }, {passive: true});
+
+    // ── Mini bar: tap or swipe down to expand ──
+    const mini = document.getElementById('rest-mini');
+    if (mini) {
+      let mStartY = 0, mStartT = 0;
+      mini.addEventListener('touchstart', function(e) {
+        mStartY = e.touches[0].clientY;
+        mStartT = Date.now();
+        e.stopPropagation();
+      }, {passive: true});
+      mini.addEventListener('touchend', function(e) {
+        const mDy = e.changedTouches[0].clientY - mStartY;
+        const mDt = Date.now() - mStartT;
+        // Tap (small movement, quick) OR swipe down → expand
+        if (mDy > 30 || (Math.abs(mDy) < 15 && mDt < 300)) restExpand();
+        e.stopPropagation();
+      }, {passive: true});
+    }
+  });
+})();
 </script>
 
 
