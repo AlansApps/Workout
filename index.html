@@ -1594,6 +1594,13 @@ function restoreSession(){
     const snap=JSON.parse(raw);
     if(!snap||!snap.session) return false;
     session=snap.session;
+    // Re-link session.exercises to share references with session.items
+    // (JSON.parse breaks object references, causing split state on subsequent saves)
+    if(session.items){
+      const flatExs=session.items.flatMap(it=>it.type==='ss'?it.exercises:[it]);
+      flatExs.forEach((ex,idx)=>{ ex._ei=idx; });
+      session.exercises=flatExs;
+    }
     renderWoScreen();
     showScreen('workout');
     startElapsed();
