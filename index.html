@@ -88,6 +88,26 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .ex-card{background:var(--panel);border:1px solid var(--line2);margin-bottom:10px;transition:opacity .3s,border-color .2s;}
 .ex-card.done{opacity:.3;}
 .ex-card.active{border-color:var(--gold3);}
+/* ── Superset block in workout screen ── */
+.ss-block{border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);margin-bottom:10px;background:var(--panel);transition:opacity .3s;}
+.ss-block.done{opacity:.3;}
+.ss-block-hd{padding:7px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid color-mix(in srgb,var(--gold) 20%,transparent);background:color-mix(in srgb,var(--gold) 6%,transparent);}
+.ss-block-lbl{font-size:7px;letter-spacing:4px;color:var(--gold3);text-transform:uppercase;font-weight:700;flex:1;}
+.ss-block-meta{font-size:8px;color:var(--muted);letter-spacing:1px;}
+.ss-round{border-bottom:1px solid color-mix(in srgb,var(--gold) 10%,transparent);}
+.ss-round:last-child{border-bottom:none;}
+.ss-round-hd{padding:5px 14px 2px;}
+.ss-round-num{font-size:8px;color:var(--gold3);font-family:var(--hd);font-weight:700;letter-spacing:2px;}
+.ss-round-tick{background:color-mix(in srgb,var(--gold) 8%,transparent);border:1.5px solid color-mix(in srgb,var(--gold) 35%,transparent);color:color-mix(in srgb,var(--gold) 40%,transparent);width:40px;height:40px;font-size:16px;cursor:pointer;transition:all .15s;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-weight:700;position:relative;flex-shrink:0;}
+.ss-round-tick:hover{background:color-mix(in srgb,var(--gold) 15%,transparent);border-color:color-mix(in srgb,var(--gold) 70%,transparent);}
+.ss-round-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;box-shadow:0 0 10px var(--glow-color,rgba(212,168,67,.35));}
+.ss-round-tick.ticked .pr-badge{color:#000;}
+.ss-ex-rows{padding:4px 14px 8px;display:flex;flex-direction:column;gap:6px;}
+.ss-ex-row{display:grid;grid-template-columns:22px 1fr 1fr 38px;gap:8px;align-items:flex-start;}
+.ss-ex-lbl{font-size:9px;color:var(--gold3);font-family:var(--hd);font-weight:700;text-align:center;align-self:center;margin-top:14px;}
+.light-mode .ss-block{background:#fff;border-color:color-mix(in srgb,var(--gold) 35%,transparent);}
+.light-mode .ss-block-hd{background:color-mix(in srgb,var(--gold) 8%,transparent);}
+.light-mode .ss-round-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;}
 .ex-card-header{padding:11px 16px 9px;border-bottom:1px solid var(--line);}
 .ex-card-name{font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:2px;color:#ffffff;text-transform:uppercase;}
 .ex-card-notes{font-size:10px;color:#b0b0b0;letter-spacing:1px;margin-top:2px;font-style:italic;}
@@ -1799,62 +1819,121 @@ function startWorkout(){
 function renderWoScreen(){
   document.getElementById('wo-name').textContent=session.routineName;
   const body=document.getElementById('wo-body'); body.innerHTML='';
-  session.exercises.forEach((ex,ei)=>{
-    const card=document.createElement('div');
-    card.className='ex-card'; card.id='exc-'+ei;
-    let rows='';
-    for(let s=0;s<ex.sets;s++){
-      rows+=`<div class="set-row" id="sr-${ei}-${s}">
-        <span class="set-n">${s+1}</span>
-        <div class="set-field-wrap">
-          <span class="set-field-lbl">kg</span>
-          <div class="stepper">
-            <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',-2.5)">&#8722;</button>
-            <input class="set-inp" type="number" inputmode="decimal" id="w-${ei}-${s}" value="${ex.actualWeight[s]||''}" placeholder="0" onchange="updSet(${ei},${s},'w',this.value)">
-            <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',2.5)">&#43;</button>
-          </div>
+
+  function makeSetRow(ei,s,ex){
+    return `<div class="set-row" id="sr-${ei}-${s}">
+      <span class="set-n">${s+1}</span>
+      <div class="set-field-wrap">
+        <span class="set-field-lbl">kg</span>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',-2.5)">&#8722;</button>
+          <input class="set-inp" type="text" inputmode="decimal" id="w-${ei}-${s}" value="${ex.actualWeight[s]||''}" placeholder="0" onchange="updSet(${ei},${s},'w',this.value)">
+          <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',2.5)">&#43;</button>
         </div>
-        <div class="set-field-wrap">
-          <span class="set-field-lbl">reps</span>
-          <div class="stepper">
-            <button class="stepper-btn" onclick="stepVal(${ei},${s},'r',-1)">&#8722;</button>
-            <input class="set-inp" type="number" inputmode="numeric" id="r-${ei}-${s}" value="${ex.actualReps[s]||''}" placeholder="0" onchange="updSet(${ei},${s},'r',this.value)">
-            <button class="stepper-btn" onclick="stepVal(${ei},${s},'r',1)">&#43;</button>
-          </div>
+      </div>
+      <div class="set-field-wrap">
+        <span class="set-field-lbl">reps</span>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="stepVal(${ei},${s},'r',-1)">&#8722;</button>
+          <input class="set-inp" type="number" inputmode="numeric" id="r-${ei}-${s}" value="${ex.actualReps[s]||''}" placeholder="0" onchange="updSet(${ei},${s},'r',this.value)">
+          <button class="stepper-btn" onclick="stepVal(${ei},${s},'r',1)">&#43;</button>
         </div>
-        <button class="set-tick ${ex.tickedSets.includes(s)?'ticked':''}" id="t-${ei}-${s}" onclick="tickSet(${ei},${s})"><span class="tick-check">&#10003;</span><span class="pr-badge" id="pr-${ei}-${s}">PR</span></button>
-      </div>`;
+      </div>
+      <button class="set-tick ${ex.tickedSets.includes(s)?'ticked':''}" id="t-${ei}-${s}" onclick="tickSet(${ei},${s})"><span class="tick-check">&#10003;</span><span class="pr-badge" id="pr-${ei}-${s}">PR</span></button>
+    </div>`;
+  }
+
+  (session.items||session.exercises.map(e=>({type:'ex',...e}))).forEach((item,ii)=>{
+    if(item.type==='ex'||!item.type){
+      // Normal exercise — use global ei from session.exercises
+      const ei=item._ei;
+      const card=document.createElement('div');
+      card.className='ex-card'; card.id='exc-ei-'+ei;
+      let rows='';
+      for(let s=0;s<item.sets;s++) rows+=makeSetRow(ei,s,item);
+      const notesHtml=item.notes?`<div class="ex-card-notes">${item.notes}</div>`:'';
+      const lastHtml=item.lastHistory?`<div class="ex-card-last">&#8617; Last: ${item.lastHistory}</div>`:'';
+      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name">${item.name}</div>${notesHtml}<div class="ex-card-meta">${item.sets}×${item.reps} · ${item.rest}s rest</div>${lastHtml}</div><div class="ex-sets">${rows}</div>`;
+      body.appendChild(card);
+    } else if(item.type==='ss'){
+      // Superset block
+      const block=document.createElement('div');
+      block.className='ss-block'; block.id='ssb-'+ii;
+      const exNames=item.exercises.map((e,i)=>String.fromCharCode(65+i)+'. '+e.name).join(' · ');
+      let inner=`<div class="ss-block-hd"><span class="ss-block-lbl">Superset</span><span class="ss-block-meta">${item.exercises.length} exercises · ${item.rounds} rounds</span></div>`;
+      for(let r=0;r<item.rounds;r++){
+        const ticked=item.tickedRounds.includes(r);
+        let exRows='';
+        item.exercises.forEach((ex,e)=>{
+          const ei=ex._ei;
+          const isLast=e===item.exercises.length-1;
+          exRows+=`<div class="ss-ex-row">
+            <span class="ss-ex-lbl">${String.fromCharCode(65+e)}</span>
+            <div class="set-field-wrap">
+              <span class="set-field-lbl">kg</span>
+              <div class="stepper">
+                <button class="stepper-btn" onclick="stepVal(${ei},${r},'w',-2.5)">&#8722;</button>
+                <input class="set-inp" type="text" inputmode="decimal" id="w-${ei}-${r}" value="${ex.actualWeight[r]||''}" placeholder="0" onchange="updSet(${ei},${r},'w',this.value)">
+                <button class="stepper-btn" onclick="stepVal(${ei},${r},'w',2.5)">&#43;</button>
+              </div>
+            </div>
+            <div class="set-field-wrap">
+              <span class="set-field-lbl">reps</span>
+              <div class="stepper">
+                <button class="stepper-btn" onclick="stepVal(${ei},${r},'r',-1)">&#8722;</button>
+                <input class="set-inp" type="number" inputmode="numeric" id="r-${ei}-${r}" value="${ex.actualReps[r]||''}" placeholder="0" onchange="updSet(${ei},${r},'r',this.value)">
+                <button class="stepper-btn" onclick="stepVal(${ei},${r},'r',1)">&#43;</button>
+              </div>
+            </div>
+            ${isLast
+              ? `<button class="set-tick ${ticked?'ticked':''}" id="sst-${ii}-${r}" onclick="tickSSRound(${ii},${r})"><span class="tick-check">&#10003;</span><span class="pr-badge" id="sspr-${ii}-${r}"></span></button>`
+              : `<span></span>`}
+          </div>`;
+        });
+        inner+=`<div class="ss-round" id="ssr-blk-${ii}-${r}">
+          <div class="ss-round-hd"><span class="ss-round-num">Round ${r+1}</span></div>
+          <div class="ss-ex-rows">${exRows}</div>
+        </div>`;
+      }
+      block.innerHTML=inner;
+      body.appendChild(block);
     }
-    const notesHtml=ex.notes?`<div class="ex-card-notes">${ex.notes}</div>`:'';
-    const lastHtml=ex.lastHistory?`<div class="ex-card-last">&#8617; Last: ${ex.lastHistory}</div>`:'';
-    card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name">${ex.name}</div>${notesHtml}<div class="ex-card-meta">${ex.sets}×${ex.reps} · ${ex.rest}s rest</div>${lastHtml}</div><div class="ex-sets">${rows}</div>`;
-    body.appendChild(card);
   });
+
   updProgress();
-  // Re-apply card done/active state and PR badges
-  session.exercises.forEach((ex,ei)=>{
-    const card=document.getElementById('exc-'+ei);
-    if(!card) return;
-    const done=ex.tickedSets.length===ex.sets;
-    card.classList.toggle('done',done);
-    card.classList.toggle('active',!done&&ex.tickedSets.length>0);
+  // Re-apply done/active states
+  (session.items||[]).forEach((item,ii)=>{
+    if(item.type==='ex'||!item.type){
+      const ei=item._ei;
+      const card=document.getElementById('exc-ei-'+ei);
+      if(!card) return;
+      const done=item.tickedSets.length===item.sets;
+      card.classList.toggle('done',done);
+      card.classList.toggle('active',!done&&item.tickedSets.length>0);
+    } else if(item.type==='ss'){
+      const block=document.getElementById('ssb-'+ii);
+      if(!block) return;
+      block.classList.toggle('done',item.tickedRounds.length===item.rounds);
+    }
   });
 }
 
 function updSet(ei,si,t,v){
-  if(t==='w'){session.exercises[ei].actualWeight[si]=parseFloat(v)||0;checkPR(ei,si);}
+  if(t==='w'){session.exercises[ei].actualWeight[si]=parseKg(v);checkPR(ei,si);}
   if(t==='r') session.exercises[ei].actualReps[si]=parseInt(v)||0;
 
   saveSession();
 }
 function stepVal(ei,si,t,delta){
   const inp=document.getElementById((t==='w'?'w':'r')+'-'+ei+'-'+si);
-  let cur=parseFloat(inp.value)||0;
+  let cur=parseKg(inp.value);
   let next=Math.round((cur+delta)*100)/100;
   if(next<0) next=0;
   inp.value=next;
   updSet(ei,si,t,next);
 }
+
+function parseKg(v){ return parseFloat(String(v).replace(',','.').trim())||0; }
 
 function checkPR(ei,si){
   const ex=session.exercises[ei];
@@ -1871,7 +1950,7 @@ function tickSet(ei,si){
   if(_restMinimized && restRem > 0) return;
   const ex=session.exercises[ei];
   const btn=document.getElementById('t-'+ei+'-'+si);
-  session.exercises[ei].actualWeight[si]=parseFloat(document.getElementById('w-'+ei+'-'+si).value)||0;
+  session.exercises[ei].actualWeight[si]=parseKg(document.getElementById('w-'+ei+'-'+si).value);
   session.exercises[ei].actualReps[si]=parseInt(document.getElementById('r-'+ei+'-'+si).value)||0;
   if(ex.tickedSets.includes(si)){
     ex.tickedSets=ex.tickedSets.filter(s=>s!==si);
@@ -1880,19 +1959,73 @@ function tickSet(ei,si){
     ex.tickedSets.push(si);
     btn.classList.add('ticked');
     checkPR(ei,si);
-    const lastSetEx=si===ex.sets-1,lastEx=ei===session.exercises.length-1;
+    const lastSetEx=si===ex.sets-1, lastEx=ei===session.exercises.length-1;
     if(!(lastSetEx&&lastEx)) startRest(ex.rest,ei,si);
   }
   updProgress(); saveSession();
-  const card=document.getElementById('exc-'+ei);
-  const done=ex.tickedSets.length===ex.sets;
-  card.classList.toggle('done',done);
-  card.classList.toggle('active',!done&&ex.tickedSets.length>0);
+  const card=document.getElementById('exc-ei-'+ei);
+  if(card){
+    const done=ex.tickedSets.length===ex.sets;
+    card.classList.toggle('done',done);
+    card.classList.toggle('active',!done&&ex.tickedSets.length>0);
+  }
+}
+
+function tickSSRound(ii,r){
+  if(_restMinimized && restRem > 0) return;
+  const ssItem=session.items[ii];
+  if(!ssItem||ssItem.type!=='ss') return;
+  const btn=document.getElementById('sst-'+ii+'-'+r);
+  // Read current input values into each exercise in this round
+  ssItem.exercises.forEach(ex=>{
+    const ei=ex._ei;
+    ex.actualWeight[r]=parseKg((document.getElementById('w-'+ei+'-'+r)||{}).value||'');
+    ex.actualReps[r]=parseInt((document.getElementById('r-'+ei+'-'+r)||{}).value)||0;
+    if(!ex.tickedSets.includes(r)) ex.tickedSets.push(r);
+  });
+  if(ssItem.tickedRounds.includes(r)){
+    // Untick: remove round and untick all exercises in this round
+    ssItem.tickedRounds=ssItem.tickedRounds.filter(x=>x!==r);
+    ssItem.exercises.forEach(ex=>{ ex.tickedSets=ex.tickedSets.filter(s=>s!==r); });
+    if(btn) btn.classList.remove('ticked');
+  } else {
+    ssItem.tickedRounds.push(r);
+    if(btn) btn.classList.add('ticked');
+    // Check PR for each exercise
+    ssItem.exercises.forEach(ex=>{
+      const ei=ex._ei;
+      checkPR(ei,r);
+    });
+    // Fire rest after each completed round (not after the last round of the last SS block)
+    const isLastRound=r===ssItem.rounds-1;
+    const isLastItem=ii===session.items.length-1;
+    if(!(isLastRound&&isLastItem)){
+      // Use the SS rest time; pass ei of last exercise in group for label
+      const lastEx=ssItem.exercises[ssItem.exercises.length-1];
+      const lastEi=lastEx._ei;
+      startRest(ssItem.rest, lastEi, r);
+    }
+    // Mark block done
+    const block=document.getElementById('ssb-'+ii);
+    if(block) block.classList.toggle('done', ssItem.tickedRounds.length===ssItem.rounds);
+  }
+  updProgress(); saveSession();
 }
 
 function updProgress(){
-  const total=session.exercises.reduce((a,e)=>a+e.sets,0);
-  const done=session.exercises.reduce((a,e)=>a+e.tickedSets.length,0);
+  let total=0, done=0;
+  if(session.items){
+    session.items.forEach(item=>{
+      if(item.type==='ss'){
+        total+=item.rounds; done+=item.tickedRounds.length;
+      } else {
+        total+=item.sets; done+=item.tickedSets.length;
+      }
+    });
+  } else {
+    total=session.exercises.reduce((a,e)=>a+e.sets,0);
+    done=session.exercises.reduce((a,e)=>a+e.tickedSets.length,0);
+  }
   document.getElementById('prog-txt').textContent=done+' / '+total;
   document.getElementById('prog-fill').style.width=(done/total*100)+'%';
   document.getElementById('btn-finish').classList.toggle('ready',done===total);
@@ -2158,14 +2291,49 @@ function delRoutine(id){
 
 function openRoutineModal(editId){
   const editing=editId?db.routines.find(r=>r.id===editId):null;
-  // Migrate old format → new: each item is {type:'ex',...} or {type:'ss',...}
-  function migrateEx(re){
-    if(re.type==='ex'||re.type==='ss') return re;
-    const rows=[];
-    for(let s=0;s<(re.sets||1);s++) rows.push({kg:re.weight||0, reps:re.reps||10});
-    return {type:'ex', id:re.id, setRows:rows, rest:re.rest||getDefaultRest(re.id)};
+  // Build items array: group consecutive ssGroup exercises into type:'ss' blocks
+  function buildItems(exercises){
+    const result=[];
+    let i=0;
+    while(i<exercises.length){
+      const re=exercises[i];
+      // Already typed (shouldn't happen but safe)
+      if(re.type==='ex'||re.type==='ss'){result.push(re);i++;continue;}
+      if(re.ssGroup){
+        // Collect all consecutive with same ssGroup
+        const gid=re.ssGroup;
+        const gExs=[];
+        while(i<exercises.length && exercises[i].ssGroup===gid){
+          gExs.push(exercises[i]); i++;
+        }
+        // Reconstruct sets matrix: sets[round][exIdx] = {kg,reps}
+        const rounds=gExs[0].setRows?gExs[0].setRows.length:(gExs[0].sets||3);
+        const sets=[];
+        for(let r=0;r<rounds;r++){
+          const row=[];
+          gExs.forEach(ex=>{
+            const sr=ex.setRows&&ex.setRows[r];
+            row.push({kg:sr?sr.kg:(ex.weight||0), reps:sr?sr.reps:(ex.reps||10)});
+          });
+          sets.push(row);
+        }
+        const rest=gExs[gExs.length-1].ssGroupRest||gExs[gExs.length-1].rest||90;
+        result.push({type:'ss', exercises:gExs.map(ex=>({id:ex.id,reps:ex.reps||10})), sets, rest});
+      } else {
+        // Normal exercise
+        if(re.setRows&&re.setRows.length){
+          result.push({type:'ex', id:re.id, setRows:re.setRows, rest:re.rest||getDefaultRest(re.id)});
+        } else {
+          const rows=[];
+          for(let s=0;s<(re.sets||1);s++) rows.push({kg:re.weight||0, reps:re.reps||10});
+          result.push({type:'ex', id:re.id, setRows:rows, rest:re.rest||getDefaultRest(re.id)});
+        }
+        i++;
+      }
+    }
+    return result;
   }
-  let items=editing?JSON.parse(JSON.stringify(editing.exercises)).map(migrateEx):[];
+  let items=editing?buildItems(JSON.parse(JSON.stringify(editing.exercises))):[];
   function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 
   function buildExSelect(exId, onchangeStr, idStr){
@@ -2185,7 +2353,7 @@ function openRoutineModal(editId){
     const setRowsHtml=re.setRows.map((sr,si)=>`
       <div class="eb-set-row" id="ebr-${i}-${si}">
         <span class="eb-set-num">${si+1}</span>
-        <input class="eb-set-inp" type="number" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].setRows[${si}].kg=parseFloat(this.value)||0">
+        <input class="eb-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].setRows[${si}].kg=parseKg(this.value)">
         <input class="eb-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].setRows[${si}].reps=parseInt(this.value)||0">
         <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set">✕</button>
       </div>`).join('');
@@ -2193,8 +2361,8 @@ function openRoutineModal(editId){
       <div class="ex-builder" id="exb-${i}">
         <div class="eb-hd">
           ${buildExSelect(re.id, `mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value);`, `eid-${i}`)}
-          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?'style="visibility:hidden"':''}>↑</button>
-          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?'style="visibility:hidden"':''}>↓</button>
+          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}>↑</button>
+          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}>↓</button>
           <button class="btn-ico del" onclick="rmItem(${i})">✕</button>
         </div>
         <div class="eb-sets-head">
@@ -2228,7 +2396,7 @@ function openRoutineModal(editId){
         const canDel=rounds>1 && e===0;
         rowsHtml+=`<div class="ss-set-row" id="ssr-${i}-${r}-${e}">
           <span class="ss-set-exlbl">${String.fromCharCode(65+e)}</span>
-          <input class="ss-set-inp" type="number" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].sets[${r}][${e}].kg=parseFloat(this.value)||0">
+          <input class="ss-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].sets[${r}][${e}].kg=parseKg(this.value)">
           <input class="ss-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].sets[${r}][${e}].reps=parseInt(this.value)||0">
           ${canDel?`<button class="eb-set-del" onclick="rmSSRound(${i},${r})" title="Remove round">✕</button>`:'<span></span>'}
         </div>`;
@@ -2244,8 +2412,8 @@ function openRoutineModal(editId){
       <div class="ss-builder" id="exb-${i}">
         <div class="ss-builder-hd">
           <span class="ss-builder-lbl">Superset</span>
-          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?'style="visibility:hidden"':''}>↑</button>
-          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?'style="visibility:hidden"':''}>↓</button>
+          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}>↑</button>
+          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}>↓</button>
           <button class="ss-builder-add-ex" onclick="addSSEx(${i})">+ Exercise</button>
           <button class="ss-builder-rm" onclick="rmItem(${i})">✕</button>
         </div>
@@ -2333,31 +2501,6 @@ function openRoutineModal(editId){
     const name=document.getElementById('rn-inp').value.trim();
     if(!name){alert('Name your routine.');return;}
     if(!items.length){alert('Add at least one exercise.');return;}
-    items.forEach((re,i)=>{
-      if(re.type==='ex'){
-        const eid=document.getElementById('eid-'+i);
-        const rest=document.getElementById('ebrest-'+i);
-        if(eid) re.id=eid.value;
-        if(rest) re.rest=parseInt(rest.value)||60;
-        re.setRows.forEach((sr,si)=>{
-          const kg=document.querySelector(`#ebr-${i}-${si} .eb-set-inp:first-of-type`);
-          const rp=document.querySelector(`#ebr-${i}-${si} .eb-set-inp:last-of-type`);
-          if(kg) sr.kg=parseFloat(kg.value)||0;
-          if(rp) sr.reps=parseInt(rp.value)||0;
-        });
-      } else if(re.type==='ss'){
-        const rest=document.getElementById('ebrest-'+i);
-        if(rest) re.rest=parseInt(rest.value)||60;
-        re.sets.forEach((round,r)=>{
-          round.forEach((sr,e)=>{
-            const kg=document.querySelector(`#ssr-${i}-${r}-${e} .ss-set-inp:first-of-type`);
-            const rp=document.querySelector(`#ssr-${i}-${r}-${e} .ss-set-inp:last-of-type`);
-            if(kg) sr.kg=parseFloat(kg.value)||0;
-            if(rp) sr.reps=parseInt(rp.value)||0;
-          });
-        });
-      }
-    });
     const exercises=[];
     items.forEach(re=>{
       if(re.type==='ex'){
@@ -2600,7 +2743,7 @@ function saveExNotes(exId, val){
 function saveExWeight(exId, type, val){
   if(!db.lastWeights[exId]) db.lastWeights[exId]={sets:[],weight:0,reps:0,history:''};
   const lw=db.lastWeights[exId];
-  if(type==='w') lw.weight=parseFloat(val)||0;
+  if(type==='w') lw.weight=parseKg(val);
   if(type==='r') lw.reps=parseInt(val)||0;
   lw.history=(lw.weight===0?'BW':lw.weight+'kg')+' · '+lw.reps;
   saveDB();
@@ -2613,7 +2756,7 @@ function saveExSetWeight(exId, setIdx, type, val){
   const lw=db.lastWeights[exId];
   if(!lw.sets) lw.sets=[];
   if(!lw.sets[setIdx]) lw.sets[setIdx]={weight:0,reps:0};
-  if(type==='w') lw.sets[setIdx].weight=parseFloat(val)||0;
+  if(type==='w') lw.sets[setIdx].weight=parseKg(val);
   if(type==='r') lw.sets[setIdx].reps=parseInt(val)||0;
   // rebuild summary
   const allSameW=lw.sets.every(s=>s.weight===lw.sets[0].weight);
@@ -2664,53 +2807,67 @@ function startWorkoutWithRoutine(routineId){
 }
 
 function _startWithRoutine(rt){
-  session={
-    routineId:rt.id, routineName:rt.name, startTime:Date.now(),
-    exercises:rt.exercises.map(re=>{
-      const ex=db.exercises.find(e=>e.id===re.id)||{id:re.id,name:re.id,notes:''};
-      const key=re.id;
-      const last=db.lastWeights[key]||{};
-      // Build per-set arrays from saved history or fall back to defaults
-      const defW=last.weight!==undefined?last.weight:re.weight;
-      const defR=last.reps!==undefined?last.reps:re.reps;
-      const actualWeight=[];
-      const actualReps=[];
-      for(let s=0;s<re.sets;s++){
-        if(last.sets&&last.sets[s]){
-          actualWeight.push(last.sets[s].weight);
-          actualReps.push(last.sets[s].reps);
-        } else if(last.sets&&last.sets.length>0){
-          // More sets than last time — repeat the last saved set
-          const lastSet=last.sets[last.sets.length-1];
-          actualWeight.push(lastSet.weight);
-          actualReps.push(lastSet.reps);
-        } else {
-          actualWeight.push(defW);
-          actualReps.push(defR);
-        }
+  // Helper: build one session exercise from a routine exercise entry
+  function buildSessionEx(re){
+    const ex=db.exercises.find(e=>e.id===re.id)||{id:re.id,name:re.id,notes:''};
+    const last=db.lastWeights[re.id]||{};
+    const defW=last.weight!==undefined?last.weight:re.weight;
+    const defR=last.reps!==undefined?last.reps:re.reps;
+    const actualWeight=[], actualReps=[];
+    for(let s=0;s<re.sets;s++){
+      if(last.sets&&last.sets[s]){
+        actualWeight.push(last.sets[s].weight);
+        actualReps.push(last.sets[s].reps);
+      } else if(last.sets&&last.sets.length>0){
+        const lastSet=last.sets[last.sets.length-1];
+        actualWeight.push(lastSet.weight);
+        actualReps.push(lastSet.reps);
+      } else {
+        actualWeight.push(defW);
+        actualReps.push(defR);
       }
-      return{
-        id:re.id, name:ex.name, notes:ex.notes||'',
-        sets:re.sets, reps:re.reps, rest:re.rest,
-        tickedSets:[],
-        actualReps,
-        actualWeight,
-        lastHistory:last.history||''
-      };
-    })
-  };
-  document.getElementById('motiv-strip').textContent=motivEnabled?getQuip(rt.name):'';
-document.getElementById('motiv-strip').style.display=motivEnabled?'':'none';
-  // Show previous session note if exists
-  const prevNote = db.lastNotes && db.lastNotes[rt.id];
-  const prevNoteEl = document.getElementById('prev-note-bar');
-  if(prevNoteEl){
-    if(prevNote){
-      prevNoteEl.textContent = '📝 Last time: "' + prevNote + '"';
-      prevNoteEl.style.display = 'block';
-    } else {
-      prevNoteEl.style.display = 'none';
     }
+    return {type:'ex', id:re.id, name:ex.name, notes:ex.notes||'',
+      sets:re.sets, reps:re.reps, rest:re.rest,
+      tickedSets:[], actualReps, actualWeight, lastHistory:last.history||''};
+  }
+
+  // Build session items: group consecutive same-ssGroup exercises into ss blocks
+  const items=[];
+  let i=0;
+  while(i<rt.exercises.length){
+    const re=rt.exercises[i];
+    if(!re.ssGroup){
+      items.push(buildSessionEx(re));
+      i++;
+    } else {
+      // Collect all consecutive exercises with same ssGroup
+      const gid=re.ssGroup;
+      const gExs=[];
+      while(i<rt.exercises.length && rt.exercises[i].ssGroup===gid){
+        gExs.push(buildSessionEx(rt.exercises[i]));
+        i++;
+      }
+      // rounds = sets count (all exercises in group share same sets count)
+      const rounds=gExs[0].sets;
+      const rest=gExs[gExs.length-1].rest||90; // rest is on last exercise of group
+      items.push({type:'ss', groupId:gid, exercises:gExs, rounds, rest, tickedRounds:[]});
+    }
+  }
+
+  session={routineId:rt.id, routineName:rt.name, startTime:Date.now(), items};
+  // Build flat session.exercises with stable ei indices
+  const flatExs=items.flatMap(it=>it.type==='ss'?it.exercises:[it]);
+  flatExs.forEach((ex,idx)=>{ ex._ei=idx; });
+  session.exercises=flatExs;
+
+  document.getElementById('motiv-strip').textContent=motivEnabled?getQuip(rt.name):'';
+  document.getElementById('motiv-strip').style.display=motivEnabled?'':'none';
+  const prevNote=db.lastNotes&&db.lastNotes[rt.id];
+  const prevNoteEl=document.getElementById('prev-note-bar');
+  if(prevNoteEl){
+    if(prevNote){prevNoteEl.textContent='📝 Last time: "'+prevNote+'"';prevNoteEl.style.display='block';}
+    else prevNoteEl.style.display='none';
   }
   renderWoScreen();
   showScreen('workout');
