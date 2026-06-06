@@ -221,7 +221,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .sched-row{background:var(--panel);border:1px solid var(--line);padding:11px 16px;display:flex;align-items:center;gap:12px;}
 .sched-row.now{border-left:2px solid var(--gold);}
 .sched-num{font-size:9px;color:#888888;letter-spacing:2px;min-width:18px;text-align:right;font-weight:600;}
-.sched-name{flex:1;font-size:13px;letter-spacing:2px;font-weight:500;color:#d0d0d0;}
+.sched-name{flex:1;font-size:13px;letter-spacing:2px;font-weight:500;color:#d0d0d0;text-transform:uppercase;}
 .sched-badge{font-size:7px;letter-spacing:3px;color:var(--void);background:var(--gold);padding:3px 6px;font-weight:700;text-transform:uppercase;}
 .log-item{background:var(--panel);border:1px solid var(--line);}
 .log-hd{padding:11px 14px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;}
@@ -578,7 +578,7 @@ input, select, textarea {
 }
 
 /* ── MODAL ── */
-.modal { max-height: 85vh; max-height: 85dvh; border-radius: 0; }
+.modal { max-height: 100vh; max-height: 100dvh; border-radius: 0; }
 #modal-overlay { padding: 0; align-items: flex-end; }
 .modal { border-bottom: none; }
 
@@ -644,8 +644,8 @@ input, select, textarea {
 
   .eb-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
 
-  #modal-overlay { padding: 16px; align-items: center; }
-  .modal { border-radius: 0; border-bottom: 1px solid var(--line2); max-height: 90vh; }
+  #modal-overlay { padding: 0; align-items: stretch; }
+  .modal { border-radius: 0; border-bottom: 1px solid var(--line2); max-height: 100vh; max-height: 100dvh; height: 100%; }
 
   .set-row { grid-template-columns: 22px 1fr 1fr 44px; gap: 8px; }
 }
@@ -1166,25 +1166,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
     </div>
 
     <!-- DATA -->
-    <div class="settings-section-label">Experience</div>
-    <div class="settings-group">
-      <div class="settings-row">
-        <div class="settings-row-left">
-          <div class="settings-row-icon">💬</div>
-          <div>
-            <div class="settings-row-title">Motivational Messages</div>
-            <div class="settings-row-sub" id="motiv-sub">Quotes &amp; humor on</div>
-          </div>
-        </div>
-        <div class="theme-toggle" id="motiv-toggle" onclick="toggleMotiv()">
-          <div class="theme-toggle-track" id="motiv-track">
-            <div class="theme-toggle-thumb" id="motiv-thumb"></div>
-          </div>
-          <span class="theme-toggle-label" id="motiv-label">ON</span>
-        </div>
-      </div>
-    </div>
-
     <div class="settings-section-label">Data</div>
     <div class="settings-group">
       <div class="settings-row" onclick="exportData()" style="cursor:pointer;">
@@ -1306,101 +1287,91 @@ function getQuip(n){const name=(n||'').toLowerCase();for(const[k,a]of Object.ent
 //  DEFAULT DATA  (Alan's baseline from docx)
 // ═══════════════════════════════════════════
 const DEFAULT_EXERCISES=[
-  // ── LEGS (compound first, then isolation) ──
   {id:"e01",name:"Squats",muscle:"Legs",notes:"90º depth"},
-  {id:"e02",name:"Romanian Deadlifts",muscle:"Legs",notes:"Chest: OUT · Stance: SHOULDER · Hands: OUTSIDE"},
+  {id:"e61",name:"Bulgarian Split Squats",muscle:"Legs",notes:""},
+  {id:"e62",name:"Hack Squats",muscle:"Legs",notes:""},
   {id:"e06",name:"Leg Press",muscle:"Legs",notes:""},
+  {id:"e02",name:"Romanian Deadlifts",muscle:"Legs",notes:"Chest: OUT · Stance: SHOULDER · Hands: OUTSIDE"},
+  {id:"e36",name:"Deadlifts",muscle:"Legs",notes:""},
   {id:"e03",name:"Hip Thrusts",muscle:"Legs",notes:""},
   {id:"e04",name:"Leg Extensions",muscle:"Legs",notes:"Respaldo: 1 · Rodilla: IN · Pies: HIGH"},
+  {id:"e35",name:"Lying Leg Curls",muscle:"Legs",notes:""},
+  {id:"e77",name:"Sitting Leg Curls",muscle:"Legs",notes:""},
   {id:"e07",name:"Leg Curls (Unilateral)",muscle:"Legs",notes:""},
   {id:"e08",name:"Adductors",muscle:"Legs",notes:""},
   {id:"e32",name:"Abductors (Glutes)",muscle:"Legs",notes:""},
   {id:"e09",name:"Glute Kickbacks",muscle:"Legs",notes:""},
-  {id:"e05",name:"Haka Calf Raises",muscle:"Legs",notes:"Hombros: 7"},
-  // ── CHEST ──
-  {id:"e10",name:"Bench Press",muscle:"Chest",notes:""},
-  {id:"e11",name:"Incline Bench",muscle:"Chest",notes:"30º · Nip height"},
-  {id:"e13",name:"Chest Fly Machine",muscle:"Chest",notes:"Position: 5 · Seat: Low"},
-  {id:"e14",name:"Cable Chest",muscle:"Chest",notes:"Position: 20"},
-  {id:"e60",name:"Dumbbell Chest Fly",muscle:"Chest",notes:""},
-  // ── SHOULDERS ──
-  {id:"e15",name:"Face Pulls",muscle:"Shoulders",notes:"Position: 13 · Elbows: UP · Elbows: OUT"},
-  {id:"e16",name:"Shoulder Press",muscle:"Shoulders",notes:"67.5º"},
-  {id:"e12",name:"Lateral Raises",muscle:"Shoulders",notes:""},
-  {id:"e70",name:"Rear Delt Fly",muscle:"Shoulders",notes:""},
-  {id:"e71",name:"Front Raises",muscle:"Shoulders",notes:""},
-  {id:"e72",name:"Upright Rows",muscle:"Shoulders",notes:""},
-  // ── BACK ──
-  {id:"e24",name:"Pull-Ups",muscle:"Back",notes:"Weighted"},
-  {id:"e23",name:"Barbell Rows",muscle:"Back",notes:"Elbows 45º OUT"},
-  {id:"e20",name:"Pulldowns",muscle:"Back",notes:"Position: 2"},
-  {id:"e21",name:"Chest Supported Rows",muscle:"Back",notes:"Position: 4 · Seat: UP"},
-  {id:"e25",name:"Chest Supported Rows (Unilateral)",muscle:"Back",notes:""},
-  {id:"e22",name:"One-Arm Cable Pullover",muscle:"Back",notes:"Rest: 60''"},
-  {id:"e26",name:"Low Cable Rows (Unilateral)",muscle:"Back",notes:""},
-  // ── BICEPS ──
-  {id:"e27",name:"Preacher Curls",muscle:"Biceps",notes:""},
-  {id:"e28",name:"Declined Dumbbell Curls",muscle:"Biceps",notes:"37.5º"},
-  {id:"e29",name:"Dumbbell Curls",muscle:"Biceps",notes:"Drop set"},
-  {id:"e30",name:"Cable Curls",muscle:"Biceps",notes:"Position: 11 · Chest: OUT · Elbows: FIXED"},
-  // ── TRICEPS ──
-  {id:"e17",name:"Pushdown W",muscle:"Triceps",notes:"Position: 1"},
-  {id:"e18",name:"Overhead Cable Extensions",muscle:"Triceps",notes:"Position: 11"},
-  {id:"e19",name:"Dips",muscle:"Triceps",notes:"Bodyweight"},
-  {id:"e33",name:"Cable Pushdowns (Unilateral)",muscle:"Triceps",notes:""},
-  {id:"e34",name:"Overhead Cable Extensions (Unilateral)",muscle:"Triceps",notes:"Position: 11"},
-  // ── TRAPS ──
-  {id:"e31",name:"Shrugs",muscle:"Back",notes:"Rest: 30''"},
-  // ── LEGS (new) ──
-  {id:"e35",name:"Leg Curls",muscle:"Legs",notes:""},
-  {id:"e36",name:"Deadlifts",muscle:"Legs",notes:""},
-  {id:"e37",name:"Calf Raises",muscle:"Legs",notes:""},
-  {id:"e38",name:"Calf Raises (Unilateral)",muscle:"Legs",notes:""},
-  {id:"e39",name:"Haka Calf Raises (Unilateral)",muscle:"Legs",notes:"Hombros: 7"},
-  {id:"e61",name:"Bulgarian Split Squats",muscle:"Legs",notes:""},
-  {id:"e62",name:"Hack Squats",muscle:"Legs",notes:""},
   {id:"e63",name:"Walking Lunges",muscle:"Legs",notes:""},
   {id:"e64",name:"Lunges",muscle:"Legs",notes:""},
-  // ── CHEST (new) ──
+  {id:"e37",name:"Calf Raises",muscle:"Legs",notes:""},
+  {id:"e38",name:"Calf Raises (Unilateral)",muscle:"Legs",notes:""},
+  {id:"e05",name:"Haka Calf Raises",muscle:"Legs",notes:"Hombros: 7"},
+  {id:"e39",name:"Haka Calf Raises (Unilateral)",muscle:"Legs",notes:"Hombros: 7"},
+  {id:"e10",name:"Bench Press",muscle:"Chest",notes:""},
   {id:"e40",name:"Dumbbell Bench Press",muscle:"Chest",notes:""},
+  {id:"e11",name:"Incline Bench",muscle:"Chest",notes:"30º · Nip height"},
   {id:"e41",name:"Dumbbell Incline Press",muscle:"Chest",notes:""},
-  {id:"e42",name:"Push-Ups",muscle:"Chest",notes:""},
   {id:"e65",name:"Decline Bench Press",muscle:"Chest",notes:""},
+  {id:"e13",name:"Chest Fly Machine",muscle:"Chest",notes:"Position: 5 · Seat: Low"},
+  {id:"e60",name:"Dumbbell Chest Fly",muscle:"Chest",notes:""},
+  {id:"e14",name:"Cable Chest",muscle:"Chest",notes:"Position: 20"},
   {id:"e66",name:"Cable Crossover",muscle:"Chest",notes:""},
-  // ── BACK (new) ──
-  {id:"e43",name:"Dumbbell Row (Unilateral)",muscle:"Back",notes:""},
+  {id:"e42",name:"Push-Ups",muscle:"Chest",notes:""},
+  {id:"e24",name:"Pull-Ups",muscle:"Back",notes:"Weighted"},
+  {id:"e20",name:"Pulldowns",muscle:"Back",notes:"Position: 2"},
+  {id:"e23",name:"Barbell Rows",muscle:"Back",notes:"Elbows 45º OUT"},
+  {id:"e21",name:"Chest Supported Rows",muscle:"Back",notes:"Position: 4 · Seat: UP"},
+  {id:"e25",name:"Chest Supported Rows (Unilateral)",muscle:"Back",notes:""},
   {id:"e67",name:"Seated Cable Rows",muscle:"Back",notes:""},
+  {id:"e26",name:"Low Cable Rows (Unilateral)",muscle:"Back",notes:""},
+  {id:"e43",name:"Dumbbell Row (Unilateral)",muscle:"Back",notes:""},
   {id:"e68",name:"T-Bar Rows",muscle:"Back",notes:""},
+  {id:"e22",name:"One-Arm Cable Pullover",muscle:"Back",notes:"Rest: 60''"},
+  {id:"e31",name:"Shrugs",muscle:"Back",notes:"Rest: 30''"},
   {id:"e69",name:"Hyperextensions",muscle:"Back",notes:""},
-  // ── BICEPS (new) ──
-  
-  {id:"e45",name:"Hammer Curls",muscle:"Biceps",notes:""},
-  {id:"e46",name:"Incline Dumbbell Curls",muscle:"Biceps",notes:""},
-  {id:"e47",name:"Concentration Curls",muscle:"Biceps",notes:""},
-  {id:"e73",name:"Barbell Curls",muscle:"Biceps",notes:""},
-  // ── TRICEPS (new) ──
+  {id:"e16",name:"Dumbbell Shoulder Press",muscle:"Shoulders",notes:"67.5º"},
+  {id:"e75",name:"Military Shoulder Press",muscle:"Shoulders",notes:""},
+  {id:"e76",name:"Machine Shoulder Press",muscle:"Shoulders",notes:""},
+  {id:"e12",name:"Lateral Raises",muscle:"Shoulders",notes:""},
+  {id:"e71",name:"Front Raises",muscle:"Shoulders",notes:""},
+  {id:"e72",name:"Upright Rows",muscle:"Shoulders",notes:""},
+  {id:"e70",name:"Rear Delt Fly",muscle:"Shoulders",notes:""},
+  {id:"e15",name:"Face Pulls",muscle:"Shoulders",notes:"Position: 13 · Elbows: UP · Elbows: OUT"},
+  {id:"e18",name:"Overhead Cable Extensions",muscle:"Triceps",notes:"Position: 11"},
+  {id:"e34",name:"Overhead Cable Extensions (Unilateral)",muscle:"Triceps",notes:"Position: 11"},
+  {id:"e17",name:"Pushdown W",muscle:"Triceps",notes:"Position: 1"},
+  {id:"e33",name:"Cable Pushdowns (Unilateral)",muscle:"Triceps",notes:""},
+  {id:"e19",name:"Dips",muscle:"Triceps",notes:"Bodyweight"},
   {id:"e48",name:"Skull Crushers",muscle:"Triceps",notes:""},
   {id:"e49",name:"Tricep Kickbacks",muscle:"Triceps",notes:""},
   {id:"e50",name:"Diamond Push-Ups",muscle:"Triceps",notes:""},
-  // ── CORE ──
+  {id:"e29",name:"Dumbbell Curls",muscle:"Biceps",notes:"Drop set"},
+  {id:"e73",name:"Barbell Curls",muscle:"Biceps",notes:""},
+  {id:"e30",name:"Cable Curls",muscle:"Biceps",notes:"Position: 11 · Chest: OUT · Elbows: FIXED"},
+  {id:"e45",name:"Hammer Curls",muscle:"Biceps",notes:""},
+  {id:"e46",name:"Incline Dumbbell Curls",muscle:"Biceps",notes:""},
+  {id:"e27",name:"Preacher Curls",muscle:"Biceps",notes:""},
+  {id:"e28",name:"Declined Dumbbell Curls",muscle:"Biceps",notes:"37.5º"},
+  {id:"e47",name:"Concentration Curls",muscle:"Biceps",notes:""},
   {id:"e51",name:"Plank",muscle:"Core",notes:""},
   {id:"e52",name:"Crunches",muscle:"Core",notes:""},
+  {id:"e56",name:"Russian Twists",muscle:"Core",notes:""},
   {id:"e53",name:"Leg Raises",muscle:"Core",notes:""},
+  {id:"e57",name:"Hanging Leg Raises",muscle:"Core",notes:""},
   {id:"e54",name:"Cable Crunches",muscle:"Core",notes:""},
   {id:"e55",name:"Ab Wheel",muscle:"Core",notes:""},
-  {id:"e56",name:"Russian Twists",muscle:"Core",notes:""},
-  {id:"e57",name:"Hanging Leg Raises",muscle:"Core",notes:""},
   {id:"e58",name:"Superman Plank",muscle:"Core",notes:""},
-  {id:"e74",name:"Side Plank",muscle:"Core",notes:""},
+  {id:"e74",name:"Side Plank",muscle:"Core",notes:""}
 ];
 
+
 const DEFAULT_ROUTINES=[
-  {id:"r01",name:"Leg Day 1",exercises:[{id:"e01",sets:3,reps:8,weight:40,rest:150},{id:"e02",sets:3,reps:8,weight:40,rest:150},{id:"e03",sets:3,reps:8,weight:30,rest:90},{id:"e04",sets:3,reps:11,weight:85,rest:90},{id:"e05",sets:3,reps:10,weight:90,rest:60}]},
-  {id:"r02",name:"Leg Day 2",exercises:[{id:"e01",sets:3,reps:8,weight:40,rest:150},{id:"e06",sets:3,reps:10,weight:65,rest:150},{id:"e07",sets:3,reps:10,weight:30,rest:90},{id:"e08",sets:3,reps:15,weight:75,rest:90},{id:"e09",sets:3,reps:8,weight:35,rest:90},{id:"e39",sets:3,reps:10,weight:90,rest:60}]},
-  {id:"r03",name:"Push Day 1",exercises:[{id:"e10",sets:3,reps:8,weight:37.5,rest:150},{id:"e11",sets:3,reps:10,weight:25,rest:90},{id:"e12",sets:3,reps:10,weight:15,rest:90},{id:"e15",sets:3,reps:10,weight:55,rest:90},{id:"e33",sets:3,reps:10,weight:75,rest:90},{id:"e34",sets:3,reps:10,weight:40,rest:90}]},
-  {id:"r04",name:"Push Day 2",exercises:[{id:"e10",sets:3,reps:8,weight:37.5,rest:150},{id:"e13",sets:3,reps:11,weight:95,rest:90},{id:"e16",sets:3,reps:8,weight:27.5,rest:90},{id:"e12",sets:3,reps:10,weight:15,rest:90},{id:"e19",sets:3,reps:13,weight:0,rest:90},{id:"e18",sets:3,reps:10,weight:40,rest:90}]},
-  {id:"r05",name:"Pull Day 1",exercises:[{id:"e24",sets:3,reps:8,weight:15,rest:150},{id:"e23",sets:4,reps:10,weight:20,rest:90},{id:"e29",sets:3,reps:10,weight:17.5,rest:90},{id:"e30",sets:3,reps:8,weight:25,rest:90},{id:"e31",sets:3,reps:20,weight:40,rest:60}]},
-  {id:"r06",name:"Pull Day 2",exercises:[{id:"e20",sets:3,reps:9,weight:70,rest:90},{id:"e21",sets:3,reps:12,weight:90,rest:90},{id:"e22",sets:3,reps:10,weight:25,rest:60},{id:"e27",sets:3,reps:10,weight:14,rest:90},{id:"e28",sets:4,reps:10,weight:10,rest:90},{id:"e31",sets:3,reps:20,weight:40,rest:60}]},
+  {id:"r01",name:"Leg Day 1",exercises:[{id:"e01",sets:3,reps:8,weight:0,rest:150},{id:"e02",sets:3,reps:8,weight:0,rest:150},{id:"e03",sets:3,reps:8,weight:0,rest:90},{id:"e04",sets:3,reps:8,weight:0,rest:90},{id:"e37",sets:3,reps:8,weight:0,rest:60}]},
+  {id:"r02",name:"Leg Day 2",exercises:[{id:"e01",sets:3,reps:8,weight:0,rest:150},{id:"e06",sets:3,reps:8,weight:0,rest:150},{id:"e35",sets:3,reps:8,weight:0,rest:90},{id:"e08",sets:3,reps:8,weight:0,rest:90},{id:"e09",sets:3,reps:8,weight:0,rest:90},{id:"e37",sets:3,reps:8,weight:0,rest:60}]},
+  {id:"r03",name:"Push Day 1",exercises:[{id:"e10",sets:3,reps:8,weight:0,rest:150},{id:"e11",sets:3,reps:8,weight:0,rest:90},{id:"e12",sets:3,reps:8,weight:0,rest:90},{id:"e15",sets:3,reps:8,weight:0,rest:90},{id:"e33",sets:3,reps:8,weight:0,rest:90},{id:"e34",sets:3,reps:8,weight:0,rest:90}]},
+  {id:"r04",name:"Push Day 2",exercises:[{id:"e10",sets:3,reps:8,weight:0,rest:150},{id:"e13",sets:3,reps:8,weight:0,rest:90},{id:"e16",sets:3,reps:8,weight:0,rest:90},{id:"e12",sets:3,reps:8,weight:0,rest:90},{id:"e19",sets:3,reps:8,weight:0,rest:90},{id:"e18",sets:3,reps:8,weight:0,rest:90}]},
+  {id:"r05",name:"Pull Day 1",exercises:[{id:"e24",sets:3,reps:8,weight:0,rest:150},{id:"e23",sets:3,reps:8,weight:0,rest:90},{id:"e29",sets:3,reps:8,weight:0,rest:90},{id:"e30",sets:3,reps:8,weight:0,rest:90},{id:"e31",sets:3,reps:8,weight:0,rest:60}]},
+  {id:"r06",name:"Pull Day 2",exercises:[{id:"e20",sets:3,reps:8,weight:0,rest:90},{id:"e21",sets:3,reps:8,weight:0,rest:90},{id:"e22",sets:3,reps:8,weight:0,rest:60},{id:"e27",sets:3,reps:8,weight:0,rest:90},{id:"e28",sets:3,reps:8,weight:0,rest:90},{id:"e31",sets:3,reps:8,weight:0,rest:60}]},
 ];
 
 const DEFAULT_LAST_WEIGHTS={
@@ -1464,6 +1435,38 @@ function saveDB() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(db)); } catch(e) {}
 }
 
+// ── SESSION PERSISTENCE ──
+function saveSession(){
+  if(!session) return;
+  try{
+    const snap={session:JSON.parse(JSON.stringify(session)),restRem:restRem,restEndTime:restEndTime};
+    localStorage.setItem('alans_active_session', JSON.stringify(snap));
+  }catch(e){}
+}
+function clearSession(){
+  try{localStorage.removeItem('alans_active_session');}catch(e){}
+}
+function restoreSession(){
+  try{
+    const raw=localStorage.getItem('alans_active_session');
+    if(!raw) return false;
+    const snap=JSON.parse(raw);
+    if(!snap||!snap.session) return false;
+    session=snap.session;
+    renderWoScreen();
+    showScreen('workout');
+    startElapsed();
+    if(snap.restEndTime&&snap.restEndTime>Date.now()){
+      restRem=Math.ceil((snap.restEndTime-Date.now())/1000);
+      restEndTime=snap.restEndTime;
+      document.getElementById('rest-overlay').classList.add('active');
+      updRestDisp();
+      restInt=setInterval(restTick,250);
+    }
+    return true;
+  }catch(e){return false;}
+}
+
 function loadDB() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -1483,13 +1486,44 @@ function loadDB() {
   db = JSON.parse(JSON.stringify(DEFAULT_DB));
 }
 
-function exportBackup() {
-  const b = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+function exportData() {
+  // Collect everything needed for a full migration
+  let settings = {};
+  try { settings = JSON.parse(localStorage.getItem('alans_settings') || '{}'); } catch(e) {}
+
+  const backup = {
+    exportDate: new Date().toISOString(),
+    appVersion: 'v1',
+    // ── Core data ──
+    exercises:   db.exercises,       // exercise catalogue with notes
+    routines:    db.routines,        // all workout routines (exercises, sets, reps, rest)
+    schedule:    db.schedule,        // rotation order
+    schedulePos: db.schedulePos,     // current position in rotation
+    // ── History & progress ──
+    workoutLog:  db.workoutLog,      // full session log (date, duration, sets, weights)
+    lastWeights: db.lastWeights,     // last weight/reps per exercise (per set)
+    allTimePRs:  db.allTimePRs,      // personal records per exercise
+    lastNotes:   db.lastNotes,       // post-workout notes per routine
+    // ── Preferences ──
+    settings: {
+      theme:        settings.lightMode ? 'light' : 'dark',
+      accent:       settings.accent    || 'Gold',
+      motivEnabled: settings.motivEnabled !== false,
+      lang:         settings.lang      || 'en',
+    },
+  };
+
+  const json = JSON.stringify(backup, null, 2);
+  const b = new Blob([json], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(b);
-  a.download = 'alans-workout-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = "alans-workout-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 }
+
+function exportBackup() { exportData(); } // alias
 
 function importBackup() {
   const inp = document.createElement('input');
@@ -1528,7 +1562,7 @@ function showScreen(id){
 // ═══════════════════════════════════════════
 //  GLOBALS
 // ═══════════════════════════════════════════
-let motivEnabled = true;
+let motivEnabled = false;
 
 // ═══════════════════════════════════════════
 //  MOTIV TOGGLE
@@ -1556,6 +1590,29 @@ function applyMotiv(enabled, save) {
   document.querySelectorAll('.motiv-strip').forEach(el => el.style.display = enabled ? '' : 'none');
   if (save) saveSettings();
 }
+
+
+// ── WAKE LOCK — keep screen on during rest timer ──
+let _wakeLock = null;
+
+async function restWakeLockOn() {
+  if (!('wakeLock' in navigator)) return; // not supported
+  try {
+    _wakeLock = await navigator.wakeLock.request('screen');
+  } catch(e) {}
+}
+function restWakeLockOff() {
+  if (_wakeLock) {
+    _wakeLock.release().catch(()=>{});
+    _wakeLock = null;
+  }
+}
+// Re-acquire wake lock if page becomes visible again (iOS releases it on background)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && restRem > 0 && restEndTime > 0) {
+    restWakeLockOn();
+  }
+});
 
 function renderHome(){
   document.getElementById('home-tagline').textContent=motivEnabled?pick(TAGLINES):'';
@@ -1642,6 +1699,8 @@ function renderWoScreen(){
 function updSet(ei,si,t,v){
   if(t==='w'){session.exercises[ei].actualWeight[si]=parseFloat(v)||0;checkPR(ei,si);}
   if(t==='r') session.exercises[ei].actualReps[si]=parseInt(v)||0;
+
+  saveSession();
 }
 function stepVal(ei,si,t,delta){
   const inp=document.getElementById((t==='w'?'w':'r')+'-'+ei+'-'+si);
@@ -1677,7 +1736,7 @@ function tickSet(ei,si){
     const lastSetEx=si===ex.sets-1,lastEx=ei===session.exercises.length-1;
     if(!(lastSetEx&&lastEx)) startRest(ex.rest,ei,si);
   }
-  updProgress();
+  updProgress(); saveSession();
   const card=document.getElementById('exc-'+ei);
   const done=ex.tickedSets.length===ex.sets;
   card.classList.toggle('done',done);
@@ -1702,6 +1761,7 @@ function startRest(secs,ei,si){
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
   restInt = setInterval(restTick, 250);
+  restWakeLockOn(); // keep screen on during rest
   // Reset skip button state
   const skipBtn = document.getElementById('rest-skip-btn');
   if (skipBtn) { skipBtn.textContent = 'Skip'; skipBtn.classList.remove('go'); }
@@ -1722,6 +1782,7 @@ function restTick(){
     restRem = 0;
     updRestDisp(); // show GO button
     beep();
+    restWakeLockOff(); // screen can sleep now
     // Show banner if app in background when timer ends
     if (document.hidden) showRestDoneBanner && showRestDoneBanner();
   }
@@ -1744,7 +1805,8 @@ function updRestDisp(){
   }
 }
 
-function skipRest(){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();}
+function skipRest(){clearInterval(restInt);document.getElementById('rest-overlay').classList.remove('active');beep();
+  restWakeLockOff();}
 function addRestTime(s){
   restRem = Math.max(1, restRem + s);
   restEndTime = Date.now() + restRem * 1000;
@@ -1764,6 +1826,7 @@ function startElapsed(){
     if(!session) return;
     const s=Math.floor((Date.now()-session.startTime)/1000);
     document.getElementById('wo-elapsed').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+    if(s%5===0) saveSession(); // auto-save every 5s
   },1000);
 }
 
@@ -1777,12 +1840,14 @@ function confirmQuit(yes){
   clearInterval(restInt);
   document.getElementById('rest-overlay').classList.remove('active');
   session=null;
+  clearSession();
   showScreen('home');
 }
 
 // ── FINISH & SAVE ──
 function finishWorkout(){
   clearInterval(elTimer);clearInterval(restInt);
+  clearSession();
   document.getElementById('rest-overlay').classList.remove('active');
 
   const dur=Math.floor((Date.now()-session.startTime)/1000);
@@ -1929,7 +1994,7 @@ function openRoutineModal(editId){
       <div class="ex-builder">
         <div class="eb-hd">
           <select class="form-inp sm" style="flex:1;margin-right:7px" onchange="mExs[${i}].id=this.value; const ri=document.getElementById('ex-'+${i}); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value);" id="eid-${i}">
-            ${db.exercises.map(e=>`<option value="${e.id}"${e.id===re.id?' selected':''}>${e.name}</option>`).join('')}
+            ${(()=>{const muscles=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core'];let h='';muscles.forEach(m=>{h+=`<optgroup label="${m} Exercises">`;db.exercises.filter(e=>e.muscle===m).forEach(e=>{h+=`<option value="${e.id}"${e.id===re.id?' selected':''}>${e.name}</option>`;});h+='</optgroup>';});return h;})()}
           </select>
           <button class="btn-ico del" onclick="rmEx(${i})">✕</button>
         </div>
@@ -2817,7 +2882,9 @@ document.getElementById('finish-note').addEventListener('blur', updateNote);
 let db = null;
 loadDB();
 loadSettings();
-showScreen('home');
+if(!restoreSession()){
+  showScreen('home');
+}
 
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
