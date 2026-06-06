@@ -1938,10 +1938,17 @@ function parseKg(v){ return parseFloat(String(v).replace(',','.').trim())||0; }
 function checkPR(ei,si){
   const ex=session.exercises[ei];
   const w=ex.actualWeight[si];
-  const cur=db.allTimePRs[ex.id];
   const badge=document.getElementById('pr-'+ei+'-'+si);
   if(!badge) return;
-  badge.classList.toggle('show',w>0&&(!cur||w>cur.weight));
+  // Best known weight: use allTimePRs if available, else max from lastWeights sets
+  const cur=db.allTimePRs[ex.id];
+  const lw=db.lastWeights[ex.id];
+  let best=null;
+  if(cur && typeof cur.weight==='number') best=cur.weight;
+  else if(lw && lw.sets && lw.sets.length) best=Math.max(...lw.sets.map(s=>s.weight||0));
+  else if(lw && typeof lw.weight==='number') best=lw.weight;
+  // Only show badge if we have a known previous best AND current weight strictly beats it
+  badge.classList.toggle('show', best!==null && w>best);
 }
 
 let restInt=null, restRem=0, restEndTime=0;
@@ -2032,6 +2039,7 @@ function updProgress(){
 }
 
 function startRest(secs,ei,si){
+  if(!secs || secs<=0) return; // don't open rest overlay for 0s rest (e.g. SS exercises)
   clearInterval(restInt);
   restRem = secs;
   restEndTime = Date.now() + secs * 1000;
