@@ -1583,7 +1583,15 @@ function restoreSession(){
       restEndTime = snap.restEndTime;
       _restMinimized = false;
       const ov = document.getElementById('rest-overlay');
-      if(ov){ ov.style.transform=''; ov.classList.add('active'); }
+      if(ov){
+        ov.style.transition = 'none';
+        ov.style.transform = '';
+        ov.classList.remove('minimized');
+        // Force reflow so transition doesn't fire on next frame
+        void ov.offsetHeight;
+        ov.style.transition = '';
+        ov.classList.add('active');
+      }
       updRestDisp();
       restInt = setInterval(restTick, 250);
     } else {
@@ -1781,6 +1789,7 @@ function getNextRoutine(){
 //  WORKOUT SESSION
 // ═══════════════════════════════════════════
 let session=null, elTimer=null;
+let _restMinimized = false;
 
 function startWorkout(){
   const rt=getNextRoutine(); if(!rt) return;
@@ -1829,8 +1838,6 @@ function renderWoScreen(){
     const done=ex.tickedSets.length===ex.sets;
     card.classList.toggle('done',done);
     card.classList.toggle('active',!done&&ex.tickedSets.length>0);
-    // Re-check PRs for ticked sets
-    ex.tickedSets.forEach(si=>checkPR(ei,si));
   });
 }
 
@@ -1872,6 +1879,7 @@ function tickSet(ei,si){
   } else {
     ex.tickedSets.push(si);
     btn.classList.add('ticked');
+    checkPR(ei,si);
     const lastSetEx=si===ex.sets-1,lastEx=ei===session.exercises.length-1;
     if(!(lastSetEx&&lastEx)) startRest(ex.rest,ei,si);
   }
@@ -2185,6 +2193,8 @@ function openRoutineModal(editId){
       <div class="ex-builder" id="exb-${i}">
         <div class="eb-hd">
           ${buildExSelect(re.id, `mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value);`, `eid-${i}`)}
+          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?'style="visibility:hidden"':''}>↑</button>
+          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?'style="visibility:hidden"':''}>↓</button>
           <button class="btn-ico del" onclick="rmItem(${i})">✕</button>
         </div>
         <div class="eb-sets-head">
@@ -2234,6 +2244,8 @@ function openRoutineModal(editId){
       <div class="ss-builder" id="exb-${i}">
         <div class="ss-builder-hd">
           <span class="ss-builder-lbl">Superset</span>
+          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?'style="visibility:hidden"':''}>↑</button>
+          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?'style="visibility:hidden"':''}>↓</button>
           <button class="ss-builder-add-ex" onclick="addSSEx(${i})">+ Exercise</button>
           <button class="ss-builder-rm" onclick="rmItem(${i})">✕</button>
         </div>
@@ -2283,6 +2295,7 @@ function openRoutineModal(editId){
     rdr();
   };
   window.rmItem=function(i){items.splice(i,1);rdr();};
+  window.moveItem=function(i,d){const j=i+d;if(j<0||j>=items.length)return;[items[i],items[j]]=[items[j],items[i]];rdr();};
   window.addSet=function(i){
     const rows=items[i].setRows;
     const last=rows.length?rows[rows.length-1]:{kg:0,reps:10};
@@ -3233,7 +3246,6 @@ document.addEventListener('visibilitychange', () => {
 
 
 // ── REST OVERLAY MINIMIZE (Spotify-style) ──
-let _restMinimized = false;
 
 function restExpand() {
   _restMinimized = false;
