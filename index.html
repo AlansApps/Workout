@@ -111,6 +111,14 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .ex-card-header{padding:11px 16px 9px;border-bottom:1px solid var(--line);}
 .ex-card-name{font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:2px;color:#ffffff;text-transform:uppercase;}
 .ex-card-notes{font-size:10px;color:#b0b0b0;letter-spacing:1px;margin-top:2px;font-style:italic;}
+.wo-notes-row{display:flex;align-items:center;gap:6px;margin-top:2px;min-height:18px;}
+.wo-notes-text{font-size:10px;color:#b0b0b0;letter-spacing:1px;font-style:italic;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.wo-notes-btn{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 4px;flex-shrink:0;line-height:1;opacity:.6;transition:opacity .15s;}
+.wo-notes-btn:hover{opacity:1;color:var(--gold);}
+.wo-notes-inp{width:100%;background:var(--lift);border:1px solid var(--line2);color:var(--text);padding:4px 7px;font-family:var(--body);font-size:10px;font-style:italic;border-radius:var(--r);outline:none;flex:1;}
+.wo-notes-inp:focus{border-color:var(--gold3);}
+.light-mode .wo-notes-inp{background:#e8e8e8;border-color:#ccc;color:#222;}
+.light-mode .wo-notes-text{color:#777;}
 .ex-card-meta{font-size:9px;color:#909090;letter-spacing:2px;font-weight:500;margin-top:3px;}
 .ex-card-last{font-size:10px;color:var(--gold);letter-spacing:1px;margin-top:3px;}
 .ex-sets{padding:9px 16px 12px;display:flex;flex-direction:column;gap:7px;}
@@ -1858,9 +1866,9 @@ function renderWoScreen(){
       card.className='ex-card'; card.id='exc-ei-'+ei;
       let rows='';
       for(let s=0;s<item.sets;s++) rows+=makeSetRow(ei,s,item);
-      const notesHtml=item.notes?`<div class="ex-card-notes">${item.notes}</div>`:'';
+      const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="Edit notes">&#9998;</button></div>`;
       const lastHtml=item.lastHistory?`<div class="ex-card-last">&#8617; Last: ${item.lastHistory}</div>`:'';
-      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name">${item.name}</div>${notesHtml}<div class="ex-card-meta">${item.sets}×${item.reps} · ${item.rest}s rest</div>${lastHtml}</div><div class="ex-sets">${rows}</div>`;
+      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name">${item.name}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
       body.appendChild(card);
     } else if(item.type==='ss'){
       // Superset block
@@ -1923,6 +1931,32 @@ function renderWoScreen(){
       block.classList.toggle('done',item.tickedRounds.length===item.rounds);
     }
   });
+}
+
+function editWoNote(ei){
+  const row=document.getElementById('wo-notes-'+ei);
+  if(!row) return;
+  const ex=session.exercises[ei];
+  const cur=ex.notes||'';
+  row.innerHTML=`<input class="wo-notes-inp" id="wo-notes-inp-${ei}" value="${cur.replace(/"/g,'&quot;')}" placeholder="Add notes..." maxlength="200"><button class="wo-notes-btn" onclick="saveWoNote(${ei})" title="Save">&#10003;</button>`;
+  const inp=document.getElementById('wo-notes-inp-'+ei);
+  inp.focus();
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveWoNote(ei);}});
+  inp.addEventListener('blur',function(){setTimeout(()=>saveWoNote(ei),150);});
+}
+function saveWoNote(ei){
+  const inp=document.getElementById('wo-notes-inp-'+ei);
+  if(!inp) return;
+  const val=inp.value.trim();
+  const ex=session.exercises[ei];
+  ex.notes=val;
+  // Also save to db.exercises so it persists across sessions
+  const dbEx=db.exercises.find(e=>e.id===ex.id);
+  if(dbEx){dbEx.notes=val;saveDB();}
+  // Re-render the notes row
+  const row=document.getElementById('wo-notes-'+ei);
+  if(row) row.innerHTML=`<span class="wo-notes-text">${val}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="Edit notes">&#9998;</button>`;
+  saveSession();
 }
 
 function updSet(ei,si,t,v){
