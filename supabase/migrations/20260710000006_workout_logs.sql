@@ -23,13 +23,17 @@
 create table public.workout_logs (
   id                uuid primary key default gen_random_uuid(),
   user_id           uuid not null references auth.users (id) on delete cascade,
+  client_id         text check (char_length(client_id) <= 50),
   routine_id        uuid references public.routines (id) on delete set null,
   routine_name      text not null check (char_length(routine_name) <= 100),
   performed_at      timestamptz not null default now(),
   duration_seconds  smallint not null,
-  note              text not null default '' check (char_length(note) <= 1000)
+  note              text not null default '' check (char_length(note) <= 1000),
+
+  unique (user_id, client_id)
 );
 
+comment on column public.workout_logs.client_id is 'The local app''s own log entry id (a base36 timestamp). Lets the sync layer tell "already uploaded this session" apart from "new session" without guessing from date/duration — nullable because it only exists for logs that originated on a client device.';
 comment on column public.workout_logs.routine_id is 'Nullable: a routine can be deleted later without deleting its workout history.';
 comment on column public.workout_logs.duration_seconds is 'smallint caps at ~9.1 hours, comfortably above any real workout session.';
 
