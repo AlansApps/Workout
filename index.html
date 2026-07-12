@@ -51,7 +51,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .hero-eyebrow{font-size:8px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;font-weight:600;}
 .hero-name{font-family:var(--hd);font-size:28px;font-weight:700;letter-spacing:3px;color:var(--bright);line-height:1;margin-bottom:6px;text-transform:uppercase;}
 .hero-meta{font-size:11px;color:#a0a0a0;letter-spacing:2px;font-weight:500;margin-bottom:10px;}
-.hero-quip{font-size:11px;color:#b8b8b8;font-style:italic;line-height:1.5;padding-top:10px;border-top:1px solid var(--line);}
 .hero-arrow{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:20px;opacity:.6;}
 
 .last-card{background:var(--panel);border:1px solid var(--line);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;}
@@ -78,7 +77,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .wo-elapsed{font-size:10px;color:#888888;letter-spacing:3px;font-weight:600;}
 .btn-quit{background:none;border:1px solid var(--line2);color:var(--muted);padding:6px 10px;font-family:var(--body);font-size:9px;letter-spacing:2px;font-weight:600;cursor:pointer;transition:all .15s;text-transform:uppercase;border-radius:var(--r);}
 .btn-quit:hover{border-color:var(--danger);color:var(--danger);}
-.motiv-strip{background:var(--deep);border-bottom:1px solid var(--line);padding:7px 18px;text-align:center;font-size:10px;color:var(--gold);letter-spacing:2px;font-style:italic;}
 .wo-progress{background:var(--panel);border-bottom:1px solid var(--line);padding:9px 18px;display:flex;align-items:center;gap:12px;}
 .wo-prog-txt{font-size:9px;color:var(--dim);letter-spacing:3px;font-weight:600;white-space:nowrap;text-transform:uppercase;}
 .prog-track{flex:1;height:1px;background:var(--line2);}
@@ -186,7 +184,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .rest-lbl{font-size:9px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;font-weight:600;}
 .rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color, rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft, rgba(212,168,67,.15));transition:color .3s;}
 .rest-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);animation:pulse .8s infinite;}
-.rest-quip-txt{font-size:11px;color:var(--dim);font-style:italic;text-align:center;padding:0 36px;max-width:300px;line-height:1.6;}
 .rest-nxt{font-size:9px;color:var(--muted);letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;}
 .rest-btns{display:flex;gap:10px;margin-top:6px;}
 .btn-ghost{background:none;border:1px solid var(--line2);color:var(--dim);padding:10px 18px;font-family:var(--body);font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .15s;border-radius:var(--r);}
@@ -212,7 +209,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .finish-logo svg{width:100%;height:100%;filter:drop-shadow(0 0 12px rgba(212,168,67,.8)) drop-shadow(0 0 28px rgba(212,168,67,.3));}
 .finish-headline{font-family:var(--hd);font-size:42px;font-weight:900;letter-spacing:4px;color:var(--bright);line-height:1;text-transform:uppercase;}
 .finish-sub{font-family:var(--hd);font-size:10px;font-weight:400;letter-spacing:6px;color:var(--gold);text-transform:uppercase;}
-.finish-quote{font-size:13px;color:#c0c0c0;font-style:italic;max-width:300px;line-height:1.7;}
 .finish-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:300px;}
 .stat-tile{background:var(--panel);border:1px solid var(--line2);padding:12px;}
 .stat-n{font-family:var(--hd);font-size:26px;font-weight:700;color:var(--gold);letter-spacing:1px;}
@@ -485,7 +481,6 @@ body.light-mode .ex-edit-field{background:#eeeeee;border-color:#ccc;color:#111;}
 body.light-mode .stepper-btn{background:#e0e0e0;border-color:#ccc;color:#333;}
 /* Hero card */
 body.light-mode .hero-card{background:#fff;border-color:#ddd;}
-body.light-mode .hero-quip{color:#555;}
 body.light-mode .hero-meta{color:#666;}
 body.light-mode .hero-eyebrow{color:var(--gold3);}
 /* Exercise card */
@@ -494,8 +489,6 @@ body.light-mode .ex-card-notes{color:#777;}
 body.light-mode .ex-card-meta{color:#888;}
 /* Tick button in light mode */
 body.light-mode .light-mode .set-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;}
-/* Motiv strip */
-body.light-mode .motiv-strip{background:#e8e8e8;color:var(--gold3);}
 /* Progress bar */
 body.light-mode .prog-fill{box-shadow:none;}
 /* Topbar */
@@ -757,12 +750,6 @@ input, select, textarea {
 }
 
 
-/* ── MOTIV TOGGLE ── */
-#motiv-track{ background:var(--gold); border-color:var(--gold3); }
-#motiv-thumb{ transform:translateX(18px); background:#fff; }
-#motiv-label{ color:var(--gold); }
-
-
 /* ════════════════════════════════════
    FIRST-RUN PWA ONBOARDING
    Integrated from onboarding preview without duplicating the app shell.
@@ -877,7 +864,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .rest-lbl { color:var(--muted); }
 .light-mode .rest-time { color:var(--text); }
 .light-mode .rest-mini-time { color:var(--text); }
-.light-mode .rest-quip { color:var(--dim); }
 .light-mode #rest-skip,.light-mode #rest-plus { border-color:var(--line2); color:var(--muted); }
 .light-mode #confirm-overlay { background:var(--overlay-bg) !important; }
 .light-mode #confirm-overlay > div { background:var(--panel) !important; border-color:var(--gold) !important; }
@@ -1111,14 +1097,12 @@ body.light-mode .auth-choice-title{color:#111;}
       </button>
     </div>
   </div>
-  <div id="home-tagline" style="padding:7px 20px;background:var(--deep);border-bottom:1px solid var(--line);font-size:9px;color:#555;letter-spacing:2px;font-style:italic;text-align:center;line-height:1.5;"></div>
   <div class="home-body">
     <div class="hero-card" onclick="startWorkout()">
       <div class="hero-inner">
         <div class="hero-eyebrow">Next Session</div>
         <div id="next-name" class="hero-name">—</div>
         <div id="next-meta" class="hero-meta">—</div>
-        <div id="next-quip" class="hero-quip"></div>
       </div>
       <span class="hero-arrow">›</span>
     </div>
@@ -1143,7 +1127,6 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="wo-left"><div id="wo-name" class="wo-name">—</div><div id="wo-elapsed" class="wo-elapsed">00:00</div></div>
     <button class="btn-quit" onclick="cancelWorkout()">✕ Quit</button>
   </div>
-  <div id="motiv-strip" class="motiv-strip"></div>
   <div id="prev-note-bar" style="display:none;padding:7px 18px;background:var(--deep);border-bottom:1px solid var(--line);font-size:10px;color:#888;letter-spacing:1px;font-style:italic;line-height:1.5;"></div>
   <div class="wo-progress">
     <span class="wo-prog-txt" id="prog-txt">0 / 0</span>
@@ -1159,8 +1142,7 @@ body.light-mode .auth-choice-title{color:#111;}
 <div id="screen-finish" class="screen">
   <div class="finish-logo"><svg viewBox="0 0 40 32" fill="none"><path d="M2 4 L20 26 L38 4" stroke="#d4a843" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><path d="M2 13 L20 35 L38 13" stroke="#d4a843" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none" opacity="0.35"/></svg></div>
   <div id="fin-headline" class="finish-headline">Session Complete</div>
-  <div id="fin-sub" class="finish-sub">Session Complete</div>
-  <div id="fin-quote" class="finish-quote"></div>
+  <div id="fin-sub" class="finish-sub">Workout saved</div>
   <div class="finish-grid">
     <div class="stat-tile"><div id="st-sets" class="stat-n">0</div><div class="stat-l">Sets</div></div>
     <div class="stat-tile"><div id="st-time" class="stat-n">0:00</div><div class="stat-l">Time</div></div>
@@ -1573,7 +1555,6 @@ body.light-mode .auth-choice-title{color:#111;}
   <div id="rest-full">
     <div class="rest-lbl">Rest</div>
     <div id="rest-time" class="rest-time">0:00</div>
-    <div id="rest-quip" class="rest-quip-txt"></div>
     <div class="rest-btns">
       <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
       <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
@@ -1676,16 +1657,6 @@ body.light-mode .auth-choice-title{color:#111;}
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-//  HUMOR
-// ═══════════════════════════════════════════
-const QUIPS={leg:["Never skip leg day. NEVER.","Your legs called. They hate you. Do it anyway.","Nobody ever regretted training legs. Except everyone, every time.","Squats: because nobody looked back at a great personality.","My legs aren't shaking, they're just vibing."],push:["Push it. Push it real good.","The bar doesn't care about your feelings.","Your future self has pecs. Be that guy.","Chest day? More like best day.","The last three or four reps is what makes the muscle grow. — Arnold"],pull:["Pull like your gym membership depends on it.","Build a back wider than your excuses.","Rows, pull-ups, and existential dread. Let's go."],default:["Pain is just weakness leaving the body.","You didn't come this far to only come this far.","Sweat is just fat crying. Make it weep.","Be the person your dog thinks you are. Jacked and reliable.","Today's workout is tomorrow's bragging rights.","If it doesn't challenge you, it doesn't change you.","Your only competition is yesterday's version of you.","No one ever regretted a workout. Except during the workout.","Every rep is a vote for the person you're becoming.","The last three or four reps is what makes the muscle grow. — Arnold Schwarzenegger","Bro, are you natty?"]};
-const REST_QUIPS=["Don't sit down. Sitting is for quitters.","Your muscles are rebuilding. Respect the science.","Stay loose. Next set won't know what hit it.","Hydrate. Visualize. Dominate.","The rest is part of the workout. Alan said so.","Pro tip: breathe.","Coming up: more suffering. You're welcome.","The bar misses you already.","Yeah buddy! Lightweight baby! — Ronnie Coleman","No pain, no gain.","My muscles aren't sore, they're just surprised."];
-const FINISHES=[{h:"Beast Mode",s:"Session Complete",q:"You just did what most people only talk about."},{h:"Destroyed",s:"Mission Accomplished",q:"Your muscles are in ruins. That's exactly how they grow."},{h:"King",s:"Session Complete",q:"Another one in the books. The iron remembers."},{h:"Launched",s:"Well Done Alan",q:"You showed up. You worked hard. You're ahead of 90% of humanity."},{h:"Charged",s:"Gains Incoming",q:"Gains incoming. ETA: 48 hours. Eat protein."},{h:"Champion",s:"Session Complete",q:"Champions are built in sessions exactly like this one."},{h:"Unstoppable",s:"Great Work",q:"Pain is temporary. Your gains are forever. Also your shake is warm."},{h:"Locked In",s:"Discipline Wins",q:"Disciplined people don't wait to feel motivated. You just proved that."},{h:"Yeah Buddy",s:"Lightweight Baby",q:"Everybody wants to be a bodybuilder, but nobody wants to lift no heavy-ass weights. — Ronnie Coleman"},{h:"Dedicated",s:"Session Complete",q:"Obsession is a word the lazy use to describe the dedicated. — CT Fletcher"},{h:"Warmed Up",s:"That Was Nothing",q:"That's nothing, I warmed up with that."},{h:"No Therapy",s:"Just More Sets",q:"I don't need therapy, I need more sets."}];
-const TAGLINES=["No pain, no gain — Alan's law.","The weights won't lift themselves.","Built different. One rep at a time.","Today's soreness is tomorrow's strength.","Excuses don't build muscle.","Come in a boy, leave a man. Or just very sweaty.","The bar is waiting.","Your body can. Your mind must.","I don't do this to be healthy, I do this to get big muscles. — Jay Cutler","Train insane or remain the same. — Dorian Yates","Do you even lift, bro?","Rest day? My body is always resting. It's called sleeping."];
-function pick(a){return a[Math.floor(Math.random()*a.length)];}
-function getQuip(n){const name=(n||'').toLowerCase();for(const[k,a]of Object.entries(QUIPS)){if(k!=='default'&&name.includes(k))return pick(a);}return pick(QUIPS.default);}
-
 // ═══════════════════════════════════════════
 //  DEFAULT DATA  (Alan's baseline from docx)
 // ═══════════════════════════════════════════
@@ -1938,10 +1909,9 @@ function buildBackupPayload() {
     // ── Preferences ── (same light/Navy default as loadSettings() for an
     // install that never touched Settings — see that function for why)
     settings: {
-      theme:        (settings ? !!settings.lightMode : true) ? 'light' : 'dark',
-      accent:       (settings && settings.accent) || 'Navy',
-      motivEnabled: !settings || settings.motivEnabled !== false,
-      lang:         (settings && settings.lang) || 'en',
+      theme:  (settings ? !!settings.lightMode : true) ? 'light' : 'dark',
+      accent: (settings && settings.accent) || 'Navy',
+      lang:   (settings && settings.lang) || 'en',
     },
   };
 }
@@ -2001,39 +1971,6 @@ function showScreen(id){
 //  HOME
 // ═══════════════════════════════════════════
 
-// ═══════════════════════════════════════════
-//  GLOBALS
-// ═══════════════════════════════════════════
-let motivEnabled = false;
-
-// ═══════════════════════════════════════════
-//  MOTIV TOGGLE
-// ═══════════════════════════════════════════
-function toggleMotiv() {
-  motivEnabled = !motivEnabled;
-  applyMotiv(motivEnabled, true);
-}
-
-function applyMotiv(enabled, save) {
-  motivEnabled = enabled;
-  const track = document.getElementById('motiv-track');
-  const thumb = document.getElementById('motiv-thumb');
-  const label = document.getElementById('motiv-label');
-  const sub   = document.getElementById('motiv-sub');
-  if (label) label.textContent = enabled ? 'ON' : 'OFF';
-  if (sub) sub.textContent = enabled ? 'Quotes & humor on' : 'Quotes & humor off';
-  if (track) { track.style.background = enabled ? '' : '#333'; track.style.borderColor = enabled ? '' : '#444'; }
-  if (thumb) thumb.style.transform = enabled ? 'translateX(18px)' : 'translateX(0)';
-  if (label) label.style.color = enabled ? '' : 'var(--dim)';
-  const tagEl = document.querySelector('.tagline-bar');
-  if (tagEl) tagEl.style.display = enabled ? '' : 'none';
-  const quipEl = document.querySelector('.hero-quip');
-  if (quipEl) quipEl.style.display = enabled ? '' : 'none';
-  document.querySelectorAll('.motiv-strip').forEach(el => el.style.display = enabled ? '' : 'none');
-  if (save) saveSettings();
-}
-
-
 // ── WAKE LOCK — keep screen on during rest timer ──
 let _wakeLock = null;
 
@@ -2057,20 +1994,15 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function renderHome(){
-  document.getElementById('home-tagline').textContent=motivEnabled?pick(TAGLINES):'';
-  const _tb=document.querySelector('.tagline-bar');if(_tb)_tb.style.display=motivEnabled?'':'none';
   const nr=getNextRoutine();
   if(nr){
     document.getElementById('next-name').textContent=nr.name;
     const exC=nr.exercises.length,setC=nr.exercises.reduce((a,e)=>a+e.sets,0);
     document.getElementById('next-meta').textContent=exC+' exercises · '+setC+' sets';
-    document.getElementById('next-quip').textContent=motivEnabled?'"'+getQuip(nr.name)+'"':'';
-    const _qw=document.querySelector('.hero-quip');if(_qw)_qw.style.display=motivEnabled?'':'none';
     document.getElementById('btn-cta').disabled=false;
   } else {
     document.getElementById('next-name').textContent='No routine scheduled';
     document.getElementById('next-meta').textContent='Add routines and build a schedule';
-    document.getElementById('next-quip').textContent='';
     document.getElementById('btn-cta').disabled=true;
   }
   updateStreakDisplay();
@@ -2355,9 +2287,6 @@ function startRest(secs,ei,si){
   clearInterval(restInt);
   restRem = secs;
   restEndTime = Date.now() + secs * 1000;
-  const nxt=si<session.exercises[ei].sets-1?'Next: '+session.exercises[ei].name+' — Set '+(si+2):ei<session.exercises.length-1?'Next: '+session.exercises[ei+1].name:'';
-  document.getElementById('rest-quip').textContent=motivEnabled&&Math.random()<0.2?'"'+pick(REST_QUIPS)+'"':'';
-
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
   restInt = setInterval(restTick, 250);
@@ -2533,13 +2462,9 @@ function finishWorkout(){
   // users from being retroactively blocked by this cap.
   if(!currentUser) incrementGuestSessionCount();
 
-  // Stats for finish screen
+  // Stats for finish screen (headline/sub text is static in the HTML)
   const sets=entry.exercises.reduce((a,e)=>a+e.sets.length,0);
   const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.weight*s.reps),0),0);
-  const fin=pick(FINISHES);
-  document.getElementById('fin-headline').textContent=motivEnabled?fin.h:'Session Complete';
-  document.getElementById('fin-sub').textContent=motivEnabled?fin.s:'Workout saved';
-  document.getElementById('fin-quote').textContent=motivEnabled?fin.q:'';
   document.getElementById('st-sets').textContent=sets;
   document.getElementById('st-time').textContent=Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0');
   document.getElementById('st-vol').textContent=Math.round(vol);
@@ -3186,8 +3111,6 @@ function _startWithRoutine(rt){
   flatExs.forEach((ex,idx)=>{ ex._ei=idx; });
   session.exercises=flatExs;
 
-  document.getElementById('motiv-strip').textContent=motivEnabled?getQuip(rt.name):'';
-  document.getElementById('motiv-strip').style.display=motivEnabled?'':'none';
   const prevNote=db.lastNotes&&db.lastNotes[rt.id];
   const prevNoteEl=document.getElementById('prev-note-bar');
   if(prevNoteEl){
@@ -3538,13 +3461,12 @@ function loadSettings() {
 
   applyTheme(lightMode, false);
   applyAccentByName(accent, false);
-  if (s && s.motivEnabled === false) applyMotiv(false, false);
 }
 
 function saveSettings() {
   const isLight = document.body.classList.contains('light-mode');
   const accentName = document.getElementById('accent-sub')?.textContent || 'Gold';
-  localStorage.setItem('alans_settings', JSON.stringify({lightMode: isLight, accent: accentName, motivEnabled: motivEnabled}));
+  localStorage.setItem('alans_settings', JSON.stringify({lightMode: isLight, accent: accentName}));
 }
 
 function toggleTheme() {
@@ -4285,7 +4207,6 @@ async function pushLocalDataToCloud(){
     user_id: uid,
     theme: (settingsRaw ? !!settingsRaw.lightMode : true) ? 'light' : 'dark',
     accent: (settingsRaw && settingsRaw.accent) || 'Navy',
-    motiv_enabled: !settingsRaw || settingsRaw.motivEnabled !== false,
     lang: (settingsRaw && settingsRaw.lang) || 'en',
     schedule: db.schedule || [],
     schedule_pos: db.schedulePos || 0,
@@ -4420,9 +4341,9 @@ async function pullCloudDataToLocal(){
     db.lastNotes = s.last_notes || {};
     try{
       localStorage.setItem('alans_settings', JSON.stringify({
-        lightMode: s.theme === 'light', accent: s.accent, motivEnabled: s.motiv_enabled, lang: s.lang
+        lightMode: s.theme === 'light', accent: s.accent, lang: s.lang
       }));
-      loadSettings(); // re-applies theme/accent/motiv to the UI from what we just wrote
+      loadSettings(); // re-applies theme/accent to the UI from what we just wrote
     }catch(e){}
   }
 
