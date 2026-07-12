@@ -31,7 +31,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 /* ── LOGO ── */
 .logo-mark{display:flex;align-items:center;gap:14px;}
 .logo-chevron{width:32px;height:26px;flex-shrink:0;}
-.logo-chevron svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(212,168,67,.7)) drop-shadow(0 0 14px rgba(212,168,67,.3));}
+.logo-chevron svg{width:100%;height:100%;filter:drop-shadow(0 0 6px var(--glow-color, rgba(212,168,67,.7))) drop-shadow(0 0 14px var(--glow-color-soft, rgba(212,168,67,.3)));}
 .logo-text-group{display:flex;flex-direction:column;}
 .logo-name{font-family:var(--hd);font-size:17px;font-weight:700;letter-spacing:6px;color:var(--bright);line-height:1;text-transform:uppercase;}
 .logo-sub{font-family:var(--body);font-size:8px;font-weight:500;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-top:3px;}
@@ -45,7 +45,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .home-body{flex:1;padding:20px 18px;display:flex;flex-direction:column;gap:14px;}
 
 .hero-card{background:var(--panel);border:1px solid var(--line2);position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s;}
-.hero-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold2),var(--gold3));box-shadow:0 0 12px var(--gold),0 0 24px rgba(212,168,67,.3);}
+.hero-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold2),var(--gold3));box-shadow:0 0 12px var(--gold),0 0 24px var(--glow-color, rgba(212,168,67,.3));}
 .hero-card:hover{border-color:var(--muted);}
 .hero-inner{padding:20px 20px 18px 24px;}
 .hero-eyebrow{font-size:8px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;font-weight:600;}
@@ -60,7 +60,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 /* file status bar */
 
 
-.btn-cta{background:var(--gold);color:var(--void);border:none;padding:18px;font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:6px;cursor:pointer;transition:background .15s;width:100%;text-transform:uppercase;box-shadow:0 0 20px rgba(212,168,67,.2);}
+.btn-cta{background:var(--gold);color:var(--void);border:none;padding:18px;font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:6px;cursor:pointer;transition:background .15s;width:100%;text-transform:uppercase;box-shadow:0 0 20px var(--glow-color-soft, rgba(212,168,67,.2));}
 .btn-cta:active{background:var(--gold3);}
 .btn-cta:disabled{background:var(--lift);color:var(--muted);cursor:default;box-shadow:none;}
 .bottom-nav{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-top:1px solid var(--line);background:var(--panel);}
@@ -80,7 +80,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .wo-progress{background:var(--panel);border-bottom:1px solid var(--line);padding:9px 18px;display:flex;align-items:center;gap:12px;}
 .wo-prog-txt{font-size:9px;color:var(--dim);letter-spacing:3px;font-weight:600;white-space:nowrap;text-transform:uppercase;}
 .prog-track{flex:1;height:1px;background:var(--line2);}
-.prog-fill{height:1px;background:linear-gradient(90deg,var(--gold3),var(--gold2));transition:width .4s;box-shadow:0 0 6px rgba(212,168,67,.5);}
+.prog-fill{height:1px;background:linear-gradient(90deg,var(--gold3),var(--gold2));transition:width .4s;box-shadow:0 0 6px var(--glow-color, rgba(212,168,67,.5));}
 .wo-body{flex:1;padding:12px 14px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
 .ex-card{background:var(--panel);border:1px solid var(--line2);margin-bottom:10px;transition:opacity .3s,border-color .2s;}
@@ -107,7 +107,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .light-mode .ss-block-hd{background:color-mix(in srgb,var(--gold) 8%,transparent);}
 .light-mode .ss-round-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;}
 .ex-card-header{padding:11px 16px 9px;border-bottom:1px solid var(--line);}
-.ex-card-name{font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:2px;color:#ffffff;text-transform:uppercase;}
+.ex-card-name{font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:2px;color:var(--bright);text-transform:uppercase;}
 .ex-card-notes{font-size:10px;color:#b0b0b0;letter-spacing:1px;margin-top:2px;font-style:italic;}
 .wo-notes-row{display:flex;align-items:center;gap:6px;margin-top:2px;min-height:18px;}
 .wo-notes-text{font-size:10px;color:#b0b0b0;letter-spacing:1px;font-style:italic;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
@@ -139,10 +139,8 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .set-tick:hover{background:color-mix(in srgb,var(--gold) 15%,transparent);border-color:color-mix(in srgb,var(--gold) 70%,transparent);color:color-mix(in srgb,var(--gold) 80%,transparent);}
 .set-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;box-shadow:0 0 10px var(--glow-color, rgba(212,168,67,.35));}
 .tick-check{font-size:16px;}
-.pr-badge{display:none;position:absolute;top:-6px;right:-6px;background:#7c3aed;color:#fff;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 3px;border-radius:2px;line-height:1;}
-.pr-badge.show{display:block;}
-.pr-badge{font-size:8px;color:var(--pr);font-weight:700;text-align:center;opacity:0;transition:opacity .3s;line-height:1;}
-.pr-badge.show{opacity:1;}
+.pr-badge{display:none;position:absolute;top:-6px;right:-6px;background:#7c3aed;color:var(--pr);font-size:8px;font-weight:700;letter-spacing:1px;text-align:center;padding:2px 3px;border-radius:2px;line-height:1;opacity:0;transition:opacity .3s;}
+.pr-badge.show{display:block;opacity:1;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── REST SKIP/GO BUTTON ── */
@@ -193,7 +191,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 /* ── FINISH WORKOUT BUTTON ── */
 .finish-bar{padding:12px 14px;background:var(--panel);border-top:1px solid var(--line);}
 .btn-finish{width:100%;background:var(--gold);border:none;color:var(--void);padding:16px;font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:5px;cursor:pointer;transition:opacity .2s,background .15s;opacity:.25;pointer-events:none;text-transform:uppercase;box-shadow:0 0 20px rgba(212,168,67,0);}
-.btn-finish.ready{opacity:1;pointer-events:all;box-shadow:0 0 24px rgba(212,168,67,.3);}
+.btn-finish.ready{opacity:1;pointer-events:all;box-shadow:0 0 24px var(--glow-color, rgba(212,168,67,.3));}
 .btn-finish.ready:active{background:var(--gold3);}
 .btn-finish.saving{opacity:.7;pointer-events:none;}
 
@@ -206,7 +204,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 /* ── FINISH SCREEN ── */
 #screen-finish{justify-content:center;align-items:center;padding:32px 22px;text-align:center;gap:16px;}
 .finish-logo{width:52px;height:40px;}
-.finish-logo svg{width:100%;height:100%;filter:drop-shadow(0 0 12px rgba(212,168,67,.8)) drop-shadow(0 0 28px rgba(212,168,67,.3));}
+.finish-logo svg{width:100%;height:100%;filter:drop-shadow(0 0 12px var(--glow-color, rgba(212,168,67,.8))) drop-shadow(0 0 28px var(--glow-color-soft, rgba(212,168,67,.3)));}
 .finish-headline{font-family:var(--hd);font-size:42px;font-weight:900;letter-spacing:4px;color:var(--bright);line-height:1;text-transform:uppercase;}
 .finish-sub{font-family:var(--hd);font-size:10px;font-weight:400;letter-spacing:6px;color:var(--gold);text-transform:uppercase;}
 .finish-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:300px;}
@@ -221,7 +219,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .finish-save-status.saving{color:var(--gold);}
 .finish-save-status.ok{color:var(--ok);}
 .finish-save-status.err{color:var(--danger);}
-.btn-main{background:var(--gold);color:var(--void);border:none;padding:14px 36px;font-family:var(--hd);font-size:13px;font-weight:700;letter-spacing:5px;cursor:pointer;text-transform:uppercase;width:100%;max-width:300px;transition:background .15s;box-shadow:0 0 20px rgba(212,168,67,.2);}
+.btn-main{background:var(--gold);color:var(--void);border:none;padding:14px 36px;font-family:var(--hd);font-size:13px;font-weight:700;letter-spacing:5px;cursor:pointer;text-transform:uppercase;width:100%;max-width:300px;transition:background .15s;box-shadow:0 0 20px var(--glow-color-soft, rgba(212,168,67,.2));}
 .btn-main:active{background:var(--gold3);}
 .btn-main:disabled{background:var(--lift);color:var(--muted);cursor:default;box-shadow:none;}
 
@@ -245,7 +243,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .sched-row{background:var(--panel);border:1px solid var(--line);padding:11px 16px;display:flex;align-items:center;gap:12px;}
 .sched-row.now{border-left:2px solid var(--gold);}
 .sched-num{font-size:9px;color:#888888;letter-spacing:2px;min-width:18px;text-align:right;font-weight:600;}
-.sched-name{flex:1;font-size:13px;letter-spacing:2px;font-weight:500;color:#d0d0d0;text-transform:uppercase;}
+.sched-name{flex:1;font-size:13px;letter-spacing:2px;font-weight:500;color:var(--text);text-transform:uppercase;}
 .sched-badge{font-size:7px;letter-spacing:3px;color:var(--void);background:var(--gold);padding:3px 6px;font-weight:700;text-transform:uppercase;}
 .log-item{background:var(--panel);border:1px solid var(--line);}
 .log-hd{padding:11px 14px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;}
@@ -267,7 +265,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .mg-body{display:none;}
 .mg-body.open{display:block;}
 
-.ex-db-name{font-size:13px;font-weight:600;letter-spacing:1px;color:#d8d8d8;}
+.ex-db-name{font-size:13px;font-weight:600;letter-spacing:1px;color:var(--text);}
 .ex-db-notes{font-size:9px;color:#909090;font-style:italic;margin-top:2px;}
 .ex-db-pr{font-size:10px;color:var(--gold);opacity:.75;margin-top:2px;letter-spacing:1px;}
 
@@ -377,7 +375,7 @@ select.form-inp option{background:var(--panel);}
 .prog-time-pills{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
 .prog-pill{background:none;border:1px solid var(--line2);color:#666;padding:4px 10px;font-family:var(--body);font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all .15s;border-radius:1px;}
 .prog-pill:hover{border-color:#888;color:#aaa;}
-.prog-pill.active{background:rgba(212,168,67,.1);border-color:var(--gold);color:var(--gold);}
+.prog-pill.active{background:var(--glow-color-soft, rgba(212,168,67,.1));border-color:var(--gold);color:var(--gold);}
 .prog-card{background:var(--panel);border:1px solid var(--line2);margin-bottom:6px;overflow:hidden;width:100%;}
 .prog-card-hd{padding:12px 14px 10px;border-bottom:1px solid var(--line);}
 .prog-chart-wrap{padding:12px 14px 6px;position:relative;}
@@ -391,7 +389,7 @@ select.form-inp option{background:var(--panel);}
 .prog-legend-item:hover{color:#ccc;}
 .prog-legend-item.dimmed{opacity:.3;}
 .prog-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.prog-trend-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.25);padding:4px 10px;font-size:9px;color:var(--gold);letter-spacing:2px;font-weight:700;text-transform:uppercase;}
+.prog-trend-badge{display:inline-flex;align-items:center;gap:5px;background:var(--glow-color-soft, rgba(212,168,67,.08));border:1px solid var(--glow-color-soft, rgba(212,168,67,.25));padding:4px 10px;font-size:9px;color:var(--gold);letter-spacing:2px;font-weight:700;text-transform:uppercase;}
 .prog-tooltip{position:absolute;background:#1c1c1c;border:1px solid #333;padding:8px 10px;pointer-events:none;z-index:20;min-width:130px;opacity:0;transition:opacity .15s;font-family:var(--body);}
 .prog-tooltip.show{opacity:1;}
 .prog-tt-date{font-size:8px;color:#777;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
@@ -452,25 +450,21 @@ body.light-mode{
   --text:#111111;
   --bright:#000000;
 }
-/* Fix white text that becomes invisible in light mode */
-body.light-mode .ex-card-name{color:#111 !important;}
+/* Deliberate light-mode recolors (gold3 instead of the default text
+   token, for emphasis) — NOT the same thing as the block this replaced:
+   every "#111 !important" rule that used to live here was working around
+   a hardcoded near-white base color. Those bases now reference
+   var(--bright)/var(--text) directly (see .ex-card-name, .sched-name,
+   .ex-db-name and friends above), which already resolve correctly in
+   light mode on their own, so the overrides were redundant and removed
+   — along with one for .le-name, a class that no longer exists anywhere
+   in this file. */
 body.light-mode .wo-name{color:var(--gold3);}
-body.light-mode .hero-name{color:#111 !important;}
-body.light-mode .rtn-name{color:#111 !important;}
-body.light-mode .pg-title{color:#111 !important;}
-body.light-mode .modal-title{color:#111 !important;}
-body.light-mode .finish-headline{color:#111 !important;}
-body.light-mode .logo-name{color:#111 !important;}
 body.light-mode .stat-n{color:var(--gold3);}
 body.light-mode .streak-val{color:var(--gold3);}
 body.light-mode .streak-val-tier{color:var(--gold3);}
 body.light-mode .tier-name-lbl{color:var(--gold3);}
 body.light-mode .chip-num{color:var(--gold3);}
-body.light-mode .sched-name{color:#222 !important;}
-body.light-mode .log-n{color:#111 !important;}
-body.light-mode .le-name{color:#111 !important;}
-body.light-mode .ex-db-name{color:#222 !important;}
-body.light-mode .settings-row-title{color:#111 !important;}
 body.light-mode .finish-sub{color:var(--gold3);}
 body.light-mode .tier-modal-name{color:#111 !important;}
 /* Inputs */
@@ -487,8 +481,10 @@ body.light-mode .hero-eyebrow{color:var(--gold3);}
 body.light-mode .ex-card{background:#fff;border-color:#ddd;}
 body.light-mode .ex-card-notes{color:#777;}
 body.light-mode .ex-card-meta{color:#888;}
-/* Tick button in light mode */
-body.light-mode .light-mode .set-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;}
+/* Exercises list — same base gray as .ex-card-meta, same override */
+body.light-mode .ex-db-notes{color:#888;}
+/* Schedule — same base gray tier as .ex-card-meta, same override */
+body.light-mode .sched-num{color:#888;}
 /* Progress bar */
 body.light-mode .prog-fill{box-shadow:none;}
 /* Topbar */
@@ -497,9 +493,17 @@ body.light-mode .home-topbar{border-color:#ddd;}
 /* Settings */
 body.light-mode .settings-group{background:#fff;border-color:#ddd;}
 body.light-mode .theme-toggle-track{background:#ddd;}
+/* A white selection ring reads fine on the dark swatch panel but
+   disappears against the white panel/white settings-group background in
+   light mode — needs a dark ring there instead so the selected accent
+   stays visible either way. */
+body.light-mode .swatch.active{border-color:#111;box-shadow:0 0 0 1px rgba(0,0,0,.25),0 0 12px rgba(0,0,0,.12);}
 /* Log */
 body.light-mode .log-item{background:#fff;}
 body.light-mode .log-sets{color:#444;}
+body.light-mode .log-d{color:#666;}
+/* Exercise Detail — same base gray as .log-sets, same override */
+body.light-mode .history-val{color:#444;}
 /* Modal */
 body.light-mode .modal{background:#fff;}
 body.light-mode .modal-bd{color:#111;}
@@ -520,7 +524,7 @@ body.light-mode body::before{opacity:.15;}
 .streak-tier-wrap{display:flex;flex-direction:column;align-items:flex-end;}
 .streak-val-row{display:flex;align-items:center;justify-content:flex-end;gap:5px;line-height:1;}
 .tier-icon-inline{display:flex;align-items:center;line-height:1;}
-.tier-icon-inline svg{filter:drop-shadow(0 0 4px rgba(212,168,67,.5));}
+.tier-icon-inline svg{filter:drop-shadow(0 0 4px var(--glow-color, rgba(212,168,67,.5)));}
 .tier-name-lbl{font-family:var(--hd);font-size:7px;font-weight:700;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-top:2px;text-align:right;opacity:.8;}
 
 /* Tier modal */
@@ -1203,7 +1207,7 @@ body.light-mode .auth-choice-title{color:#111;}
       </div>
       <div class="prog-card">
         <div class="prog-card-hd">
-          <div id="ex-chart-title" style="font-family:var(--hd);font-size:12px;font-weight:700;letter-spacing:2px;color:#fff;text-transform:uppercase;"></div>
+          <div id="ex-chart-title" style="font-family:var(--hd);font-size:12px;font-weight:700;letter-spacing:2px;color:var(--bright);text-transform:uppercase;"></div>
           <div id="ex-chart-pr" style="font-size:10px;color:var(--gold);margin-top:3px;letter-spacing:1px;"></div>
         </div>
         <div class="prog-chart-wrap" id="ex-chart-wrap">
@@ -1232,7 +1236,7 @@ body.light-mode .auth-choice-title{color:#111;}
       </div>
       <div class="prog-card">
         <div class="prog-card-hd">
-          <div id="rt-chart-title" style="font-family:var(--hd);font-size:12px;font-weight:700;letter-spacing:2px;color:#fff;text-transform:uppercase;"></div>
+          <div id="rt-chart-title" style="font-family:var(--hd);font-size:12px;font-weight:700;letter-spacing:2px;color:var(--bright);text-transform:uppercase;"></div>
           <div id="rt-trend-badge" class="prog-trend-badge" style="margin-top:6px;display:none;"></div>
         </div>
         <div class="prog-chart-wrap" id="rt-chart-wrap">
@@ -3071,10 +3075,10 @@ function openWorkoutPicker(){
   list.innerHTML = sortedRoutines().map(r => {
     const isNext = nextRoutine && r.id === nextRoutine.id;
     const sets = r.exercises.reduce((a,e)=>a+e.sets,0);
-    return `<div onclick="startWorkoutWithRoutine('${r.id}')" style="background:${isNext?'rgba(212,168,67,0.08)':'var(--panel)'};border:1px solid ${isNext?'rgba(212,168,67,0.4)':'var(--line2)'};padding:14px 16px;cursor:pointer;transition:background .15s;border-left:${isNext?'3px solid #d4a843':'3px solid transparent'};">
+    return `<div onclick="startWorkoutWithRoutine('${r.id}')" style="background:${isNext?'var(--glow-color-soft, rgba(212,168,67,.08))':'var(--panel)'};border:1px solid ${isNext?'var(--glow-color, rgba(212,168,67,.4))':'var(--line2)'};padding:14px 16px;cursor:pointer;transition:background .15s;border-left:${isNext?'3px solid var(--gold)':'3px solid transparent'};">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="font-family:var(--hd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--text);text-transform:uppercase;">${r.name}</div>
-        ${isNext?'<span style="font-size:7px;letter-spacing:3px;color:#050505;background:#d4a843;padding:3px 7px;font-weight:700;text-transform:uppercase;">NEXT</span>':''}
+        ${isNext?'<span style="font-size:7px;letter-spacing:3px;color:var(--void);background:var(--gold);padding:3px 7px;font-weight:700;text-transform:uppercase;">NEXT</span>':''}
       </div>
       <div style="font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px;">${r.exercises.length} exercises &middot; ${sets} sets</div>
     </div>`;
@@ -3264,7 +3268,13 @@ function drawExChart(){
   const xS=i=>PL+(i/(sessions.length-1))*cW;
   const yS=w=>PT+(1-(w-minW)/span)*cH;
 
-  let html='<defs><linearGradient id="exGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d4a843" stop-opacity="0.2"/><stop offset="100%" stop-color="#d4a843" stop-opacity="0"/></linearGradient></defs>';
+  // Single-exercise progress line, unlike drawRtChart()'s multi-exercise
+  // CHART_COLORS palette — this is one line representing "your progress",
+  // so it should track the user's chosen accent color rather than a fixed
+  // hue, the same way the buttons/glows elsewhere in the app do.
+  const accent=getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#d4a843';
+
+  let html=`<defs><linearGradient id="exGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${accent}" stop-opacity="0.2"/><stop offset="100%" stop-color="${accent}" stop-opacity="0"/></linearGradient></defs>`;
 
   // Grid
   for(let i=0;i<=3;i++){
@@ -3278,14 +3288,14 @@ function drawExChart(){
   const areaPath=sessions.map((s,i)=>`${i===0?'M':'L'}${xS(i)},${yS(s.w)}`).join(' ')+` L${xS(sessions.length-1)},${PT+cH} L${xS(0)},${PT+cH} Z`;
   const linePath=sessions.map((s,i)=>`${i===0?'M':'L'}${xS(i)},${yS(s.w)}`).join(' ');
   html+=`<path d="${areaPath}" fill="url(#exGrad)"/>`;
-  html+=`<path d="${linePath}" fill="none" stroke="#d4a843" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  html+=`<path d="${linePath}" fill="none" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
 
   // Points
   sessions.forEach((s,i)=>{
     const x=xS(i),y=yS(s.w);
     const isPR=pr&&s.w>=pr.weight;
-    html+=`<circle cx="${x}" cy="${y}" r="${isPR?6:4}" fill="${isPR?'#d4a843':'#111'}" stroke="#d4a843" stroke-width="2" class="ex-dot" data-i="${i}" style="cursor:pointer;"/>`;
-    if(isPR) html+=`<text x="${x}" y="${y-9}" fill="#d4a843" font-size="9" text-anchor="middle" font-family="Rajdhani" font-weight="700">PR</text>`;
+    html+=`<circle cx="${x}" cy="${y}" r="${isPR?6:4}" fill="${isPR?accent:'#111'}" stroke="${accent}" stroke-width="2" class="ex-dot" data-i="${i}" style="cursor:pointer;"/>`;
+    if(isPR) html+=`<text x="${x}" y="${y-9}" fill="${accent}" font-size="9" text-anchor="middle" font-family="Rajdhani" font-weight="700">PR</text>`;
   });
 
   // X labels — show max 6
