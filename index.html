@@ -1493,7 +1493,7 @@ body.light-mode .auth-choice-title{color:#111;}
     </div>
     <div class="form-grp">
       <label class="form-lbl">Username</label>
-      <input class="form-inp" type="text" id="signup-username" autocomplete="username" placeholder="@handle" maxlength="30">
+      <input class="form-inp" type="text" id="signup-username" autocomplete="username" placeholder="@handle" maxlength="30" oninput="this.value=this.value.toLowerCase();">
     </div>
     <div class="form-grp">
       <label class="form-lbl">Email</label>
@@ -1517,7 +1517,7 @@ body.light-mode .auth-choice-title{color:#111;}
     </div>
     <div class="form-grp">
       <label class="form-lbl">Username</label>
-      <input class="form-inp" type="text" id="profile-username" placeholder="@handle" maxlength="30">
+      <input class="form-inp" type="text" id="profile-username" placeholder="@handle" maxlength="30" oninput="this.value=this.value.toLowerCase();">
     </div>
     <div class="auth-error" id="profile-error"></div>
     <button class="btn-cta" id="profile-submit" onclick="authCompleteProfile()">Continue</button>
