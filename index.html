@@ -1047,6 +1047,40 @@ body.light-mode .auth-choice-title{color:#111;}
      the page and call window.supabase.createClient(). -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
+<!-- Theme flash-prevention — applies the saved (or default) theme/accent
+     synchronously, before the rest of the page renders, so there's no
+     flash of the wrong colors while the main <script> block further down
+     finishes loading and calls loadSettings(). Mirrors loadSettings()'s
+     same logic and defaults (light mode, Navy accent for a brand-new
+     install with nothing saved yet) — kept tiny and self-contained on
+     purpose so it can run this early, before ACCENT_COLORS is defined. -->
+<script>
+(function(){
+  try{
+    var raw = localStorage.getItem('alans_settings');
+    var s = raw ? JSON.parse(raw) : null;
+    var light = s ? !!s.lightMode : true;
+    var accentName = (s && s.accent) || 'Navy';
+    var ACCENTS = {
+      'Gold':{gold:'#d4a843',gold2:'#f0c060',gold3:'#b8922e'},
+      'Orange':{gold:'#e8722a',gold2:'#ff8c42',gold3:'#c45a18'},
+      'Red':{gold:'#e84040',gold2:'#ff5555',gold3:'#c42020'},
+      'Rosa':{gold:'#e8529a',gold2:'#ff70b8',gold3:'#c43580'},
+      'Sky Blue':{gold:'#3a9fd4',gold2:'#58c4f0',gold3:'#2178a8'},
+      'Navy':{gold:'#4a6fa8',gold2:'#6b8fc4',gold3:'#2e4f82'},
+      'Emerald':{gold:'#2ecc71',gold2:'#4edd88',gold3:'#1aaa58'},
+      'Sage':{gold:'#7fb069',gold2:'#9ecc88',gold3:'#5d8a4a'}
+    };
+    var c = ACCENTS[accentName] || ACCENTS['Navy'];
+    if(light) document.body.classList.add('light-mode');
+    var root = document.documentElement.style;
+    root.setProperty('--gold', c.gold);
+    root.setProperty('--gold2', c.gold2);
+    root.setProperty('--gold3', c.gold3);
+  }catch(e){}
+})();
+</script>
+
 <!-- ══ HOME ══ -->
 <div id="screen-home" class="screen">
   <div class="home-topbar">
@@ -1515,6 +1549,22 @@ body.light-mode .auth-choice-title{color:#111;}
     </div>
   </div>
 
+  <!-- ── SET NEW PASSWORD (reached only via the emailed reset link) ── -->
+  <div class="auth-view" id="auth-view-reset-password">
+    <div class="pg-title" style="text-align:center;margin-bottom:8px;">Set a New Password</div>
+    <div class="auth-tagline">Choose a new password for your account.</div>
+    <div class="form-grp">
+      <label class="form-lbl">New Password</label>
+      <input class="form-inp" type="password" id="reset-password-1" autocomplete="new-password" placeholder="At least 8 characters">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Confirm Password</label>
+      <input class="form-inp" type="password" id="reset-password-2" autocomplete="new-password" placeholder="Re-enter password">
+    </div>
+    <div class="auth-error" id="reset-password-error"></div>
+    <button class="btn-cta" id="reset-password-submit" onclick="authCompletePasswordReset()">Update Password</button>
+  </div>
+
 </div>
 
 <!-- ══ REST OVERLAY ══ -->
@@ -1869,8 +1919,8 @@ function loadDB() {
 // Backup" settings button and by the automatic safety-net backup taken
 // before the auth conflict screen overwrites local or cloud data.
 function buildBackupPayload() {
-  let settings = {};
-  try { settings = JSON.parse(localStorage.getItem('alans_settings') || '{}'); } catch(e) {}
+  let settings = null;
+  try { settings = JSON.parse(localStorage.getItem('alans_settings') || 'null'); } catch(e) {}
 
   return {
     exportDate: new Date().toISOString(),
@@ -1885,12 +1935,13 @@ function buildBackupPayload() {
     lastWeights: db.lastWeights,     // last weight/reps per exercise (per set)
     allTimePRs:  db.allTimePRs,      // personal records per exercise
     lastNotes:   db.lastNotes,       // post-workout notes per routine
-    // ── Preferences ──
+    // ── Preferences ── (same light/Navy default as loadSettings() for an
+    // install that never touched Settings — see that function for why)
     settings: {
-      theme:        settings.lightMode ? 'light' : 'dark',
-      accent:       settings.accent    || 'Gold',
-      motivEnabled: settings.motivEnabled !== false,
-      lang:         settings.lang      || 'en',
+      theme:        (settings ? !!settings.lightMode : true) ? 'light' : 'dark',
+      accent:       (settings && settings.accent) || 'Navy',
+      motivEnabled: !settings || settings.motivEnabled !== false,
+      lang:         (settings && settings.lang) || 'en',
     },
   };
 }
@@ -3471,13 +3522,23 @@ const ACCENT_COLORS = {
 
 function loadSettings() {
   const saved = localStorage.getItem('alans_settings');
-  if (!saved) return;
-  try {
-    const s = JSON.parse(saved);
-    if (s.lightMode) applyTheme(true, false);
-    if (s.accent) applyAccentByName(s.accent, false);
-    if (s.motivEnabled === false) applyMotiv(false, false);
-  } catch(e) {}
+  let s = null;
+  try { s = saved ? JSON.parse(saved) : null; } catch(e) {}
+
+  // Default for a brand-new install with no saved preference yet: light
+  // mode, Navy accent (matches user_settings' column defaults for a fresh
+  // cloud account — see 20260710000009_default_theme_light_navy.sql — so
+  // a new phone and a new account both start from the same place). An
+  // inline script at the very top of <body> already applied this same
+  // default pre-paint to avoid a flash of dark/Gold on first load; this
+  // just keeps the rest of the settings UI (theme toggle label, accent
+  // swatch, etc.) in sync with whatever that script decided.
+  const lightMode = s ? !!s.lightMode : true;
+  const accent = (s && s.accent) || 'Navy';
+
+  applyTheme(lightMode, false);
+  applyAccentByName(accent, false);
+  if (s && s.motivEnabled === false) applyMotiv(false, false);
 }
 
 function saveSettings() {
@@ -3669,6 +3730,18 @@ const SUPABASE_URL = 'https://fwtkwxvgvxmbchdjagqt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_okrOBJyajqlOoTUDJ1-nqg_nP3Iioxl';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Supabase fires this event when the user lands back on the app after
+// clicking the link in a "reset your password" email — the recovery
+// token is already in the URL and Supabase has turned it into a session
+// by the time this fires. That session can only be used to set a new
+// password, so route straight to the reset-password screen rather than
+// letting bootstrapAuthGate() treat it as a normal sign-in.
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    showAuthScreen('reset-password');
+  }
+});
+
 const GUEST_SESSION_KEY = 'alans_workout_guest_sessions';
 const GUEST_SESSION_LIMIT = 5;
 const GUEST_GRANDFATHER_KEY = 'alans_workout_guest_grandfathered';
@@ -3800,8 +3873,32 @@ async function bootstrapAuthGate(){
 // ─────────────────────────────────────────────────────────────────────────
 // Sign in / sign up / OAuth
 // ─────────────────────────────────────────────────────────────────────────
+// Format check only (matches Instagram's rules: lowercase letters, digits,
+// dots and underscores, 3-30 chars, no leading/trailing/consecutive dots).
+// This mirrors the CHECK constraints on profiles.username exactly — see
+// 20260710000001_profiles.sql and 20260710000008_username_rules.sql. This
+// is a fast client-side pre-check only; the database enforces the same
+// rules regardless, so nothing relies on this function for security.
 function validateUsername(u){
-  return /^[a-z0-9._]{3,30}$/.test(u);
+  if(!/^[a-z0-9._]{3,30}$/.test(u)) return false;
+  if(u.startsWith('.') || u.endsWith('.')) return false;
+  if(u.includes('..')) return false;
+  return true;
+}
+
+// Server round-trip check against the reserved-terms list (impersonation-
+// prone words like "admin", plus whatever gets added later — see the
+// migration header for why this doesn't ship a slur list). Calls the same
+// public.is_username_allowed() function the database CHECK constraint
+// uses, so client and server can never disagree. Fails open (returns true)
+// on a network error rather than blocking signup over connectivity —
+// the database constraint is the real backstop either way.
+async function isUsernameAllowedRemote(u){
+  try{
+    const { data, error } = await supabaseClient.rpc('is_username_allowed', { candidate: u });
+    if(error) return true;
+    return data !== false;
+  }catch(e){ return true; }
 }
 
 async function authSignInWithEmail(){
@@ -3831,10 +3928,15 @@ async function authSignUpWithEmail(){
   const errEl = document.getElementById('signup-error');
   errEl.textContent='';
 
-  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only.'; return; }
+  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
   if(!email || password.length < 8){ errEl.textContent='Enter a valid email and a password of at least 8 characters.'; return; }
 
   const btn = document.getElementById('signup-submit'); btn.disabled = true;
+  if(!(await isUsernameAllowedRemote(username))){
+    errEl.textContent = 'That username isn\'t available. Try something else.';
+    btn.disabled = false;
+    return;
+  }
   try{
     const { data, error } = await supabaseClient.auth.signUp({
       email, password,
@@ -3882,6 +3984,35 @@ async function authSendPasswordReset(){
   }
 }
 
+// Completes the flow started by authSendPasswordReset(): by the time the
+// user reaches this screen, onAuthStateChange's PASSWORD_RECOVERY handler
+// has already exchanged the emailed link's token for a real (if limited)
+// session, so this is just a normal password update against that session.
+async function authCompletePasswordReset(){
+  const pw1 = document.getElementById('reset-password-1').value;
+  const pw2 = document.getElementById('reset-password-2').value;
+  const errEl = document.getElementById('reset-password-error');
+  errEl.textContent = '';
+  if(pw1.length < 8){ errEl.textContent = 'Password must be at least 8 characters.'; return; }
+  if(pw1 !== pw2){ errEl.textContent = 'Passwords don\'t match.'; return; }
+
+  const btn = document.getElementById('reset-password-submit'); btn.disabled = true;
+  try{
+    const { error } = await supabaseClient.auth.updateUser({ password: pw1 });
+    if(error) throw error;
+    const { data } = await supabaseClient.auth.getSession();
+    if(data && data.session && data.session.user){
+      await handleSignedInBoot(data.session.user);
+    } else {
+      showAuthView('signin');
+    }
+  }catch(e){
+    errEl.textContent = e.message || 'Could not update your password.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
 async function authSignOut(){
   try{ await supabaseClient.auth.signOut(); }catch(e){}
   currentUser = null;
@@ -3895,9 +4026,14 @@ async function authCompleteProfile(){
   const username = document.getElementById('profile-username').value.trim().toLowerCase().replace(/^@/,'');
   const errEl = document.getElementById('profile-error');
   errEl.textContent='';
-  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only.'; return; }
+  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
 
   const btn = document.getElementById('profile-submit'); btn.disabled = true;
+  if(!(await isUsernameAllowedRemote(username))){
+    errEl.textContent = 'That username isn\'t available. Try something else.';
+    btn.disabled = false;
+    return;
+  }
   try{
     const { error } = await supabaseClient
       .from('profiles')
@@ -4139,14 +4275,18 @@ async function pushLocalDataToCloud(){
   if(!currentUser) return;
   const uid = currentUser.id;
 
-  let settingsRaw = {};
-  try{ settingsRaw = JSON.parse(localStorage.getItem('alans_settings')||'{}'); }catch(e){}
+  // Raw localStorage read (not loadSettings(), which only *applies* saved
+  // settings to the DOM) — 'alans_settings' may not exist at all yet for a
+  // brand-new install that never touched Settings, so the same light/Navy
+  // default used everywhere else (see loadSettings()) applies here too.
+  let settingsRaw = null;
+  try{ settingsRaw = JSON.parse(localStorage.getItem('alans_settings')||'null'); }catch(e){}
   await supabaseClient.from('user_settings').upsert({
     user_id: uid,
-    theme: settingsRaw.lightMode ? 'light' : 'dark',
-    accent: settingsRaw.accent || 'Gold',
-    motiv_enabled: settingsRaw.motivEnabled !== false,
-    lang: settingsRaw.lang || 'en',
+    theme: (settingsRaw ? !!settingsRaw.lightMode : true) ? 'light' : 'dark',
+    accent: (settingsRaw && settingsRaw.accent) || 'Navy',
+    motiv_enabled: !settingsRaw || settingsRaw.motivEnabled !== false,
+    lang: (settingsRaw && settingsRaw.lang) || 'en',
     schedule: db.schedule || [],
     schedule_pos: db.schedulePos || 0,
     last_notes: db.lastNotes || {},
