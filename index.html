@@ -1310,15 +1310,15 @@ body.light-mode .auth-choice-title{color:#111;}
   <div class="pg-header"><div class="pg-title">Settings</div></div>
   <div class="list-scroll" style="gap:0;padding:12px 14px;">
 
-    <!-- MY ACCOUNT -->
+    <!-- MY ACCOUNT — title/sub/click behavior filled in by renderAccountRow() -->
     <div class="settings-section-label">Account</div>
     <div class="settings-group">
-      <div class="settings-row disabled">
+      <div class="settings-row" id="my-account-row" onclick="openMyAccountModal()" style="cursor:pointer;">
         <div class="settings-row-left">
           <div class="settings-row-icon">👤</div>
           <div>
-            <div class="settings-row-title">My Account</div>
-            <div class="settings-row-sub">Coming soon</div>
+            <div class="settings-row-title" id="my-account-title">My Account</div>
+            <div class="settings-row-sub" id="my-account-sub">Sign in to manage your account</div>
           </div>
         </div>
         <div class="settings-row-arrow">›</div>
@@ -1988,6 +1988,23 @@ function showScreen(id){
   if(id==='schedule') renderSchedule();
   if(id==='log') renderLog();
   if(id==='exercises') renderExercisesDB();
+  if(id==='settings') renderAccountRow();
+}
+
+// Updates the "My Account" settings row to reflect sign-in state. Defined
+// up here near showScreen() since that's what calls it; the actual account
+// data fetch + modal live with the rest of the auth code (openMyAccountModal).
+function renderAccountRow(){
+  const titleEl = document.getElementById('my-account-title');
+  const subEl = document.getElementById('my-account-sub');
+  if(!titleEl || !subEl) return;
+  if(currentUser){
+    titleEl.textContent = 'My Account';
+    subEl.textContent = currentUser.email || 'Signed in';
+  } else {
+    titleEl.textContent = 'My Account';
+    subEl.textContent = 'Sign in to manage your account';
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -3642,6 +3659,78 @@ function closeTierModal() {
 
 function toggleEl(el){el.nextElementSibling.classList.toggle("open");}
 function closeModal(){document.getElementById('modal-overlay').classList.remove('active');}
+
+// Used wherever user-supplied text (full_name, username — free text capped
+// at 100 chars, not otherwise content-restricted) gets injected into
+// innerHTML, so a crafted display name can't inject markup/scripts.
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// "My Account" settings row — shows the signed-in user's identity and
+// basic account info in the existing modal system. Guests get sent to
+// the sign-in screen instead, since there's no account to show yet.
+async function openMyAccountModal(){
+  if(!currentUser){
+    showAuthScreen('welcome');
+    return;
+  }
+  let profile = null;
+  try{
+    const { data } = await supabaseClient
+      .from('profiles')
+      .select('username, full_name, verified, subscription_tier')
+      .eq('id', currentUser.id)
+      .single();
+    profile = data;
+  }catch(e){ /* fall back to whatever's already on currentUser below */ }
+
+  const provider = (currentUser.app_metadata && currentUser.app_metadata.provider) || 'email';
+  const providerLabel = provider === 'google' ? 'Google' : 'Email & Password';
+  const tierLabel = (profile && profile.subscription_tier === 'premium') ? 'Premium' : 'Free';
+  const verifiedBadge = (profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
+  const fullName = escapeHtml((profile && profile.full_name) || currentUser.email || '—');
+  const username = escapeHtml((profile && profile.username) || '—');
+
+  document.getElementById('modal-title').textContent = 'My Account';
+  document.getElementById('modal-body').innerHTML = `
+    <div style="text-align:center;padding:4px 0 18px;">
+      <div style="font-family:var(--hd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--bright);text-transform:uppercase;">${fullName}${verifiedBadge}</div>
+      <div style="font-size:13px;color:var(--dim);margin-top:2px;">@${username}</div>
+    </div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon">✉️</div><div>
+          <div class="settings-row-title">Email</div>
+          <div class="settings-row-sub">${escapeHtml(currentUser.email || '')}</div>
+        </div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon">🔐</div><div>
+          <div class="settings-row-title">Signed in with</div>
+          <div class="settings-row-sub">${providerLabel}</div>
+        </div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon">⭐</div><div>
+          <div class="settings-row-title">Plan</div>
+          <div class="settings-row-sub">${tierLabel}</div>
+        </div></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal-footer').innerHTML =
+    `<button class="btn-ghost" onclick="closeModal()">Close</button>` +
+    `<button class="btn-ghost" style="color:var(--danger,#c94444);border-color:var(--danger,#c94444);" onclick="confirmSignOutFromAccountModal()">Sign Out</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function confirmSignOutFromAccountModal(){
+  if(!confirm('Sign out of your account? Everything stays saved in the cloud — signing back in brings it all back.')) return;
+  closeModal();
+  authSignOut();
+  location.reload(); // simplest reliable reset of all in-memory auth/session state
+}
 
 // Redraw charts on resize
 let _resizeTimer;
