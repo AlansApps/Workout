@@ -10,6 +10,11 @@
 -- rather than a separate join table — it's a short, ordered, user-editable
 -- list that's never queried in isolation, so a relational table would only
 -- add write overhead without any read benefit.
+--
+-- `last_notes` mirrors the client's transient "last note typed for this
+-- routine" draft cache (keyed by routine id, cleared once a workout using
+-- that routine is finished) — same JSONB reasoning as schedule: small,
+-- whole-row, never filtered.
 -- ============================================================================
 
 create table public.user_settings (
@@ -20,6 +25,7 @@ create table public.user_settings (
   lang           text not null default 'en' check (char_length(lang) <= 10),
   schedule       jsonb not null default '[]'::jsonb,
   schedule_pos   smallint not null default 0,
+  last_notes     jsonb not null default '{}'::jsonb,
   updated_at     timestamptz not null default now()
 );
 

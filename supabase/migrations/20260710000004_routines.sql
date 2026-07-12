@@ -5,15 +5,28 @@
 -- their own workout day plans (which exercises, in what order, with what
 -- target sets/reps/weight/rest). `routines` holds the routine itself,
 -- `routine_exercises` holds its ordered exercise list.
+--
+-- `client_id` carries the local app's own routine id (e.g. "r01") so the
+-- sync layer can UPSERT by (user_id, client_id) instead of deleting and
+-- reinserting on every sync. Reinserting would mint a new `id` each time,
+-- which would silently null out `workout_logs.routine_id` on every past
+-- session performed under that routine (its on-delete-set-null foreign
+-- key firing on the "deleted" old row) — client_id keeps the real `id`
+-- stable across repeated syncs so history stays linked.
 -- ============================================================================
 
 create table public.routines (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users (id) on delete cascade,
+  client_id   text not null check (char_length(client_id) <= 50),
   name        text not null check (char_length(name) <= 100),
   created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  updated_at  timestamptz not null default now(),
+
+  unique (user_id, client_id)
 );
+
+comment on column public.routines.client_id is 'Stable id assigned by the client app; sync upserts on (user_id, client_id) to avoid minting a new row (and breaking history links) on every sync.';
 
 create index routines_user_id_idx on public.routines (user_id);
 

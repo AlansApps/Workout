@@ -51,7 +51,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .hero-eyebrow{font-size:8px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;font-weight:600;}
 .hero-name{font-family:var(--hd);font-size:28px;font-weight:700;letter-spacing:3px;color:var(--bright);line-height:1;margin-bottom:6px;text-transform:uppercase;}
 .hero-meta{font-size:11px;color:#a0a0a0;letter-spacing:2px;font-weight:500;margin-bottom:10px;}
-.hero-quip{font-size:11px;color:#b8b8b8;font-style:italic;line-height:1.5;padding-top:10px;border-top:1px solid var(--line);}
 .hero-arrow{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:20px;opacity:.6;}
 
 .last-card{background:var(--panel);border:1px solid var(--line);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;}
@@ -78,7 +77,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .wo-elapsed{font-size:10px;color:#888888;letter-spacing:3px;font-weight:600;}
 .btn-quit{background:none;border:1px solid var(--line2);color:var(--muted);padding:6px 10px;font-family:var(--body);font-size:9px;letter-spacing:2px;font-weight:600;cursor:pointer;transition:all .15s;text-transform:uppercase;border-radius:var(--r);}
 .btn-quit:hover{border-color:var(--danger);color:var(--danger);}
-.motiv-strip{background:var(--deep);border-bottom:1px solid var(--line);padding:7px 18px;text-align:center;font-size:10px;color:var(--gold);letter-spacing:2px;font-style:italic;}
 .wo-progress{background:var(--panel);border-bottom:1px solid var(--line);padding:9px 18px;display:flex;align-items:center;gap:12px;}
 .wo-prog-txt{font-size:9px;color:var(--dim);letter-spacing:3px;font-weight:600;white-space:nowrap;text-transform:uppercase;}
 .prog-track{flex:1;height:1px;background:var(--line2);}
@@ -186,7 +184,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .rest-lbl{font-size:9px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;font-weight:600;}
 .rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color, rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft, rgba(212,168,67,.15));transition:color .3s;}
 .rest-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);animation:pulse .8s infinite;}
-.rest-quip-txt{font-size:11px;color:var(--dim);font-style:italic;text-align:center;padding:0 36px;max-width:300px;line-height:1.6;}
 .rest-nxt{font-size:9px;color:var(--muted);letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;}
 .rest-btns{display:flex;gap:10px;margin-top:6px;}
 .btn-ghost{background:none;border:1px solid var(--line2);color:var(--dim);padding:10px 18px;font-family:var(--body);font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .15s;border-radius:var(--r);}
@@ -212,7 +209,6 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .finish-logo svg{width:100%;height:100%;filter:drop-shadow(0 0 12px rgba(212,168,67,.8)) drop-shadow(0 0 28px rgba(212,168,67,.3));}
 .finish-headline{font-family:var(--hd);font-size:42px;font-weight:900;letter-spacing:4px;color:var(--bright);line-height:1;text-transform:uppercase;}
 .finish-sub{font-family:var(--hd);font-size:10px;font-weight:400;letter-spacing:6px;color:var(--gold);text-transform:uppercase;}
-.finish-quote{font-size:13px;color:#c0c0c0;font-style:italic;max-width:300px;line-height:1.7;}
 .finish-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:300px;}
 .stat-tile{background:var(--panel);border:1px solid var(--line2);padding:12px;}
 .stat-n{font-family:var(--hd);font-size:26px;font-weight:700;color:var(--gold);letter-spacing:1px;}
@@ -485,7 +481,6 @@ body.light-mode .ex-edit-field{background:#eeeeee;border-color:#ccc;color:#111;}
 body.light-mode .stepper-btn{background:#e0e0e0;border-color:#ccc;color:#333;}
 /* Hero card */
 body.light-mode .hero-card{background:#fff;border-color:#ddd;}
-body.light-mode .hero-quip{color:#555;}
 body.light-mode .hero-meta{color:#666;}
 body.light-mode .hero-eyebrow{color:var(--gold3);}
 /* Exercise card */
@@ -494,8 +489,6 @@ body.light-mode .ex-card-notes{color:#777;}
 body.light-mode .ex-card-meta{color:#888;}
 /* Tick button in light mode */
 body.light-mode .light-mode .set-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;}
-/* Motiv strip */
-body.light-mode .motiv-strip{background:#e8e8e8;color:var(--gold3);}
 /* Progress bar */
 body.light-mode .prog-fill{box-shadow:none;}
 /* Topbar */
@@ -757,12 +750,6 @@ input, select, textarea {
 }
 
 
-/* ── MOTIV TOGGLE ── */
-#motiv-track{ background:var(--gold); border-color:var(--gold3); }
-#motiv-thumb{ transform:translateX(18px); background:#fff; }
-#motiv-label{ color:var(--gold); }
-
-
 /* ════════════════════════════════════
    FIRST-RUN PWA ONBOARDING
    Integrated from onboarding preview without duplicating the app shell.
@@ -877,7 +864,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .rest-lbl { color:var(--muted); }
 .light-mode .rest-time { color:var(--text); }
 .light-mode .rest-mini-time { color:var(--text); }
-.light-mode .rest-quip { color:var(--dim); }
 .light-mode #rest-skip,.light-mode #rest-plus { border-color:var(--line2); color:var(--muted); }
 .light-mode #confirm-overlay { background:var(--overlay-bg) !important; }
 .light-mode #confirm-overlay > div { background:var(--panel) !important; border-color:var(--gold) !important; }
@@ -967,9 +953,119 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 }
 
 #rest-mini-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);}
+
+/* ══════════════════════════════════════════════════════════════
+   AUTH — sign in / create account / guest gate / conflict resolution
+   Reuses existing tokens (form-inp, btn-cta, btn-ghost, pg-title, etc.)
+   so it matches the rest of the app instead of introducing a new look.
+   ══════════════════════════════════════════════════════════════ */
+#screen-auth{
+  position:fixed; inset:0; z-index:500;
+  background:var(--void); display:none;
+  flex-direction:column; overflow-y:auto;
+}
+#screen-auth.active{display:flex;}
+.auth-view{display:none; flex-direction:column; flex:1; padding:32px 22px 28px;}
+.auth-view.active{display:flex;}
+.auth-logo{
+  font-family:var(--hd); font-size:20px; font-weight:700; letter-spacing:5px;
+  color:var(--bright); text-transform:uppercase; text-align:center; margin:20px 0 6px;
+}
+.auth-tagline{
+  font-family:var(--body); font-size:12px; color:var(--dim);
+  text-align:center; margin-bottom:32px; letter-spacing:.5px;
+}
+.auth-actions{display:flex; flex-direction:column; gap:10px; margin-top:auto;}
+.auth-divider{
+  display:flex; align-items:center; gap:12px; margin:18px 0;
+  color:var(--muted); font-size:9px; letter-spacing:3px; text-transform:uppercase;
+}
+.auth-divider::before, .auth-divider::after{content:'';flex:1;height:1px;background:var(--line2);}
+.btn-provider{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:var(--surface); border:1px solid var(--line2); color:var(--text);
+  padding:12px 16px; font-family:var(--body); font-size:13px; font-weight:600;
+  cursor:pointer; border-radius:var(--r); width:100%; transition:border-color .15s;
+}
+.btn-provider:disabled{color:var(--muted); cursor:default; position:relative;}
+.btn-provider:disabled .provider-icon{opacity:.5;}
+.provider-icon{flex-shrink:0;}
+.btn-provider .soon-badge{
+  font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted);
+  background:var(--lift); border:1px solid var(--line2); border-radius:var(--r);
+  padding:2px 6px; margin-left:6px;
+}
+.auth-link{
+  text-align:center; font-family:var(--body); font-size:12px; color:var(--dim);
+  margin-top:16px; cursor:pointer; text-decoration:underline; text-underline-offset:3px;
+}
+.auth-guest-link{
+  text-align:center; font-family:var(--body); font-size:11px; color:var(--muted);
+  margin-top:22px; cursor:pointer; letter-spacing:.5px;
+}
+.auth-error{
+  font-family:var(--body); font-size:12px; color:var(--danger,#c94444);
+  margin:-4px 0 12px; min-height:14px;
+}
+.auth-back{align-self:flex-start; margin-bottom:18px;}
+
+/* Conflict-resolution and guest-limit choice cards */
+.auth-choice-card{
+  background:var(--panel); border:1px solid var(--line2); border-radius:var(--r);
+  padding:16px; margin-bottom:12px; cursor:pointer; transition:border-color .15s;
+}
+.auth-choice-card:active{border-color:var(--gold3);}
+.auth-choice-title{
+  font-family:var(--hd); font-size:13px; font-weight:700; letter-spacing:1.5px;
+  color:var(--bright); text-transform:uppercase; margin-bottom:4px;
+}
+.auth-choice-sub{font-family:var(--body); font-size:12px; color:var(--dim);}
+
+body.light-mode #screen-auth{background:#f7f7f7;}
+body.light-mode .btn-provider{background:#fff; border-color:#ddd; color:#111;}
+body.light-mode .auth-choice-card{background:#fff; border-color:#ddd;}
+body.light-mode .auth-choice-title{color:#111;}
 </style>
 </head>
 <body>
+<!-- Supabase JS client — loaded synchronously (no async/defer) so it's
+     guaranteed ready before the app's own <script> blocks run further down
+     the page and call window.supabase.createClient(). -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<!-- Theme flash-prevention — applies the saved (or default) theme/accent
+     synchronously, before the rest of the page renders, so there's no
+     flash of the wrong colors while the main <script> block further down
+     finishes loading and calls loadSettings(). Mirrors loadSettings()'s
+     same logic and defaults (light mode, Navy accent for a brand-new
+     install with nothing saved yet) — kept tiny and self-contained on
+     purpose so it can run this early, before ACCENT_COLORS is defined. -->
+<script>
+(function(){
+  try{
+    var raw = localStorage.getItem('alans_settings');
+    var s = raw ? JSON.parse(raw) : null;
+    var light = s ? !!s.lightMode : true;
+    var accentName = (s && s.accent) || 'Navy';
+    var ACCENTS = {
+      'Gold':{gold:'#d4a843',gold2:'#f0c060',gold3:'#b8922e'},
+      'Orange':{gold:'#e8722a',gold2:'#ff8c42',gold3:'#c45a18'},
+      'Red':{gold:'#e84040',gold2:'#ff5555',gold3:'#c42020'},
+      'Rosa':{gold:'#e8529a',gold2:'#ff70b8',gold3:'#c43580'},
+      'Sky Blue':{gold:'#3a9fd4',gold2:'#58c4f0',gold3:'#2178a8'},
+      'Navy':{gold:'#4a6fa8',gold2:'#6b8fc4',gold3:'#2e4f82'},
+      'Emerald':{gold:'#2ecc71',gold2:'#4edd88',gold3:'#1aaa58'},
+      'Sage':{gold:'#7fb069',gold2:'#9ecc88',gold3:'#5d8a4a'}
+    };
+    var c = ACCENTS[accentName] || ACCENTS['Navy'];
+    if(light) document.body.classList.add('light-mode');
+    var root = document.documentElement.style;
+    root.setProperty('--gold', c.gold);
+    root.setProperty('--gold2', c.gold2);
+    root.setProperty('--gold3', c.gold3);
+  }catch(e){}
+})();
+</script>
 
 <!-- ══ HOME ══ -->
 <div id="screen-home" class="screen">
@@ -1001,14 +1097,12 @@ body.ob-lock{overflow:hidden;touch-action:none;}
       </button>
     </div>
   </div>
-  <div id="home-tagline" style="padding:7px 20px;background:var(--deep);border-bottom:1px solid var(--line);font-size:9px;color:#555;letter-spacing:2px;font-style:italic;text-align:center;line-height:1.5;"></div>
   <div class="home-body">
     <div class="hero-card" onclick="startWorkout()">
       <div class="hero-inner">
         <div class="hero-eyebrow">Next Session</div>
         <div id="next-name" class="hero-name">—</div>
         <div id="next-meta" class="hero-meta">—</div>
-        <div id="next-quip" class="hero-quip"></div>
       </div>
       <span class="hero-arrow">›</span>
     </div>
@@ -1033,7 +1127,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
     <div class="wo-left"><div id="wo-name" class="wo-name">—</div><div id="wo-elapsed" class="wo-elapsed">00:00</div></div>
     <button class="btn-quit" onclick="cancelWorkout()">✕ Quit</button>
   </div>
-  <div id="motiv-strip" class="motiv-strip"></div>
   <div id="prev-note-bar" style="display:none;padding:7px 18px;background:var(--deep);border-bottom:1px solid var(--line);font-size:10px;color:#888;letter-spacing:1px;font-style:italic;line-height:1.5;"></div>
   <div class="wo-progress">
     <span class="wo-prog-txt" id="prog-txt">0 / 0</span>
@@ -1049,8 +1142,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 <div id="screen-finish" class="screen">
   <div class="finish-logo"><svg viewBox="0 0 40 32" fill="none"><path d="M2 4 L20 26 L38 4" stroke="#d4a843" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><path d="M2 13 L20 35 L38 13" stroke="#d4a843" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none" opacity="0.35"/></svg></div>
   <div id="fin-headline" class="finish-headline">Session Complete</div>
-  <div id="fin-sub" class="finish-sub">Session Complete</div>
-  <div id="fin-quote" class="finish-quote"></div>
+  <div id="fin-sub" class="finish-sub">Workout saved</div>
   <div class="finish-grid">
     <div class="stat-tile"><div id="st-sets" class="stat-n">0</div><div class="stat-l">Sets</div></div>
     <div class="stat-tile"><div id="st-time" class="stat-n">0:00</div><div class="stat-l">Time</div></div>
@@ -1313,13 +1405,156 @@ body.ob-lock{overflow:hidden;touch-action:none;}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     AUTH — full-screen gate shown before the app is usable.
+     One fixed overlay, several sub-views toggled by showAuthView().
+     Not part of the SCR/showScreen bottom-nav system on purpose: this
+     screen has no bottom nav and must sit on top of everything else
+     until the user is authenticated or chooses to continue as guest.
+     ══════════════════════════════════════════════════════════════ -->
+<div id="screen-auth">
+
+  <!-- ── WELCOME / PROVIDER CHOICE ── -->
+  <div class="auth-view active" id="auth-view-welcome">
+    <div class="auth-logo">Alan's Workout</div>
+    <div class="auth-tagline">Sign in to keep your history safe across devices.</div>
+    <div class="auth-actions">
+      <button class="btn-cta" onclick="showAuthView('signin')">Sign In</button>
+      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signup')">Create Account</button>
+      <div class="auth-divider">or</div>
+      <button class="btn-provider" onclick="authSignInWithGoogle()">
+        <svg class="provider-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+          <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+        </svg>
+        Continue with Google
+      </button>
+      <button class="btn-provider" disabled title="Coming soon">
+        <svg class="provider-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#1877F2" d="M18 9a9 9 0 1 0-10.406 8.89v-6.288H5.309V9h2.285V7.017c0-2.256 1.344-3.503 3.403-3.503.986 0 2.017.176 2.017.176v2.219h-1.136c-1.119 0-1.469.694-1.469 1.406V9h2.5l-.4 2.602h-2.1v6.288A9.002 9.002 0 0 0 18 9z"/>
+        </svg>
+        Continue with Facebook <span class="soon-badge">Coming soon</span>
+      </button>
+      <button class="btn-provider" disabled title="Coming soon">
+        <svg class="provider-icon" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true" fill="currentColor">
+          <path d="M13.213 9.532c-.024-2.42 1.98-3.583 2.07-3.64-1.13-1.65-2.884-1.877-3.507-1.902-1.49-.152-2.912.877-3.668.877-.756 0-1.926-.855-3.166-.832-1.628.024-3.13.946-3.968 2.404-1.693 2.937-.433 7.287 1.216 9.67.807 1.166 1.767 2.475 3.026 2.428 1.216-.048 1.674-.786 3.144-.786 1.47 0 1.882.786 3.166.762 1.31-.024 2.14-1.19 2.94-2.36.928-1.354 1.31-2.664 1.334-2.73-.03-.012-2.56-.983-2.587-3.89z"/>
+          <path d="M11.02 2.56c.67-.812 1.122-1.94.998-3.06-.965.04-2.133.643-2.826 1.454-.62.72-1.163 1.876-1.016 2.98 1.078.084 2.174-.548 2.844-1.374z"/>
+        </svg>
+        Continue with Apple <span class="soon-badge">Coming soon</span>
+      </button>
+      <div class="auth-guest-link" id="auth-guest-link" onclick="continueAsGuest()">Continue as Guest</div>
+    </div>
+  </div>
+
+  <!-- ── SIGN IN ── -->
+  <div class="auth-view" id="auth-view-signin">
+    <div class="back-row auth-back"><button class="btn-back" onclick="showAuthView('welcome')">← Back</button></div>
+    <div class="pg-title" style="text-align:center;margin-bottom:24px;">Sign In</div>
+    <div class="form-grp">
+      <label class="form-lbl">Email</label>
+      <input class="form-inp" type="email" id="signin-email" autocomplete="email" placeholder="you@example.com">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Password</label>
+      <input class="form-inp" type="password" id="signin-password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <div class="auth-error" id="signin-error"></div>
+    <button class="btn-cta" id="signin-submit" onclick="authSignInWithEmail()">Sign In</button>
+    <div class="auth-link" onclick="authSendPasswordReset()">Forgot your password?</div>
+  </div>
+
+  <!-- ── CREATE ACCOUNT ── -->
+  <div class="auth-view" id="auth-view-signup">
+    <div class="back-row auth-back"><button class="btn-back" onclick="showAuthView('welcome')">← Back</button></div>
+    <div class="pg-title" style="text-align:center;margin-bottom:24px;">Create Account</div>
+    <div class="form-grp">
+      <label class="form-lbl">Full Name</label>
+      <input class="form-inp" type="text" id="signup-name" autocomplete="name" placeholder="Alan Albrecht" maxlength="100">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Username</label>
+      <input class="form-inp" type="text" id="signup-username" autocomplete="username" placeholder="@handle" maxlength="30" oninput="this.value=this.value.toLowerCase();">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Email</label>
+      <input class="form-inp" type="email" id="signup-email" autocomplete="email" placeholder="you@example.com">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Password</label>
+      <input class="form-inp" type="password" id="signup-password" autocomplete="new-password" placeholder="At least 8 characters">
+    </div>
+    <div class="auth-error" id="signup-error"></div>
+    <button class="btn-cta" id="signup-submit" onclick="authSignUpWithEmail()">Create Account</button>
+  </div>
+
+  <!-- ── COMPLETE PROFILE (OAuth signups land here if they have no username yet) ── -->
+  <div class="auth-view" id="auth-view-profile">
+    <div class="pg-title" style="text-align:center;margin-bottom:8px;">One Last Thing</div>
+    <div class="auth-tagline">Pick a username so people can find you later.</div>
+    <div class="form-grp">
+      <label class="form-lbl">Full Name</label>
+      <input class="form-inp" type="text" id="profile-name" maxlength="100">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Username</label>
+      <input class="form-inp" type="text" id="profile-username" placeholder="@handle" maxlength="30" oninput="this.value=this.value.toLowerCase();">
+    </div>
+    <div class="auth-error" id="profile-error"></div>
+    <button class="btn-cta" id="profile-submit" onclick="authCompleteProfile()">Continue</button>
+  </div>
+
+  <!-- ── LOCAL/CLOUD DATA CONFLICT ── -->
+  <div class="auth-view" id="auth-view-conflict">
+    <div class="pg-title" style="text-align:center;margin-bottom:8px;">Two Sets of Data Found</div>
+    <div class="auth-tagline">This device already has workout data that isn't part of your account yet. Choose which one to keep — nothing is deleted permanently either way.</div>
+    <div class="auth-choice-card" onclick="resolveDataConflict('cloud')">
+      <div class="auth-choice-title">Use My Account's Data</div>
+      <div class="auth-choice-sub">Replace this device's local data with what's already saved to your account. This device's local data is backed up first.</div>
+    </div>
+    <div class="auth-choice-card" onclick="resolveDataConflict('device')">
+      <div class="auth-choice-title">Use This Device's Data</div>
+      <div class="auth-choice-sub">Upload what's on this device to your account, replacing its previous cloud data. Your account's previous data is backed up first.</div>
+    </div>
+    <div class="auth-tagline" style="margin-top:4px;">Either way, your workout history from both is merged automatically — you won't lose past sessions.</div>
+    <div class="auth-error" id="conflict-error"></div>
+  </div>
+
+  <!-- ── GUEST SESSION LIMIT REACHED ── -->
+  <div class="auth-view" id="auth-view-guest-limit">
+    <div class="auth-logo">5 Sessions In</div>
+    <div class="auth-tagline">You've used up the guest sessions on this device. Create a free account to keep your history and keep training — everything you've logged so far comes with you.</div>
+    <div class="auth-actions">
+      <button class="btn-cta" onclick="showAuthView('signup')">Create Account</button>
+      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signin')">I already have an account</button>
+    </div>
+  </div>
+
+  <!-- ── SET NEW PASSWORD (reached only via the emailed reset link) ── -->
+  <div class="auth-view" id="auth-view-reset-password">
+    <div class="pg-title" style="text-align:center;margin-bottom:8px;">Set a New Password</div>
+    <div class="auth-tagline">Choose a new password for your account.</div>
+    <div class="form-grp">
+      <label class="form-lbl">New Password</label>
+      <input class="form-inp" type="password" id="reset-password-1" autocomplete="new-password" placeholder="At least 8 characters">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Confirm Password</label>
+      <input class="form-inp" type="password" id="reset-password-2" autocomplete="new-password" placeholder="Re-enter password">
+    </div>
+    <div class="auth-error" id="reset-password-error"></div>
+    <button class="btn-cta" id="reset-password-submit" onclick="authCompletePasswordReset()">Update Password</button>
+  </div>
+
+</div>
+
 <!-- ══ REST OVERLAY ══ -->
 <div id="rest-overlay">
   <!-- Full content (expanded state) -->
   <div id="rest-full">
     <div class="rest-lbl">Rest</div>
     <div id="rest-time" class="rest-time">0:00</div>
-    <div id="rest-quip" class="rest-quip-txt"></div>
     <div class="rest-btns">
       <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
       <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
@@ -1422,16 +1657,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-//  HUMOR
-// ═══════════════════════════════════════════
-const QUIPS={leg:["Never skip leg day. NEVER.","Your legs called. They hate you. Do it anyway.","Nobody ever regretted training legs. Except everyone, every time.","Squats: because nobody looked back at a great personality.","My legs aren't shaking, they're just vibing."],push:["Push it. Push it real good.","The bar doesn't care about your feelings.","Your future self has pecs. Be that guy.","Chest day? More like best day.","The last three or four reps is what makes the muscle grow. — Arnold"],pull:["Pull like your gym membership depends on it.","Build a back wider than your excuses.","Rows, pull-ups, and existential dread. Let's go."],default:["Pain is just weakness leaving the body.","You didn't come this far to only come this far.","Sweat is just fat crying. Make it weep.","Be the person your dog thinks you are. Jacked and reliable.","Today's workout is tomorrow's bragging rights.","If it doesn't challenge you, it doesn't change you.","Your only competition is yesterday's version of you.","No one ever regretted a workout. Except during the workout.","Every rep is a vote for the person you're becoming.","The last three or four reps is what makes the muscle grow. — Arnold Schwarzenegger","Bro, are you natty?"]};
-const REST_QUIPS=["Don't sit down. Sitting is for quitters.","Your muscles are rebuilding. Respect the science.","Stay loose. Next set won't know what hit it.","Hydrate. Visualize. Dominate.","The rest is part of the workout. Alan said so.","Pro tip: breathe.","Coming up: more suffering. You're welcome.","The bar misses you already.","Yeah buddy! Lightweight baby! — Ronnie Coleman","No pain, no gain.","My muscles aren't sore, they're just surprised."];
-const FINISHES=[{h:"Beast Mode",s:"Session Complete",q:"You just did what most people only talk about."},{h:"Destroyed",s:"Mission Accomplished",q:"Your muscles are in ruins. That's exactly how they grow."},{h:"King",s:"Session Complete",q:"Another one in the books. The iron remembers."},{h:"Launched",s:"Well Done Alan",q:"You showed up. You worked hard. You're ahead of 90% of humanity."},{h:"Charged",s:"Gains Incoming",q:"Gains incoming. ETA: 48 hours. Eat protein."},{h:"Champion",s:"Session Complete",q:"Champions are built in sessions exactly like this one."},{h:"Unstoppable",s:"Great Work",q:"Pain is temporary. Your gains are forever. Also your shake is warm."},{h:"Locked In",s:"Discipline Wins",q:"Disciplined people don't wait to feel motivated. You just proved that."},{h:"Yeah Buddy",s:"Lightweight Baby",q:"Everybody wants to be a bodybuilder, but nobody wants to lift no heavy-ass weights. — Ronnie Coleman"},{h:"Dedicated",s:"Session Complete",q:"Obsession is a word the lazy use to describe the dedicated. — CT Fletcher"},{h:"Warmed Up",s:"That Was Nothing",q:"That's nothing, I warmed up with that."},{h:"No Therapy",s:"Just More Sets",q:"I don't need therapy, I need more sets."}];
-const TAGLINES=["No pain, no gain — Alan's law.","The weights won't lift themselves.","Built different. One rep at a time.","Today's soreness is tomorrow's strength.","Excuses don't build muscle.","Come in a boy, leave a man. Or just very sweaty.","The bar is waiting.","Your body can. Your mind must.","I don't do this to be healthy, I do this to get big muscles. — Jay Cutler","Train insane or remain the same. — Dorian Yates","Do you even lift, bro?","Rest day? My body is always resting. It's called sleeping."];
-function pick(a){return a[Math.floor(Math.random()*a.length)];}
-function getQuip(n){const name=(n||'').toLowerCase();for(const[k,a]of Object.entries(QUIPS)){if(k!=='default'&&name.includes(k))return pick(a);}return pick(QUIPS.default);}
-
 // ═══════════════════════════════════════════
 //  DEFAULT DATA  (Alan's baseline from docx)
 // ═══════════════════════════════════════════
@@ -1582,6 +1807,10 @@ const LS_KEY = 'alans_workout_v4';
 
 function saveDB() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(db)); } catch(e) {}
+  // Debounced, best-effort push to Supabase for signed-in users — defined
+  // in the AUTH & CLOUD SYNC section below. No-ops entirely for guests/
+  // signed-out users, and never throws or blocks the local save above.
+  if(typeof scheduleBackgroundSync === 'function') scheduleBackgroundSync();
 }
 
 // ── SESSION PERSISTENCE ──
@@ -1657,12 +1886,14 @@ function loadDB() {
   db = JSON.parse(JSON.stringify(DEFAULT_DB));
 }
 
-function exportData() {
-  // Collect everything needed for a full migration
-  let settings = {};
-  try { settings = JSON.parse(localStorage.getItem('alans_settings') || '{}'); } catch(e) {}
+// Builds the full local-data snapshot used both by the manual "Export
+// Backup" settings button and by the automatic safety-net backup taken
+// before the auth conflict screen overwrites local or cloud data.
+function buildBackupPayload() {
+  let settings = null;
+  try { settings = JSON.parse(localStorage.getItem('alans_settings') || 'null'); } catch(e) {}
 
-  const backup = {
+  return {
     exportDate: new Date().toISOString(),
     appVersion: 'v1',
     // ── Core data ──
@@ -1675,23 +1906,33 @@ function exportData() {
     lastWeights: db.lastWeights,     // last weight/reps per exercise (per set)
     allTimePRs:  db.allTimePRs,      // personal records per exercise
     lastNotes:   db.lastNotes,       // post-workout notes per routine
-    // ── Preferences ──
+    // ── Preferences ── (same light/Navy default as loadSettings() for an
+    // install that never touched Settings — see that function for why)
     settings: {
-      theme:        settings.lightMode ? 'light' : 'dark',
-      accent:       settings.accent    || 'Gold',
-      motivEnabled: settings.motivEnabled !== false,
-      lang:         settings.lang      || 'en',
+      theme:  (settings ? !!settings.lightMode : true) ? 'light' : 'dark',
+      accent: (settings && settings.accent) || 'Navy',
+      lang:   (settings && settings.lang) || 'en',
     },
   };
+}
 
-  const json = JSON.stringify(backup, null, 2);
+// Triggers a browser download of any JSON-serializable object as a
+// timestamped file. Shared by the manual export button and the automatic
+// pre-overwrite safety backups in the auth conflict flow.
+function downloadJSON(filenamePrefix, dataObj) {
+  const json = JSON.stringify(dataObj, null, 2);
   const b = new Blob([json], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(b);
-  a.download = "alans-workout-" + new Date().toISOString().slice(0,10) + ".json";
+  a.download = filenamePrefix + "-" + new Date().toISOString().slice(0,10) + ".json";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function exportData() {
+  downloadJSON("alans-workout", buildBackupPayload());
 }
 
 function exportBackup() { exportData(); } // alias
@@ -1730,39 +1971,6 @@ function showScreen(id){
 //  HOME
 // ═══════════════════════════════════════════
 
-// ═══════════════════════════════════════════
-//  GLOBALS
-// ═══════════════════════════════════════════
-let motivEnabled = false;
-
-// ═══════════════════════════════════════════
-//  MOTIV TOGGLE
-// ═══════════════════════════════════════════
-function toggleMotiv() {
-  motivEnabled = !motivEnabled;
-  applyMotiv(motivEnabled, true);
-}
-
-function applyMotiv(enabled, save) {
-  motivEnabled = enabled;
-  const track = document.getElementById('motiv-track');
-  const thumb = document.getElementById('motiv-thumb');
-  const label = document.getElementById('motiv-label');
-  const sub   = document.getElementById('motiv-sub');
-  if (label) label.textContent = enabled ? 'ON' : 'OFF';
-  if (sub) sub.textContent = enabled ? 'Quotes & humor on' : 'Quotes & humor off';
-  if (track) { track.style.background = enabled ? '' : '#333'; track.style.borderColor = enabled ? '' : '#444'; }
-  if (thumb) thumb.style.transform = enabled ? 'translateX(18px)' : 'translateX(0)';
-  if (label) label.style.color = enabled ? '' : 'var(--dim)';
-  const tagEl = document.querySelector('.tagline-bar');
-  if (tagEl) tagEl.style.display = enabled ? '' : 'none';
-  const quipEl = document.querySelector('.hero-quip');
-  if (quipEl) quipEl.style.display = enabled ? '' : 'none';
-  document.querySelectorAll('.motiv-strip').forEach(el => el.style.display = enabled ? '' : 'none');
-  if (save) saveSettings();
-}
-
-
 // ── WAKE LOCK — keep screen on during rest timer ──
 let _wakeLock = null;
 
@@ -1786,20 +1994,15 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function renderHome(){
-  document.getElementById('home-tagline').textContent=motivEnabled?pick(TAGLINES):'';
-  const _tb=document.querySelector('.tagline-bar');if(_tb)_tb.style.display=motivEnabled?'':'none';
   const nr=getNextRoutine();
   if(nr){
     document.getElementById('next-name').textContent=nr.name;
     const exC=nr.exercises.length,setC=nr.exercises.reduce((a,e)=>a+e.sets,0);
     document.getElementById('next-meta').textContent=exC+' exercises · '+setC+' sets';
-    document.getElementById('next-quip').textContent=motivEnabled?'"'+getQuip(nr.name)+'"':'';
-    const _qw=document.querySelector('.hero-quip');if(_qw)_qw.style.display=motivEnabled?'':'none';
     document.getElementById('btn-cta').disabled=false;
   } else {
     document.getElementById('next-name').textContent='No routine scheduled';
     document.getElementById('next-meta').textContent='Add routines and build a schedule';
-    document.getElementById('next-quip').textContent='';
     document.getElementById('btn-cta').disabled=true;
   }
   updateStreakDisplay();
@@ -2084,9 +2287,6 @@ function startRest(secs,ei,si){
   clearInterval(restInt);
   restRem = secs;
   restEndTime = Date.now() + secs * 1000;
-  const nxt=si<session.exercises[ei].sets-1?'Next: '+session.exercises[ei].name+' — Set '+(si+2):ei<session.exercises.length-1?'Next: '+session.exercises[ei+1].name:'';
-  document.getElementById('rest-quip').textContent=motivEnabled&&Math.random()<0.2?'"'+pick(REST_QUIPS)+'"':'';
-
   document.getElementById('rest-overlay').classList.add('active');
   updRestDisp();
   restInt = setInterval(restTick, 250);
@@ -2256,14 +2456,15 @@ function finishWorkout(){
   // Clear last note for this workout — will be re-set if user types one
   if(db.lastNotes) delete db.lastNotes[entry.routineId];
   saveDB();
+  // Count this session toward the guest limit only for signed-out users —
+  // signed-in users have an account and are never gated. See the AUTH &
+  // CLOUD SYNC section for the grandfathering rule that protects existing
+  // users from being retroactively blocked by this cap.
+  if(!currentUser) incrementGuestSessionCount();
 
-  // Stats for finish screen
+  // Stats for finish screen (headline/sub text is static in the HTML)
   const sets=entry.exercises.reduce((a,e)=>a+e.sets.length,0);
   const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.weight*s.reps),0),0);
-  const fin=pick(FINISHES);
-  document.getElementById('fin-headline').textContent=motivEnabled?fin.h:'Session Complete';
-  document.getElementById('fin-sub').textContent=motivEnabled?fin.s:'Workout saved';
-  document.getElementById('fin-quote').textContent=motivEnabled?fin.q:'';
   document.getElementById('st-sets').textContent=sets;
   document.getElementById('st-time').textContent=Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0');
   document.getElementById('st-vol').textContent=Math.round(vol);
@@ -2910,8 +3111,6 @@ function _startWithRoutine(rt){
   flatExs.forEach((ex,idx)=>{ ex._ei=idx; });
   session.exercises=flatExs;
 
-  document.getElementById('motiv-strip').textContent=motivEnabled?getQuip(rt.name):'';
-  document.getElementById('motiv-strip').style.display=motivEnabled?'':'none';
   const prevNote=db.lastNotes&&db.lastNotes[rt.id];
   const prevNoteEl=document.getElementById('prev-note-bar');
   if(prevNoteEl){
@@ -3246,19 +3445,28 @@ const ACCENT_COLORS = {
 
 function loadSettings() {
   const saved = localStorage.getItem('alans_settings');
-  if (!saved) return;
-  try {
-    const s = JSON.parse(saved);
-    if (s.lightMode) applyTheme(true, false);
-    if (s.accent) applyAccentByName(s.accent, false);
-    if (s.motivEnabled === false) applyMotiv(false, false);
-  } catch(e) {}
+  let s = null;
+  try { s = saved ? JSON.parse(saved) : null; } catch(e) {}
+
+  // Default for a brand-new install with no saved preference yet: light
+  // mode, Navy accent (matches user_settings' column defaults for a fresh
+  // cloud account — see 20260710000009_default_theme_light_navy.sql — so
+  // a new phone and a new account both start from the same place). An
+  // inline script at the very top of <body> already applied this same
+  // default pre-paint to avoid a flash of dark/Gold on first load; this
+  // just keeps the rest of the settings UI (theme toggle label, accent
+  // swatch, etc.) in sync with whatever that script decided.
+  const lightMode = s ? !!s.lightMode : true;
+  const accent = (s && s.accent) || 'Navy';
+
+  applyTheme(lightMode, false);
+  applyAccentByName(accent, false);
 }
 
 function saveSettings() {
   const isLight = document.body.classList.contains('light-mode');
   const accentName = document.getElementById('accent-sub')?.textContent || 'Gold';
-  localStorage.setItem('alans_settings', JSON.stringify({lightMode: isLight, accent: accentName, motivEnabled: motivEnabled}));
+  localStorage.setItem('alans_settings', JSON.stringify({lightMode: isLight, accent: accentName}));
 }
 
 function toggleTheme() {
@@ -3426,15 +3634,765 @@ document.getElementById('modal-overlay').addEventListener('click',function(e){if
 // Note auto-save on finish screen
 document.getElementById('finish-note').addEventListener('blur', updateNote);
 
+// ═══════════════════════════════════════════════════════════════════════
+//  AUTH & CLOUD SYNC
+// ═══════════════════════════════════════════════════════════════════════
+// Everything in this section is additive: a user who never signs in (or
+// who is offline) never touches any of this — `currentUser` stays null,
+// `scheduleBackgroundSync()` no-ops, and the app behaves exactly as it
+// always has, purely on localStorage. See supabase/migrations/ for the
+// table definitions this section reads and writes.
+//
+// The anon/publishable key below is safe to ship in client code by
+// design — Row Level Security (defined in the migrations) is what
+// actually restricts access, not secrecy of this key.
+// ═══════════════════════════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://fwtkwxvgvxmbchdjagqt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_okrOBJyajqlOoTUDJ1-nqg_nP3Iioxl';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Supabase fires this event when the user lands back on the app after
+// clicking the link in a "reset your password" email — the recovery
+// token is already in the URL and Supabase has turned it into a session
+// by the time this fires. That session can only be used to set a new
+// password, so route straight to the reset-password screen rather than
+// letting bootstrapAuthGate() treat it as a normal sign-in.
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    showAuthScreen('reset-password');
+  }
+});
+
+const GUEST_SESSION_KEY = 'alans_workout_guest_sessions';
+const GUEST_SESSION_LIMIT = 5;
+const GUEST_GRANDFATHER_KEY = 'alans_workout_guest_grandfathered';
+const LINKED_USER_KEY = 'alans_workout_linked_user';
+
+let currentUser = null; // Supabase auth user once signed in this session, else null
+
+// ─────────────────────────────────────────────────────────────────────────
+// Auth screen navigation
+// ─────────────────────────────────────────────────────────────────────────
+function showAuthView(name){
+  document.querySelectorAll('.auth-view').forEach(v=>v.classList.remove('active'));
+  const el = document.getElementById('auth-view-'+name);
+  if(el) el.classList.add('active');
+  const signinErr = document.getElementById('signin-error');
+  const signupErr = document.getElementById('signup-error');
+  if(signinErr){ signinErr.textContent=''; signinErr.style.color='var(--danger,#c94444)'; }
+  if(signupErr){ signupErr.textContent=''; signupErr.style.color='var(--danger,#c94444)'; }
+}
+
+function showAuthScreen(view){
+  document.getElementById('screen-auth').classList.add('active');
+  showAuthView(view || 'welcome');
+}
+
+function hideAuthScreen(){
+  document.getElementById('screen-auth').classList.remove('active');
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Guest mode: local-only usage capped at GUEST_SESSION_LIMIT sessions
+// before an account becomes required.
+// ─────────────────────────────────────────────────────────────────────────
+function getGuestSessionCount(){
+  try{ return parseInt(localStorage.getItem(GUEST_SESSION_KEY)||'0',10) || 0; }catch(e){ return 0; }
+}
+function incrementGuestSessionCount(){
+  try{ localStorage.setItem(GUEST_SESSION_KEY, String(getGuestSessionCount()+1)); }catch(e){}
+}
+
+// Existing users already had unlimited local usage before this feature
+// shipped. Applying the cap retroactively to their pre-existing history
+// would lock real, established users out of an app they were already
+// using — the opposite of the goal. This runs once per device: if there's
+// pre-existing workout history and no grandfather flag yet, the guest
+// counter is set to the limit so the gate can never fire for a session
+// count this device already earned honestly before the limit existed.
+// It does NOT block them; it just means they'll never see the guest-limit
+// screen on the strength of history logged before this feature shipped.
+function markGuestGrandfatheredIfNeeded(){
+  try{
+    if(localStorage.getItem(GUEST_GRANDFATHER_KEY)==='1') return;
+    // Write the session-count bump BEFORE the flag: if localStorage.setItem
+    // ever throws partway through (quota, private browsing, etc.), the flag
+    // stays unset and this function safely retries on the next boot instead
+    // of permanently skipping the grandfathering it never actually applied.
+    if(db && db.workoutLog && db.workoutLog.length > 0){
+      localStorage.setItem(GUEST_SESSION_KEY, String(GUEST_SESSION_LIMIT));
+    }
+    localStorage.setItem(GUEST_GRANDFATHER_KEY,'1');
+  }catch(e){}
+}
+
+function continueAsGuest(){
+  hideAuthScreen();
+  showScreen('home');
+  if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+}
+
+// Tracks which Supabase user this device's local data has already been
+// reconciled with (hydrated from / claimed to), so the hydrate/claim/
+// conflict decision only ever runs once per device per account, not on
+// every single app load.
+function getLinkedUserId(){
+  try{ return localStorage.getItem(LINKED_USER_KEY); }catch(e){ return null; }
+}
+function setLinkedUserId(userId){
+  try{ localStorage.setItem(LINKED_USER_KEY, userId); }catch(e){}
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Boot-time auth gate — decides what the user sees on load: the app
+// (signed in or guest), the guest-limit screen, or the sign-in/sign-up
+// welcome screen. Runs once, before any screen is shown.
+// ─────────────────────────────────────────────────────────────────────────
+async function bootstrapAuthGate(){
+  markGuestGrandfatheredIfNeeded();
+
+  // A workout already in progress always wins — resuming it must never be
+  // interrupted by an auth screen, signed in or not.
+  if(restoreSession()) return;
+
+  let session = null;
+  try{
+    const { data } = await supabaseClient.auth.getSession();
+    session = data && data.session;
+  }catch(e){ /* offline or Supabase unreachable this boot — fall through to guest/local */ }
+
+  if(session && session.user){
+    currentUser = session.user;
+    if(getLinkedUserId() === session.user.id){
+      // Already reconciled on this device before — open the app directly.
+      // scheduleBackgroundSync() keeps things current from here on.
+      showScreen('home');
+      if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+      return;
+    }
+    try{
+      await handleSignedInBoot(session.user);
+    }catch(e){
+      // Reconciliation failed unexpectedly (not just a network hiccup inside
+      // it — those are already caught deeper down). Fail open: let the user
+      // into the app with whatever's local rather than stranding them on a
+      // blank auth screen with no way forward.
+      hideAuthScreen();
+      showScreen('home');
+      if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+    }
+    return;
+  }
+
+  if(getGuestSessionCount() >= GUEST_SESSION_LIMIT){
+    showAuthScreen('guest-limit');
+  } else {
+    showAuthScreen('welcome');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Sign in / sign up / OAuth
+// ─────────────────────────────────────────────────────────────────────────
+// Format check only (matches Instagram's rules: lowercase letters, digits,
+// dots and underscores, 3-30 chars, no leading/trailing/consecutive dots).
+// This mirrors the CHECK constraints on profiles.username exactly — see
+// 20260710000001_profiles.sql and 20260710000008_username_rules.sql. This
+// is a fast client-side pre-check only; the database enforces the same
+// rules regardless, so nothing relies on this function for security.
+function validateUsername(u){
+  if(!/^[a-z0-9._]{3,30}$/.test(u)) return false;
+  if(u.startsWith('.') || u.endsWith('.')) return false;
+  if(u.includes('..')) return false;
+  return true;
+}
+
+// Server round-trip check against the reserved-terms list (impersonation-
+// prone words like "admin", plus whatever gets added later — see the
+// migration header for why this doesn't ship a slur list). Calls the same
+// public.is_username_allowed() function the database CHECK constraint
+// uses, so client and server can never disagree. Fails open (returns true)
+// on a network error rather than blocking signup over connectivity —
+// the database constraint is the real backstop either way.
+async function isUsernameAllowedRemote(u){
+  try{
+    const { data, error } = await supabaseClient.rpc('is_username_allowed', { candidate: u });
+    if(error) return true;
+    return data !== false;
+  }catch(e){ return true; }
+}
+
+async function authSignInWithEmail(){
+  const email = document.getElementById('signin-email').value.trim();
+  const password = document.getElementById('signin-password').value;
+  const errEl = document.getElementById('signin-error');
+  errEl.textContent='';
+  if(!email || !password){ errEl.textContent='Enter your email and password.'; return; }
+
+  const btn = document.getElementById('signin-submit'); btn.disabled = true;
+  try{
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    await handleSignedInBoot(data.user);
+  }catch(e){
+    errEl.textContent = e.message || 'Could not sign in.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function authSignUpWithEmail(){
+  const fullName = document.getElementById('signup-name').value.trim();
+  const username  = document.getElementById('signup-username').value.trim().toLowerCase().replace(/^@/,'');
+  const email     = document.getElementById('signup-email').value.trim();
+  const password  = document.getElementById('signup-password').value;
+  const errEl = document.getElementById('signup-error');
+  errEl.textContent='';
+
+  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
+  if(!email || password.length < 8){ errEl.textContent='Enter a valid email and a password of at least 8 characters.'; return; }
+
+  const btn = document.getElementById('signup-submit'); btn.disabled = true;
+  if(!(await isUsernameAllowedRemote(username))){
+    errEl.textContent = 'That username isn\'t available. Try something else.';
+    btn.disabled = false;
+    return;
+  }
+  try{
+    const { data, error } = await supabaseClient.auth.signUp({
+      email, password,
+      options:{ data:{ username, full_name: fullName } }
+    });
+    if(error) throw error;
+    if(data.session && data.user){
+      await handleSignedInBoot(data.user);
+    } else {
+      // Supabase project has email confirmation required — no session yet.
+      errEl.style.color = 'var(--dim)';
+      errEl.textContent = 'Check your email to confirm your account, then sign in.';
+    }
+  }catch(e){
+    errEl.textContent = e.message || 'Could not create your account.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function authSignInWithGoogle(){
+  try{
+    await supabaseClient.auth.signInWithOAuth({
+      provider:'google',
+      options:{ redirectTo: window.location.href }
+    });
+    // Browser navigates away to Google; execution resumes on redirect back
+    // to this same page, where bootstrapAuthGate() picks up the new
+    // session on the next load.
+  }catch(e){
+    alert('Google sign-in is not set up yet: ' + (e.message||e));
+  }
+}
+
+async function authSendPasswordReset(){
+  const email = document.getElementById('signin-email').value.trim();
+  const errEl = document.getElementById('signin-error');
+  if(!email){ errEl.textContent='Enter your email above first, then tap this again.'; return; }
+  try{
+    await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+    errEl.style.color = 'var(--dim)';
+    errEl.textContent = 'Password reset email sent — check your inbox.';
+  }catch(e){
+    errEl.textContent = e.message || 'Could not send reset email.';
+  }
+}
+
+// Completes the flow started by authSendPasswordReset(): by the time the
+// user reaches this screen, onAuthStateChange's PASSWORD_RECOVERY handler
+// has already exchanged the emailed link's token for a real (if limited)
+// session, so this is just a normal password update against that session.
+async function authCompletePasswordReset(){
+  const pw1 = document.getElementById('reset-password-1').value;
+  const pw2 = document.getElementById('reset-password-2').value;
+  const errEl = document.getElementById('reset-password-error');
+  errEl.textContent = '';
+  if(pw1.length < 8){ errEl.textContent = 'Password must be at least 8 characters.'; return; }
+  if(pw1 !== pw2){ errEl.textContent = 'Passwords don\'t match.'; return; }
+
+  const btn = document.getElementById('reset-password-submit'); btn.disabled = true;
+  try{
+    const { error } = await supabaseClient.auth.updateUser({ password: pw1 });
+    if(error) throw error;
+    const { data } = await supabaseClient.auth.getSession();
+    if(data && data.session && data.session.user){
+      await handleSignedInBoot(data.session.user);
+    } else {
+      showAuthView('signin');
+    }
+  }catch(e){
+    errEl.textContent = e.message || 'Could not update your password.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function authSignOut(){
+  try{ await supabaseClient.auth.signOut(); }catch(e){}
+  currentUser = null;
+  try{ localStorage.removeItem(LINKED_USER_KEY); }catch(e){}
+}
+
+// OAuth signups (Google, etc.) don't provide a username — this screen
+// fills that gap before the profile is considered complete.
+async function authCompleteProfile(){
+  const fullName = document.getElementById('profile-name').value.trim();
+  const username = document.getElementById('profile-username').value.trim().toLowerCase().replace(/^@/,'');
+  const errEl = document.getElementById('profile-error');
+  errEl.textContent='';
+  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
+
+  const btn = document.getElementById('profile-submit'); btn.disabled = true;
+  if(!(await isUsernameAllowedRemote(username))){
+    errEl.textContent = 'That username isn\'t available. Try something else.';
+    btn.disabled = false;
+    return;
+  }
+  try{
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({ username, full_name: fullName || null })
+      .eq('id', currentUser.id);
+    if(error) throw error;
+    await afterAuthResolved();
+  }catch(e){
+    errEl.textContent = e.message || 'That username may already be taken.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Post-authentication routing: complete the profile if needed, then decide
+// between hydrate (cloud → local), claim (local → cloud), or conflict
+// (both have data — ask the user) based on what actually exists where.
+// ─────────────────────────────────────────────────────────────────────────
+async function handleSignedInBoot(user){
+  currentUser = user;
+
+  let profile = null;
+  try{
+    const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
+    profile = data;
+  }catch(e){ /* the handle_new_user trigger creates this row on signup — should exist */ }
+
+  if(!profile || !profile.username){
+    document.getElementById('profile-name').value = (profile && profile.full_name) || '';
+    showAuthScreen('profile');
+    return;
+  }
+
+  await afterAuthResolved();
+}
+
+async function afterAuthResolved(){
+  const hasLocalData = !!(db && db.workoutLog && db.workoutLog.length > 0);
+  let hasCloudData = false;
+  try{
+    const { count } = await supabaseClient
+      .from('workout_logs')
+      .select('id', { count:'exact', head:true })
+      .eq('user_id', currentUser.id);
+    hasCloudData = (count || 0) > 0;
+  }catch(e){ /* offline right after signing in — treat as no cloud data reachable this boot */ }
+
+  if(hasLocalData && hasCloudData){
+    showAuthScreen('conflict'); // real conflict: let the user choose (see resolveDataConflict)
+    return;
+  }
+
+  try{
+    if(hasCloudData && !hasLocalData){
+      await pullCloudDataToLocal();
+    } else {
+      // Covers both "real local workout history" and "fresh device with
+      // only the untouched default routines" — always seed the cloud
+      // account from whatever's currently local. Skipping this when
+      // workoutLog is empty would leave routine/setting edits made before
+      // a first workout is ever finished stranded on this device, with no
+      // record in the cloud for a second device to pick up. Harmless when
+      // there's truly nothing customized yet — it just uploads the
+      // defaults, which costs nothing meaningful on a brand-new account.
+      await pushLocalDataToCloud();
+    }
+    setLinkedUserId(currentUser.id);
+  }catch(e){
+    // Sync failed (offline, quota, transient error, etc.) — don't strand
+    // the user on the auth screen over it. Let them into the app with
+    // whatever's local; leaving setLinkedUserId() uncalled means this
+    // reconciliation is simply retried on the next app boot, and
+    // scheduleBackgroundSync() keeps retrying the push in the meantime.
+  }
+
+  hideAuthScreen();
+  showScreen('home');
+  if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+}
+
+// Local data and the signed-in account's cloud data disagree — both are
+// real and neither should be silently discarded. Workout history is always
+// merged in both directions regardless of which choice is made (it's
+// append-only, so merging can only add sessions, never lose them); only
+// the "current state" tables (routines, settings, notes, last weights,
+// PRs) follow the user's explicit choice. Whichever side is about to be
+// overwritten gets downloaded as a JSON backup first.
+async function resolveDataConflict(choice){
+  const errEl = document.getElementById('conflict-error');
+  if(errEl) errEl.textContent = '';
+  try{
+    if(choice === 'cloud'){
+      downloadJSON('alans-workout-device-backup-before-cloud-restore', buildBackupPayload());
+      await pushPendingLogsOnly();   // preserve local-only sessions before local state is replaced
+      await pullCloudDataToLocal();  // cloud is now the complete union; adopt it on this device
+    } else {
+      downloadJSON('alans-workout-cloud-backup-before-device-restore', await fetchCloudNonLogSnapshot());
+      await pushLocalDataToCloud();      // this device's routines/settings/etc. become the account's
+      await pullMissingLogsIntoLocal();  // backfill any sessions the cloud had that this device didn't
+    }
+    setLinkedUserId(currentUser.id);
+  }catch(e){
+    // Unlike afterAuthResolved(), this is a user-initiated action with two
+    // real, different outcomes on the table — failing silently into "home"
+    // here could make a half-applied choice look successful. Keep them on
+    // the conflict screen with a clear error instead, so they know to retry
+    // rather than assuming their data is already resolved.
+    if(errEl) errEl.textContent = 'Something went wrong syncing your data. Check your connection and try again.';
+    return;
+  }
+  hideAuthScreen();
+  showScreen('home');
+  if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Data mapping: local `db` object  <->  Supabase relational tables.
+// Kept in one place so the shape translation only has to be gotten right
+// once. Every function here is safe to call while offline/signed-out —
+// they all bail out immediately if there's no currentUser.
+// ─────────────────────────────────────────────────────────────────────────
+
+// Uploads local workout log entries that have never been uploaded before
+// (tracked per-entry via `_cloudSynced`). Never deletes or modifies
+// existing cloud logs from OTHER entries — purely additive at the entry
+// level, so it's always safe to call regardless of which direction a
+// conflict was resolved in.
+//
+// Each entry is only marked `_cloudSynced` if every part of it (the log
+// row, every exercise, every set) uploaded successfully. If a transient
+// error strikes partway through — say the log row is created but a set
+// insert fails — the entry is left unmarked so the *entire* entry is
+// retried from scratch next time, rather than being silently treated as
+// "done" with exercises quietly missing from the cloud. The log row uses
+// upsert (not insert) specifically so that retry can't collide with the
+// row it already half-created, and this entry's own exercises are cleared
+// before being reinserted so a retry can't duplicate whatever partially
+// made it through the first attempt.
+async function pushPendingLogsOnly(){
+  if(!currentUser) return;
+  const uid = currentUser.id;
+  const pending = (db.workoutLog||[]).filter(entry=>!entry._cloudSynced);
+  if(!pending.length) return;
+
+  const { data: routineRows } = await supabaseClient.from('routines').select('id, client_id').eq('user_id', uid);
+  const clientIdToCloudId = {};
+  (routineRows||[]).forEach(r=>{ clientIdToCloudId[r.client_id] = r.id; });
+
+  for(const entry of pending){
+    try{
+      const { data: logRow, error: logErr } = await supabaseClient
+        .from('workout_logs')
+        .upsert({
+          user_id: uid,
+          client_id: entry.id,
+          routine_id: entry.routineId ? (clientIdToCloudId[entry.routineId] || null) : null,
+          routine_name: entry.routineName || '',
+          performed_at: new Date(entry.date).toISOString(),
+          duration_seconds: Math.min(entry.duration || 0, 32767),
+          note: entry.note || '',
+        }, { onConflict: 'user_id,client_id' })
+        .select('id').single();
+      if(logErr || !logRow) throw logErr || new Error('workout_logs upsert returned no row');
+
+      // Clear any exercises this entry may have partially uploaded on a
+      // previous failed attempt, then reinsert the full, current set.
+      await supabaseClient.from('workout_log_exercises').delete().eq('log_id', logRow.id);
+
+      for(let i=0;i<(entry.exercises||[]).length;i++){
+        const ex = entry.exercises[i];
+        const { data: exRow, error: exErr } = await supabaseClient
+          .from('workout_log_exercises')
+          .insert({ log_id: logRow.id, exercise_id: ex.id, exercise_name: ex.name || '', position: i })
+          .select('id').single();
+        if(exErr || !exRow) throw exErr || new Error('workout_log_exercises insert returned no row');
+
+        const setRows = (ex.sets||[]).map((s,si)=>({ log_exercise_id: exRow.id, set_index: si, weight: s.weight||0, reps: s.reps||0 }));
+        if(setRows.length){
+          const { error: setErr } = await supabaseClient.from('workout_log_sets').insert(setRows);
+          if(setErr) throw setErr;
+        }
+      }
+      entry._cloudSynced = true;
+    }catch(e){
+      // Leave _cloudSynced unset — scheduleBackgroundSync()'s next debounced
+      // run (or the next explicit call to this function) retries this
+      // entry whole, instead of it being silently marked done with gaps.
+    }
+  }
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){} // persist _cloudSynced flags directly — saveDB() would re-trigger a sync loop
+}
+
+// Pulls cloud logs this device doesn't have yet (matched by client_id) and
+// appends them locally. Never removes anything local — purely additive.
+async function pullMissingLogsIntoLocal(){
+  if(!currentUser) return;
+  const uid = currentUser.id;
+  const localIds = new Set((db.workoutLog||[]).map(e=>e.id));
+
+  const [{ data: cloudLogs }, { data: routineRows }] = await Promise.all([
+    supabaseClient.from('workout_logs')
+      .select('id, client_id, routine_id, routine_name, performed_at, duration_seconds, note, workout_log_exercises(id, exercise_id, exercise_name, position, workout_log_sets(set_index, weight, reps))')
+      .eq('user_id', uid),
+    supabaseClient.from('routines').select('id, client_id').eq('user_id', uid),
+  ]);
+  const cloudIdToClientId = {};
+  (routineRows||[]).forEach(r=>{ cloudIdToClientId[r.id] = r.client_id || r.id; });
+
+  (cloudLogs||[])
+    .filter(row => !localIds.has(row.client_id || row.id))
+    .forEach(row=>{
+      db.workoutLog.push({
+        id: row.client_id || row.id,
+        routineId: row.routine_id ? (cloudIdToClientId[row.routine_id] || null) : null,
+        routineName: row.routine_name,
+        date: new Date(row.performed_at).getTime(),
+        duration: row.duration_seconds,
+        note: row.note || '',
+        exercises: (row.workout_log_exercises||[])
+          .sort((a,b)=>a.position-b.position)
+          .map(re=>({
+            id: re.exercise_id, name: re.exercise_name,
+            sets: (re.workout_log_sets||[]).sort((a,b)=>a.set_index-b.set_index).map(s=>({weight:s.weight, reps:s.reps})),
+          })),
+        _cloudSynced: true,
+      });
+    });
+
+  db.workoutLog.sort((a,b)=>a.date-b.date);
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){}
+}
+
+// Uploads the entire current local `db` (except logs already uploaded) to
+// this user's Supabase rows. Routines/notes/last-weights/PRs are small
+// (a handful of rows, ~75 at most) so a full upsert-by-client_id each time
+// is simpler and cheap — no incremental diffing needed at this scale.
+async function pushLocalDataToCloud(){
+  if(!currentUser) return;
+  const uid = currentUser.id;
+
+  // Raw localStorage read (not loadSettings(), which only *applies* saved
+  // settings to the DOM) — 'alans_settings' may not exist at all yet for a
+  // brand-new install that never touched Settings, so the same light/Navy
+  // default used everywhere else (see loadSettings()) applies here too.
+  let settingsRaw = null;
+  try{ settingsRaw = JSON.parse(localStorage.getItem('alans_settings')||'null'); }catch(e){}
+  await supabaseClient.from('user_settings').upsert({
+    user_id: uid,
+    theme: (settingsRaw ? !!settingsRaw.lightMode : true) ? 'light' : 'dark',
+    accent: (settingsRaw && settingsRaw.accent) || 'Navy',
+    lang: (settingsRaw && settingsRaw.lang) || 'en',
+    schedule: db.schedule || [],
+    schedule_pos: db.schedulePos || 0,
+    last_notes: db.lastNotes || {},
+  });
+
+  const notedExercises = (db.exercises||[]).filter(e=>e.notes && e.notes.trim());
+  if(notedExercises.length){
+    await supabaseClient.from('user_exercise_notes').upsert(
+      notedExercises.map(e=>({ user_id: uid, exercise_id: e.id, notes: e.notes }))
+    );
+  }
+
+  for(const r of (db.routines||[])){
+    const { data: routineRow, error: rErr } = await supabaseClient
+      .from('routines')
+      .upsert({ user_id: uid, client_id: r.id, name: r.name }, { onConflict: 'user_id,client_id' })
+      .select('id')
+      .single();
+    if(rErr || !routineRow) continue;
+    // Full replace of this routine's exercise list on every sync — cheap
+    // at this scale and avoids diffing reordered/edited exercises row by row.
+    await supabaseClient.from('routine_exercises').delete().eq('routine_id', routineRow.id);
+    const rows = (r.exercises||[]).map((ex, i)=>({
+      routine_id: routineRow.id,
+      exercise_id: ex.id,
+      position: i,
+      target_sets: ex.sets || 3,
+      target_reps: ex.reps || 8,
+      target_weight: ex.weight || 0,
+      rest_seconds: ex.rest || 90,
+    }));
+    if(rows.length) await supabaseClient.from('routine_exercises').insert(rows);
+  }
+
+  const lw = db.lastWeights || {};
+  const lwRows = Object.keys(lw).map(exId=>({
+    user_id: uid, exercise_id: exId,
+    weight: lw[exId].weight || 0, reps: lw[exId].reps || 0,
+    sets: lw[exId].sets || [], history: lw[exId].history || '',
+  }));
+  if(lwRows.length) await supabaseClient.from('last_weights').upsert(lwRows);
+
+  const prs = db.allTimePRs || {};
+  const prRows = Object.keys(prs).map(exId=>({
+    user_id: uid, exercise_id: exId,
+    weight: prs[exId].weight,
+    achieved_at: new Date(prs[exId].date || Date.now()).toISOString(),
+  }));
+  if(prRows.length) await supabaseClient.from('all_time_prs').upsert(prRows);
+
+  await pushPendingLogsOnly();
+}
+
+// Rebuilds the local `db` entirely from this user's Supabase data. Used
+// when a device has no local workout history yet (fresh install + an
+// existing account) or as the "keep my account's data" side of a conflict.
+async function pullCloudDataToLocal(){
+  if(!currentUser) return;
+  const uid = currentUser.id;
+
+  const [settingsRes, notesRes, routinesRes, lwRes, prsRes, logsRes] = await Promise.all([
+    supabaseClient.from('user_settings').select('*').eq('user_id', uid).maybeSingle(),
+    supabaseClient.from('user_exercise_notes').select('*').eq('user_id', uid),
+    supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', uid),
+    supabaseClient.from('last_weights').select('*').eq('user_id', uid),
+    supabaseClient.from('all_time_prs').select('*').eq('user_id', uid),
+    supabaseClient.from('workout_logs').select('id, client_id, routine_id, routine_name, performed_at, duration_seconds, note, workout_log_exercises(id, exercise_id, exercise_name, position, workout_log_sets(set_index, weight, reps))').eq('user_id', uid).order('performed_at', {ascending:true}),
+  ]);
+
+  // Start from the canonical exercise catalogue, then layer this user's
+  // personal notes on top — mirrors how the local app always treated
+  // `exercises` as one shared list with personal notes merged in.
+  const exercises = DEFAULT_EXERCISES.map(e=>({...e}));
+  const notesByExId = {};
+  (notesRes.data||[]).forEach(n=>{ notesByExId[n.exercise_id] = n.notes; });
+  exercises.forEach(e=>{ if(notesByExId[e.id] !== undefined) e.notes = notesByExId[e.id]; });
+
+  const routineCloudIdToClientId = {};
+  (routinesRes.data||[]).forEach(r=>{ routineCloudIdToClientId[r.id] = r.client_id || r.id; });
+
+  const routines = (routinesRes.data||[]).map(r=>({
+    id: r.client_id || r.id,
+    name: r.name,
+    exercises: (r.routine_exercises||[])
+      .sort((a,b)=>a.position-b.position)
+      .map(re=>({ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds })),
+  }));
+
+  const lastWeights = {};
+  (lwRes.data||[]).forEach(row=>{
+    lastWeights[row.exercise_id] = { weight: row.weight, reps: row.reps, sets: row.sets || [], history: row.history || '' };
+  });
+
+  const allTimePRs = {};
+  (prsRes.data||[]).forEach(row=>{
+    allTimePRs[row.exercise_id] = { weight: row.weight, date: new Date(row.achieved_at).getTime() };
+  });
+
+  const workoutLog = (logsRes.data||[]).map(row=>({
+    id: row.client_id || row.id,
+    routineId: row.routine_id ? (routineCloudIdToClientId[row.routine_id] || null) : null,
+    routineName: row.routine_name,
+    date: new Date(row.performed_at).getTime(),
+    duration: row.duration_seconds,
+    note: row.note || '',
+    exercises: (row.workout_log_exercises||[])
+      .sort((a,b)=>a.position-b.position)
+      .map(re=>({
+        id: re.exercise_id, name: re.exercise_name,
+        sets: (re.workout_log_sets||[]).sort((a,b)=>a.set_index-b.set_index).map(s=>({weight:s.weight, reps:s.reps})),
+      })),
+    _cloudSynced: true,
+  }));
+
+  db.exercises = exercises;
+  db.routines = routines;
+  db.lastWeights = lastWeights;
+  db.allTimePRs = allTimePRs;
+  db.workoutLog = workoutLog;
+
+  const s = settingsRes.data;
+  if(s){
+    // user_settings.schedule already stores client_id strings (e.g. "r01"),
+    // not cloud routine UUIDs — that's what pushLocalDataToCloud() writes
+    // into it (`schedule: db.schedule`, which is always client_id-shaped),
+    // matching the routine `id` values just assigned above. No translation
+    // needed here; routineCloudIdToClientId is only for workoutLog below,
+    // which stores cloud UUIDs in workout_logs.routine_id and does need it.
+    db.schedule = s.schedule || [];
+    db.schedulePos = s.schedule_pos || 0;
+    db.lastNotes = s.last_notes || {};
+    try{
+      localStorage.setItem('alans_settings', JSON.stringify({
+        lightMode: s.theme === 'light', accent: s.accent, lang: s.lang
+      }));
+      loadSettings(); // re-applies theme/accent to the UI from what we just wrote
+    }catch(e){}
+  }
+
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){}
+  setLinkedUserId(uid);
+}
+
+// Snapshot of a user's current cloud state, for the safety-net backup
+// downloaded before "use this device's data" overwrites it in a conflict.
+async function fetchCloudNonLogSnapshot(){
+  const uid = currentUser.id;
+  const [settingsRes, notesRes, routinesRes, lwRes, prsRes] = await Promise.all([
+    supabaseClient.from('user_settings').select('*').eq('user_id', uid).maybeSingle(),
+    supabaseClient.from('user_exercise_notes').select('*').eq('user_id', uid),
+    supabaseClient.from('routines').select('client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', uid),
+    supabaseClient.from('last_weights').select('*').eq('user_id', uid),
+    supabaseClient.from('all_time_prs').select('*').eq('user_id', uid),
+  ]);
+  return {
+    exportDate: new Date().toISOString(), appVersion:'v1-cloud-snapshot',
+    settings: settingsRes.data, exerciseNotes: notesRes.data, routines: routinesRes.data,
+    lastWeights: lwRes.data, allTimePRs: prsRes.data,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Ongoing background sync — called from saveDB() itself (see earlier in
+// this file), debounced so a burst of local saves during a workout
+// collapses into a single network round-trip a couple seconds later
+// instead of one request per save. No-ops for guests/signed-out users.
+// Deliberately fire-and-forget: a failed background sync (offline, etc.)
+// must never surface an error to the UI or block local usage.
+// ─────────────────────────────────────────────────────────────────────────
+let _syncDebounceTimer = null;
+function scheduleBackgroundSync(){
+  if(!currentUser) return;
+  clearTimeout(_syncDebounceTimer);
+  _syncDebounceTimer = setTimeout(()=>{
+    pushLocalDataToCloud().catch(()=>{});
+  }, 2500);
+}
+
 // ═══════════════════════════════════════════
 //  INIT — load from localStorage and start
 // ═══════════════════════════════════════════
 let db = null;
 loadDB();
 loadSettings();
-if(!restoreSession()){
-  showScreen('home');
-}
+bootstrapAuthGate();
 
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
@@ -3749,7 +4707,14 @@ function restExpand() {
   if(nf) nf.addEventListener('click', finishOnboarding);
   document.querySelectorAll('.ob-swatch').forEach(s=>s.addEventListener('click', ()=>{clearInterval(colorInterval); document.querySelectorAll('.ob-swatch').forEach(x=>x.classList.remove('sel')); s.classList.add('sel'); applyPreviewColor(s);}));
   window.addEventListener('resize', ()=>{ if(started){ const visible=document.querySelector('.ob-card[data-visible="true"]'); if(!visible) return; const n=Number(visible.id.replace('ob-card','')); hideAllArrows(); startStep(n); }});
-  setTimeout(maybeStart, 0);
+
+  // Exposed globally instead of auto-firing on a timer: the auth gate (see
+  // the AUTH & CLOUD SYNC section) must decide whether the user is even
+  // allowed into the home screen first — sign-in, guest choice, or a data
+  // conflict prompt all take priority. Whichever auth path lets the user
+  // into the app calls this afterward; it's a no-op if onboarding was
+  // already seen or already started, so it's safe to call from anywhere.
+  window.__tryStartOnboarding = maybeStart;
 })();
 </script>
 
