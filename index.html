@@ -3679,7 +3679,7 @@ async function openMyAccountModal(){
   try{
     const { data } = await supabaseClient
       .from('profiles')
-      .select('username, full_name, verified, subscription_tier')
+      .select('username, full_name, verified, subscription_tier, has_password')
       .eq('id', currentUser.id)
       .single();
     profile = data;
@@ -3691,6 +3691,8 @@ async function openMyAccountModal(){
   const verifiedBadge = (profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
   const fullName = escapeHtml((profile && profile.full_name) || currentUser.email || '—');
   const username = escapeHtml((profile && profile.username) || '—');
+  const hasPassword = !!(profile && profile.has_password);
+  const passwordLabel = hasPassword ? 'Change your password' : 'Add a password so you can sign in without Google';
 
   document.getElementById('modal-title').textContent = 'My Account';
   document.getElementById('modal-body').innerHTML = `
@@ -3717,12 +3719,68 @@ async function openMyAccountModal(){
           <div class="settings-row-sub">${tierLabel}</div>
         </div></div>
       </div>
+      <div class="settings-row" onclick="openPasswordModal(${hasPassword})" style="cursor:pointer;">
+        <div class="settings-row-left"><div class="settings-row-icon">🔑</div><div>
+          <div class="settings-row-title">Password</div>
+          <div class="settings-row-sub">${passwordLabel}</div>
+        </div></div>
+        <div class="settings-row-arrow">›</div>
+      </div>
     </div>
   `;
   document.getElementById('modal-footer').innerHTML =
     `<button class="btn-ghost" onclick="closeModal()">Close</button>` +
     `<button class="btn-ghost" style="color:var(--danger,#c94444);border-color:var(--danger,#c94444);" onclick="confirmSignOutFromAccountModal()">Sign Out</button>`;
   document.getElementById('modal-overlay').classList.add('active');
+}
+
+// Reuses the My Account modal (swaps its body/footer) rather than a
+// separate overlay, since only one modal can be open at a time and this
+// is always reached from that screen. "Back" re-renders the account view
+// instead of just restoring old HTML, so the Password row's label stays
+// correct if this is opened again after a successful change.
+function openPasswordModal(hasPassword){
+  document.getElementById('modal-title').textContent = hasPassword ? 'Change Password' : 'Set a Password';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="auth-tagline" style="text-align:left;margin-bottom:16px;">
+      ${hasPassword ? 'Choose a new password for your account.' : 'Add a password so you can sign in with your email even without Google.'}
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">New Password</label>
+      <input class="form-inp" type="password" id="account-password-1" autocomplete="new-password" placeholder="At least 8 characters">
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">Confirm Password</label>
+      <input class="form-inp" type="password" id="account-password-2" autocomplete="new-password" placeholder="Re-enter password">
+    </div>
+    <div class="auth-error" id="account-password-error"></div>
+  `;
+  document.getElementById('modal-footer').innerHTML =
+    `<button class="btn-ghost" onclick="openMyAccountModal()">Back</button>` +
+    `<button class="btn-main" id="account-password-submit" style="padding:9px 22px;font-size:12px;width:auto" onclick="submitAccountPassword()">Save</button>`;
+}
+
+async function submitAccountPassword(){
+  const pw1 = document.getElementById('account-password-1').value;
+  const pw2 = document.getElementById('account-password-2').value;
+  const errEl = document.getElementById('account-password-error');
+  errEl.textContent = '';
+  if(pw1.length < 8){ errEl.textContent = 'Password must be at least 8 characters.'; return; }
+  if(pw1 !== pw2){ errEl.textContent = 'Passwords don\'t match.'; return; }
+
+  const btn = document.getElementById('account-password-submit'); btn.disabled = true;
+  try{
+    const { error: updateErr } = await supabaseClient.auth.updateUser({ password: pw1 });
+    if(updateErr) throw updateErr;
+    // Best-effort: the password itself is already saved regardless of
+    // whether this flag write succeeds, so a failure here just means the
+    // Password row's label might stay stale until the next successful save.
+    await supabaseClient.from('profiles').update({ has_password: true }).eq('id', currentUser.id);
+    await openMyAccountModal();
+  }catch(e){
+    errEl.textContent = e.message || 'Could not update your password.';
+    btn.disabled = false;
+  }
 }
 
 function confirmSignOutFromAccountModal(){
