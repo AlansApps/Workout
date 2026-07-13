@@ -1106,7 +1106,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <div class="hero-inner">
         <div class="hero-eyebrow">Next Session</div>
         <div id="next-name" class="hero-name">—</div>
-        <div id="next-meta" class="hero-meta">—</div>
+        <div id="next-meta" class="hero-meta"></div>
       </div>
       <span class="hero-arrow">›</span>
     </div>
@@ -1264,7 +1264,6 @@ body.light-mode .auth-choice-title{color:#111;}
     <div style="padding:20px 22px 14px;border-bottom:1px solid #272727;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-family:var(--hd);font-size:16px;font-weight:700;letter-spacing:4px;color:var(--text);text-transform:uppercase;">Choose Workout</div>
-        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:3px;text-transform:uppercase;">Select any routine to start</div>
       </div>
       <button onclick="closePicker()" style="background:none;border:1px solid var(--line2);color:var(--dim);width:28px;height:28px;cursor:pointer;font-size:13px;border-radius:2px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
@@ -1521,7 +1520,6 @@ body.light-mode .auth-choice-title{color:#111;}
       <div class="auth-choice-title">Use This Device's Data</div>
       <div class="auth-choice-sub">Upload what's on this device to your account, replacing its previous cloud data. Your account's previous data is backed up first.</div>
     </div>
-    <div class="auth-tagline" style="margin-top:4px;">Either way, your workout history from both is merged automatically — you won't lose past sessions.</div>
     <div class="auth-error" id="conflict-error"></div>
   </div>
 
@@ -2041,8 +2039,11 @@ function renderHome(){
   const nr=getNextRoutine();
   if(nr){
     document.getElementById('next-name').textContent=nr.name;
-    const exC=nr.exercises.length,setC=nr.exercises.reduce((a,e)=>a+e.sets,0);
-    document.getElementById('next-meta').textContent=exC+' exercises · '+setC+' sets';
+    // Exercise/set count deliberately not shown here — it's already
+    // visible the moment you tap in, and duplicated it on the Routines
+    // list and workout picker besides; this card just needs to say
+    // what's next, not repeat its contents.
+    document.getElementById('next-meta').textContent='';
     document.getElementById('btn-cta').disabled=false;
   } else {
     document.getElementById('next-name').textContent='No routine scheduled';
