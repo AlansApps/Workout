@@ -18,9 +18,9 @@
   --void:#050505; --deep:#0c0c0c; --panel:#141414; --surface:#191919; --overlay-bg:rgba(5,5,5,0.92); --overlay-bg-heavy:rgba(5,5,5,.96);
   --lift:#1c1c1c; --line:#272727; --line2:#333333; --muted:#606060;
   --dim:#888888; --soft:#b8b8b8; --text:#e8e8e8; --bright:#f5f5f5;
-  --gold:#d4a843; --gold2:#f0c060; --gold3:#b8922e;
+  --gold:#d4a843; --gold2:#f0c060; --gold3:#b8922e; --gold-ink:var(--gold);
   --danger:#c94444; --ok:#4a9e6a; --pr:#9c6fff;
-  --r:2px; --hd:'Orbitron',sans-serif; --body:'Rajdhani',sans-serif;
+  --r:10px; --hd:'Orbitron',sans-serif; --body:'Rajdhani',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{background:var(--void);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;;width:100%;}
@@ -44,7 +44,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .streak-label{font-size:8px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-top:2px;}
 .home-body{flex:1;padding:20px 18px;display:flex;flex-direction:column;gap:14px;}
 
-.hero-card{background:var(--panel);border:1px solid var(--line2);position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s;}
+.hero-card{background:var(--panel);border:1px solid var(--line2);border-radius:16px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s;}
 .hero-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold2),var(--gold3));box-shadow:0 0 12px var(--gold),0 0 24px var(--glow-color, rgba(212,168,67,.3));}
 .hero-card:hover{border-color:var(--muted);}
 .hero-inner{padding:20px 20px 18px 24px;}
@@ -60,11 +60,11 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 /* file status bar */
 
 
-.btn-cta{background:var(--gold);color:var(--void);border:none;padding:18px;font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:6px;cursor:pointer;transition:background .15s;width:100%;text-transform:uppercase;box-shadow:0 0 20px var(--glow-color-soft, rgba(212,168,67,.2));}
+.btn-cta{background:var(--gold);color:var(--void);border:none;padding:18px;border-radius:28px;font-family:var(--body);font-size:16px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:background .15s;width:100%;box-shadow:0 0 20px var(--glow-color-soft, rgba(212,168,67,.2));}
 .btn-cta:active{background:var(--gold3);}
 .btn-cta:disabled{background:var(--lift);color:var(--muted);cursor:default;box-shadow:none;}
 .bottom-nav{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-top:1px solid var(--line);background:var(--panel);}
-.bnav-btn{background:none;border:none;border-right:1px solid var(--line);color:var(--muted);padding:14px 0;font-family:var(--body);font-size:7px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:color .15s;font-weight:600;}
+.bnav-btn{background:none;border:none;color:var(--dim);padding:10px 0;font-family:var(--body);font-size:10px;cursor:pointer;transition:color .15s;font-weight:600;}
 .bnav-btn:last-child{border-right:none;}
 .bnav-btn:hover{color:var(--gold);}
 .bnav-btn .ni{font-size:16px;display:block;margin-bottom:3px;}
@@ -74,8 +74,8 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .wo-topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 18px;padding-top:max(14px,calc(14px + env(safe-area-inset-top)));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
 .wo-left{display:flex;flex-direction:column;gap:2px;}
 .wo-name{font-family:var(--hd);font-size:18px;font-weight:700;letter-spacing:3px;color:var(--gold);text-transform:uppercase;}
-.wo-elapsed{font-size:10px;color:#888888;letter-spacing:3px;font-weight:600;}
-.btn-quit{background:none;border:1px solid var(--line2);color:var(--muted);padding:6px 10px;font-family:var(--body);font-size:9px;letter-spacing:2px;font-weight:600;cursor:pointer;transition:all .15s;text-transform:uppercase;border-radius:var(--r);}
+.wo-elapsed{font-size:10px;color:var(--dim);letter-spacing:3px;font-weight:600;}
+.btn-quit{background:none;border:1px solid var(--line2);color:var(--muted);padding:6px 12px;font-family:var(--body);font-size:11px;letter-spacing:.2px;font-weight:600;cursor:pointer;transition:all .15s;border-radius:999px;}
 .btn-quit:hover{border-color:var(--danger);color:var(--danger);}
 .wo-progress{background:var(--panel);border-bottom:1px solid var(--line);padding:9px 18px;display:flex;align-items:center;gap:12px;}
 .wo-prog-txt{font-size:9px;color:var(--dim);letter-spacing:3px;font-weight:600;white-space:nowrap;text-transform:uppercase;}
@@ -151,12 +151,12 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
   padding: 20px;
   background: none;
   border: 1px solid var(--line2);
+  border-radius: 28px;
   color: var(--muted);
-  font-family: var(--hd);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 5px;
-  text-transform: uppercase;
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .3px;
   cursor: pointer;
   transition: background .3s, color .3s, border-color .3s;
 }
@@ -179,18 +179,18 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 #rest-overlay{display:flex;position:fixed;inset:0;background:transparent;z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:translateY(100%);transition:transform .42s cubic-bezier(.16,1,.3,1);will-change:transform;overflow:hidden;pointer-events:none;}
 #rest-overlay.active::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
 #rest-overlay.active{transform:translateY(0)!important;pointer-events:all;background:var(--overlay-bg-heavy);}
-.rest-lbl{font-size:9px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;font-weight:600;}
+.rest-lbl{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-weight:600;}
 .rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color, rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft, rgba(212,168,67,.15));transition:color .3s;}
 .rest-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);animation:pulse .8s infinite;}
 .rest-nxt{font-size:9px;color:var(--muted);letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;}
 .rest-btns{display:flex;gap:10px;margin-top:6px;}
-.btn-ghost{background:none;border:1px solid var(--line2);color:var(--dim);padding:10px 18px;font-family:var(--body);font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .15s;border-radius:var(--r);}
+.btn-ghost{background:none;border:1px solid var(--line2);color:var(--dim);padding:10px 18px;font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:all .15s;border-radius:999px;}
 .btn-ghost:hover{border-color:var(--soft);color:var(--soft);}
 .btn-ghost.hi{border-color:var(--gold3);color:var(--gold3);}
 
 /* ── FINISH WORKOUT BUTTON ── */
 .finish-bar{padding:12px 14px;background:var(--panel);border-top:1px solid var(--line);}
-.btn-finish{width:100%;background:var(--gold);border:none;color:var(--void);padding:16px;font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:5px;cursor:pointer;transition:opacity .2s,background .15s;opacity:.25;pointer-events:none;text-transform:uppercase;box-shadow:0 0 20px rgba(212,168,67,0);}
+.btn-finish{width:100%;background:var(--gold);border:none;color:var(--void);padding:16px;border-radius:28px;font-family:var(--body);font-size:16px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:opacity .2s,background .15s;opacity:.25;pointer-events:none;box-shadow:0 0 20px rgba(212,168,67,0);}
 .btn-finish.ready{opacity:1;pointer-events:all;box-shadow:0 0 24px var(--glow-color, rgba(212,168,67,.3));}
 .btn-finish.ready:active{background:var(--gold3);}
 .btn-finish.saving{opacity:.7;pointer-events:none;}
@@ -219,17 +219,17 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .finish-save-status.saving{color:var(--gold);}
 .finish-save-status.ok{color:var(--ok);}
 .finish-save-status.err{color:var(--danger);}
-.btn-main{background:var(--gold);color:var(--void);border:none;padding:14px 36px;font-family:var(--hd);font-size:13px;font-weight:700;letter-spacing:5px;cursor:pointer;text-transform:uppercase;width:100%;max-width:300px;transition:background .15s;box-shadow:0 0 20px var(--glow-color-soft, rgba(212,168,67,.2));}
+.btn-main{background:var(--gold);color:var(--void);border:none;padding:14px 36px;border-radius:24px;font-family:var(--body);font-size:15px;font-weight:600;letter-spacing:.3px;cursor:pointer;width:100%;max-width:300px;transition:background .15s;box-shadow:0 0 20px var(--glow-color-soft, rgba(212,168,67,.2));}
 .btn-main:active{background:var(--gold3);}
 .btn-main:disabled{background:var(--lift);color:var(--muted);cursor:default;box-shadow:none;}
 
 /* ── INNER PAGES ── */
 .pg-header{padding:24px 18px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
 .pg-title{font-family:var(--hd);font-size:22px;font-weight:700;letter-spacing:4px;color:var(--bright);text-transform:uppercase;}
-.btn-new{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:6px 12px;font-family:var(--body);font-size:9px;font-weight:600;letter-spacing:3px;cursor:pointer;transition:all .15s;text-transform:uppercase;border-radius:var(--r);}
+.btn-new{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:6px 14px;font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:all .15s;border-radius:999px;}
 .btn-new:hover{background:var(--gold3);color:var(--void);}
 .back-row{padding:14px 18px 0;padding-top:max(14px,calc(14px + env(safe-area-inset-top)));display:flex;align-items:center;}
-.btn-back{background:none;border:none;color:var(--dim);font-family:var(--body);font-size:9px;font-weight:600;letter-spacing:3px;cursor:pointer;text-transform:uppercase;padding:0;transition:color .15s;}
+.btn-back{background:none;border:none;color:var(--dim);font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;padding:0;transition:color .15s;}
 .btn-back:hover{color:var(--text);}
 .list-scroll{flex:1;padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;}
 .rtn-row{background:var(--panel);border:1px solid var(--line);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;transition:background .15s;}
@@ -312,7 +312,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .modal-bd{padding:16px 20px;}
 .form-grp{margin-bottom:13px;}
 .form-lbl{display:block;font-size:8px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:5px;font-weight:600;}
-.form-inp{width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--text);padding:8px 11px;font-family:var(--body);font-size:13px;font-weight:500;transition:border-color .15s;border-radius:var(--r);-webkit-appearance:none;}
+.form-inp{width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--text);padding:11px 16px;font-family:var(--body);font-size:13px;font-weight:500;transition:border-color .15s;border-radius:22px;-webkit-appearance:none;}
 .form-inp:focus{outline:none;border-color:var(--gold3);}
 select.form-inp option{background:var(--panel);}
 .ex-builder{border:1px solid var(--line);margin-bottom:9px;background:var(--surface);}
@@ -338,7 +338,7 @@ select.form-inp option{background:var(--panel);}
 .ss-builder{border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);margin-bottom:9px;background:var(--surface);}
 .ss-builder-hd{padding:8px 11px;display:flex;align-items:center;gap:8px;border-bottom:1px solid color-mix(in srgb,var(--gold) 25%,transparent);background:color-mix(in srgb,var(--gold) 8%,transparent);}
 .ss-builder-lbl{font-size:7px;letter-spacing:3px;color:var(--gold3);text-transform:uppercase;font-weight:700;flex:1;}
-.ss-builder-add-ex{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:3px 8px;font-family:var(--body);font-size:8px;letter-spacing:2px;cursor:pointer;border-radius:var(--r);text-transform:uppercase;}
+.ss-builder-add-ex{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:4px 10px;font-family:var(--body);font-size:11px;letter-spacing:.2px;cursor:pointer;border-radius:999px;}
 .ss-builder-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;}
 .ss-builder-rm:hover{color:var(--danger);}
 .ss-ex-hd{padding:6px 11px;display:flex;align-items:center;gap:7px;border-bottom:1px solid color-mix(in srgb,var(--gold) 15%,transparent);background:color-mix(in srgb,var(--gold) 4%,transparent);}
@@ -373,7 +373,7 @@ select.form-inp option{background:var(--panel);}
 
 /* ── PROGRESS CHARTS ── */
 .prog-time-pills{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
-.prog-pill{background:none;border:1px solid var(--line2);color:#666;padding:4px 10px;font-family:var(--body);font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all .15s;border-radius:1px;}
+.prog-pill{background:none;border:1px solid var(--line2);color:#666;padding:5px 12px;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:all .15s;border-radius:999px;}
 .prog-pill:hover{border-color:#888;color:#aaa;}
 .prog-pill.active{background:var(--glow-color-soft, rgba(212,168,67,.1));border-color:var(--gold);color:var(--gold);}
 .prog-card{background:var(--panel);border:1px solid var(--line2);margin-bottom:6px;overflow:hidden;width:100%;}
@@ -407,13 +407,14 @@ select.form-inp option{background:var(--panel);}
 .settings-section-label{font-size:8px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;font-weight:700;padding:16px 4px 6px;font-family:var(--body);}
 .settings-section-label:first-child{padding-top:4px;}
 
-.settings-group{background:var(--panel);border:1px solid var(--line2);margin-bottom:4px;overflow:hidden;}
+.settings-group{background:var(--panel);border:1px solid var(--line2);border-radius:16px;margin-bottom:4px;overflow:hidden;}
 
 .settings-row{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .15s;}
 .settings-row:hover:not(.disabled){background:var(--surface);}
 .settings-row.disabled{opacity:.45;cursor:default;}
 .settings-row-left{display:flex;align-items:center;gap:14px;flex:1;}
-.settings-row-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
+.settings-row-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);}
+.settings-row-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
 .settings-row-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:.5px;}
 .settings-row-sub{font-size:10px;color:var(--dim);letter-spacing:1px;margin-top:2px;}
 .settings-row-arrow{color:var(--muted);font-size:18px;flex-shrink:0;}
@@ -449,6 +450,7 @@ body.light-mode{
   --soft:#333333;
   --text:#111111;
   --bright:#000000;
+  --gold-ink:color-mix(in srgb, var(--gold) 55%, black);
 }
 /* Deliberate light-mode recolors (gold3 instead of the default text
    token, for emphasis) — NOT the same thing as the block this replaced:
@@ -459,13 +461,30 @@ body.light-mode{
    light mode on their own, so the overrides were redundant and removed
    — along with one for .le-name, a class that no longer exists anywhere
    in this file. */
-body.light-mode .wo-name{color:var(--gold3);}
-body.light-mode .stat-n{color:var(--gold3);}
-body.light-mode .streak-val{color:var(--gold3);}
-body.light-mode .streak-val-tier{color:var(--gold3);}
-body.light-mode .tier-name-lbl{color:var(--gold3);}
-body.light-mode .chip-num{color:var(--gold3);}
-body.light-mode .finish-sub{color:var(--gold3);}
+body.light-mode .wo-name{color:var(--gold-ink);}
+body.light-mode .stat-n{color:var(--gold-ink);}
+body.light-mode .streak-val{color:var(--gold-ink);}
+body.light-mode .streak-val-tier{color:var(--gold-ink);}
+body.light-mode .tier-name-lbl{color:var(--gold-ink);}
+body.light-mode .chip-num{color:var(--gold-ink);}
+body.light-mode .finish-sub{color:var(--gold-ink);}
+/* Findings 1-2 from the 2026-07-14 legibility audit: --gold as literal text
+   color is under 3:1 against light-mode backgrounds for every accent preset
+   (raw gold is tuned to glow on a near-black background, not to sit flat as
+   ink on white). --gold-ink (defined above) is a color-mix darken applied
+   only in light mode, so this holds for all 8 accent presets, not just the
+   default gold hue. These were the sibling elements using raw --gold that
+   the original patch above missed. */
+body.light-mode .ex-card-last{color:var(--gold-ink);}
+body.light-mode .ex-db-pr{color:var(--gold-ink);}
+body.light-mode .mg-name{color:var(--gold-ink);}
+body.light-mode .ex-section-title{color:var(--gold-ink);}
+body.light-mode .ex-detail-muscle{color:var(--gold-ink);}
+body.light-mode .fa-label{color:var(--gold-ink);}
+body.light-mode .prog-stat-val{color:var(--gold-ink);}
+body.light-mode .prog-trend-badge{color:var(--gold-ink);}
+body.light-mode .rest-time{color:var(--gold-ink);}
+body.light-mode .rest-mini-time{color:var(--gold-ink);}
 body.light-mode .tier-modal-name{color:#111 !important;}
 /* Inputs */
 body.light-mode .set-inp{background:#eeeeee;border-color:#ccc;color:#111;}
@@ -476,7 +495,7 @@ body.light-mode .stepper-btn{background:#e0e0e0;border-color:#ccc;color:#333;}
 /* Hero card */
 body.light-mode .hero-card{background:#fff;border-color:#ddd;}
 body.light-mode .hero-meta{color:#666;}
-body.light-mode .hero-eyebrow{color:var(--gold3);}
+body.light-mode .hero-eyebrow{color:var(--gold-ink);}
 /* Exercise card */
 body.light-mode .ex-card{background:#fff;border-color:#ddd;}
 body.light-mode .ex-card-notes{color:#777;}
@@ -536,7 +555,7 @@ body.light-mode body::before{opacity:.15;}
 .tier-modal-divider{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
 .tier-modal-name{font-family:var(--hd);font-size:32px;font-weight:900;letter-spacing:4px;color:var(--bright);text-transform:uppercase;line-height:1;}
 .tier-modal-msg{font-size:12px;color:var(--soft);line-height:1.7;font-style:italic;letter-spacing:.3px;}
-.tier-modal-btn{background:var(--gold);color:var(--void);border:none;padding:12px;font-family:var(--hd);font-size:11px;font-weight:700;letter-spacing:4px;cursor:pointer;text-transform:uppercase;width:100%;margin-top:4px;}
+.tier-modal-btn{background:var(--gold);color:var(--void);border:none;padding:13px;border-radius:22px;font-family:var(--body);font-size:14px;font-weight:600;letter-spacing:.3px;cursor:pointer;width:100%;margin-top:4px;}
 
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-track{background:var(--void);}
@@ -816,17 +835,19 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .ob-body{padding:16px 24px 0;}
 .ob-eyebrow{font-size:8px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;font-weight:700;margin-bottom:6px;transition:color .2s;}
 .ob-title{font-family:var(--hd);font-size:18px;font-weight:900;letter-spacing:2px;color:#f5f5f5;text-transform:uppercase;line-height:1.1;margin-bottom:5px;transition:color .4s;}
-.ob-desc{font-size:11px;color:#888;letter-spacing:.5px;line-height:1.7;margin-bottom:14px;transition:color .4s;}
+.ob-desc{font-size:12px;color:#888;letter-spacing:.5px;line-height:1.7;margin-bottom:14px;transition:color .4s;}
 .ob-footer{padding:12px 24px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .4s;}
-.ob-skip{background:none;border:none;color:#444;font-family:var(--body);font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:600;cursor:pointer;transition:color .25s;padding:0;}
-.ob-next{background:var(--gold);color:#000;border:none;padding:11px 24px;font-family:var(--hd);font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;cursor:pointer;transition:background .2s;flex:1;max-width:180px;}
+.ob-skip{background:none;border:none;color:#8a8a8a;font-family:var(--body);font-size:12px;letter-spacing:.2px;font-weight:600;cursor:pointer;transition:color .25s;padding:0;}
+.ob-next{background:var(--gold);color:#000;border:none;padding:11px 24px;border-radius:20px;font-family:var(--body);font-size:14px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:background .2s;flex:1;max-width:180px;}
 .ob-theme-row{display:flex;align-items:center;gap:12px;padding:10px 0 14px;border-top:1px solid #1a1a1a;}
 .sim-track{width:44px;height:26px;border-radius:13px;position:relative;transition:background .35s;border:1px solid #333;}
 .sim-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;transition:transform .35s,background .35s;background:#555;}
 .sim-track.light{background:var(--gold);border-color:var(--gold);}
 .sim-track.light .sim-thumb{background:#fff;transform:translateX(18px);}
 .sim-label{font-family:var(--hd);font-size:10px;font-weight:700;letter-spacing:3px;transition:color .35s;text-transform:uppercase;color:#555;min-width:44px;}
-.sim-label.light{color:var(--gold);}.mode-icon{font-size:18px;}
+.sim-label.light{color:var(--gold);}
+.mode-icon{width:18px;height:18px;display:inline-flex;color:var(--gold);}
+.mode-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
 .ob-swatches{display:flex;gap:10px;padding:10px 0 14px;border-top:1px solid #1a1a1a;align-items:center;flex-wrap:wrap;}
 .ob-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .2s,border-color .2s,box-shadow .2s;}
 .ob-swatch.sel{border-color:#fff;transform:scale(1.2);box-shadow:0 0 10px rgba(255,255,255,.2);}
@@ -837,7 +858,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .sc-next-badge{background:var(--gold);color:#000;font-size:7px;font-weight:700;letter-spacing:2px;padding:2px 6px;display:inline-block;margin-bottom:6px;text-transform:uppercase;}
 .sim-rrows{display:flex;flex-direction:column;gap:3px;width:100%;}
 .sim-rrow{background:#161616;border:1px solid #222;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;transition:all .25s;}
-.sim-rrow.hl{border-color:var(--gold);background:#1a1800;}.sim-rname{font-size:10px;font-weight:600;color:#c0c0c0;transition:color .25s;}.sim-rrow.hl .sim-rname{color:var(--gold);}.sim-rmeta{font-size:8px;color:#555;}.sim-redit{font-size:11px;color:#555;transition:color .25s;}.sim-rrow.hl .sim-redit{color:var(--gold);}
+.sim-rrow.hl{border-color:var(--gold);background:#1a1800;}.sim-rname{font-size:10px;font-weight:600;color:#c0c0c0;transition:color .25s;}.sim-rrow.hl .sim-rname{color:var(--gold);}.sim-rmeta{font-size:8px;color:#7a7a7a;}.sim-redit{font-size:11px;color:#7a7a7a;transition:color .25s;}.sim-rrow.hl .sim-redit{color:var(--gold);}
 .ob-card.lp{background:#f2f2f2;border-color:#ddd;}.ob-card.lp .ob-title{color:#111;}.ob-card.lp .ob-desc{color:#555;}.ob-card.lp .ob-footer{background:#f2f2f2;}.ob-card.lp .ob-theme-row{border-color:#ddd;}
 @media (max-height:640px){.ob-card{width:calc(100% - 24px);}.ob-body{padding:12px 18px 0;}.ob-footer{padding:10px 18px 14px;}.ob-desc{line-height:1.45;margin-bottom:10px;}}
 
@@ -845,7 +866,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 /* ══ LIGHT MODE COMPREHENSIVE ══ */
 .light-mode { --overlay-bg:rgba(220,220,220,0.95); --overlay-bg-heavy:rgba(210,210,210,0.98); }
 .light-mode .bottom-nav { background:var(--panel); border-color:var(--line); }
-.light-mode .bnav-btn { color:var(--muted); border-color:var(--line); }
 .light-mode .screen { border-color:#ddd; }
 .light-mode .pg-header { background:var(--panel); border-color:var(--line); }
 .light-mode .back-row { background:var(--panel); }
@@ -856,13 +876,12 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .last-card { background:var(--panel); border-color:var(--line); }
 .light-mode .lc-label { color:var(--muted); }
 .light-mode .wo-progress { background:var(--panel); border-color:var(--line); }
-.light-mode .wo-elapsed { color:var(--muted); }
 .light-mode .wo-prog-txt { color:var(--dim); }
 .light-mode .prog-track { background:var(--line2); }
 .light-mode .ex-card-header { background:var(--panel); border-color:var(--line); }
 .light-mode .finish-bar { background:var(--panel); border-color:var(--line); }
-.light-mode .set-n { color:var(--muted); }
-.light-mode .set-field-lbl { color:var(--muted); }
+.light-mode .set-n { color:var(--dim); }
+.light-mode .set-field-lbl { color:var(--dim); }
 .light-mode .last-chip { background:var(--surface); color:var(--muted); border-color:var(--line); }
 .light-mode #rest-overlay.active { background:var(--overlay-bg-heavy) !important; }
 .light-mode .rest-lbl { color:var(--muted); }
@@ -879,7 +898,7 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .log-note { color:var(--dim); border-color:var(--line); }
 .light-mode .log-tabs { border-color:var(--line); background:var(--panel); }
 .light-mode .log-tab { color:var(--muted); border-color:var(--line); }
-.light-mode .log-tab.active { color:var(--gold); border-color:var(--gold); }
+.light-mode .log-tab.active { color:var(--gold-ink); border-color:var(--gold); }
 .light-mode .mg-header { background:var(--surface); border-color:var(--line); }
 .light-mode .ex-db-row { background:var(--panel); border-color:var(--line); color:var(--text); }
 .light-mode .ex-detail-header { background:var(--panel); border-color:var(--line); }
@@ -989,15 +1008,16 @@ body.ob-lock{overflow:hidden;touch-action:none;}
   display:flex; align-items:center; justify-content:center; gap:10px;
   background:var(--surface); border:1px solid var(--line2); color:var(--text);
   padding:12px 16px; font-family:var(--body); font-size:13px; font-weight:600;
-  cursor:pointer; border-radius:var(--r); width:100%; transition:border-color .15s;
+  cursor:pointer; border-radius:22px; width:100%; transition:border-color .15s;
+  position:relative;
 }
-.btn-provider:disabled{color:var(--muted); cursor:default; position:relative;}
+.btn-provider:disabled{color:var(--muted); cursor:default;}
 .btn-provider:disabled .provider-icon{opacity:.5;}
 .provider-icon{flex-shrink:0;}
 .btn-provider .soon-badge{
   font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted);
   background:var(--lift); border:1px solid var(--line2); border-radius:var(--r);
-  padding:2px 6px; margin-left:6px;
+  padding:2px 6px; position:absolute; right:16px; top:50%; transform:translateY(-50%);
 }
 .auth-link{
   text-align:center; font-family:var(--body); font-size:12px; color:var(--dim);
@@ -1116,7 +1136,7 @@ body.light-mode .auth-choice-title{color:#111;}
     </div>
   </div>
 
-  <button id="btn-cta" class="btn-cta" onclick="openWorkoutPicker()" disabled>Start Workout</button>
+  <button id="btn-cta" class="btn-cta" onclick="openWorkoutPicker()" disabled>Start workout</button>
   <div class="bottom-nav" id="app-bnav">
     <button class="bnav-btn" onclick="showScreen('routines')"><span class="ni">⊞</span>Workouts</button>
     <button class="bnav-btn" onclick="showScreen('schedule')"><span class="ni">↻</span>Program</button>
@@ -1138,7 +1158,7 @@ body.light-mode .auth-choice-title{color:#111;}
   </div>
   <div id="wo-body" class="wo-body"></div>
   <div class="finish-bar">
-    <button id="btn-finish" class="btn-finish" onclick="finishWorkout()">Finish &amp; Save Workout</button>
+    <button id="btn-finish" class="btn-finish" onclick="finishWorkout()">Finish &amp; save workout</button>
   </div>
 </div>
 
@@ -1158,7 +1178,7 @@ body.light-mode .auth-choice-title{color:#111;}
     <textarea class="finish-note-inp" id="finish-note" placeholder="How did it feel? Any PRs? Anything hurt?"></textarea>
   </div>
   <div id="finish-save-status" class="finish-save-status"></div>
-  <button class="btn-main" id="btn-go-home" onclick="goHome()">Back to Home</button>
+  <button class="btn-main" id="btn-go-home" onclick="goHome()">Back to home</button>
 </div>
 
 <!-- ══ ROUTINES ══ -->
@@ -1279,18 +1299,18 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="tier-modal-divider"></div>
     <div class="tier-modal-name" id="tier-modal-name"></div>
     <div class="tier-modal-msg" id="tier-modal-msg"></div>
-    <button class="tier-modal-btn" onclick="closeTierModal()">Let's Keep Going</button>
+    <button class="tier-modal-btn" onclick="closeTierModal()">Let's keep going</button>
   </div>
 </div>
 
 <!-- ══ CONFIRM MODAL ══ -->
 <div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
-  <div style="background:var(--panel);border:1px solid var(--gold);padding:28px 24px;width:100%;max-width:320px;text-align:center;">
+  <div style="background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:28px 24px;width:100%;max-width:320px;text-align:center;">
     <div style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:3px;color:var(--text);text-transform:uppercase;margin-bottom:10px;">Quit Workout?</div>
     <div style="font-size:12px;color:var(--soft);margin-bottom:22px;letter-spacing:1px;line-height:1.6;">Progress will not be saved.</div>
     <div style="display:flex;gap:10px;">
-      <button onclick="confirmQuit(false)" style="flex:1;background:none;border:1px solid var(--line2);color:var(--muted);padding:12px;font-family:var(--hd);font-size:11px;letter-spacing:3px;cursor:pointer;text-transform:uppercase;">Keep Going</button>
-      <button onclick="confirmQuit(true)" style="flex:1;background:var(--danger);border:none;color:#fff;padding:12px;font-family:var(--hd);font-size:11px;letter-spacing:3px;cursor:pointer;text-transform:uppercase;">Quit</button>
+      <button onclick="confirmQuit(false)" style="flex:1;background:none;border:1px solid var(--line2);border-radius:20px;color:var(--muted);padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;">Keep going</button>
+      <button onclick="confirmQuit(true)" style="flex:1;background:var(--danger);border:none;border-radius:20px;color:#fff;padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;">Quit</button>
     </div>
   </div>
 </div>
@@ -1318,7 +1338,7 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="settings-group">
       <div class="settings-row" id="my-account-row" onclick="openMyAccountModal()" style="cursor:pointer;">
         <div class="settings-row-left">
-          <div class="settings-row-icon">👤</div>
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div>
           <div>
             <div class="settings-row-title" id="my-account-title">My Account</div>
             <div class="settings-row-sub" id="my-account-sub">Sign in to manage your account</div>
@@ -1335,7 +1355,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <!-- DARK / LIGHT MODE -->
       <div class="settings-row" style="border-bottom:1px solid var(--line);">
         <div class="settings-row-left">
-          <div class="settings-row-icon">🌙</div>
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M20 14.1A8.5 8.5 0 1 1 9.9 4a7 7 0 0 0 10.1 10.1z"/></svg></div>
           <div>
             <div class="settings-row-title">Theme</div>
             <div class="settings-row-sub" id="theme-sub">Dark mode</div>
@@ -1352,7 +1372,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <!-- ACCENT COLOR -->
       <div class="settings-row" style="align-items:flex-start;padding-bottom:16px;">
         <div class="settings-row-left" style="margin-bottom:12px;">
-          <div class="settings-row-icon">🎨</div>
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.5c-4.7 0-8.5 3.6-8.5 8 0 3 2 4.3 3.7 4.3.9 0 1.3-.5 1.3-1.1 0-.6-.4-.9-.4-1.7 0-1 .8-1.8 2-1.8h2.3c2.6 0 4.6-1.7 4.6-4.3 0-3.5-3.6-3.4-5-3.4z"/><circle cx="8" cy="10" r=".9" fill="currentColor" stroke="none"/><circle cx="11.5" cy="7.3" r=".9" fill="currentColor" stroke="none"/><circle cx="15.2" cy="8.6" r=".9" fill="currentColor" stroke="none"/></svg></div>
           <div>
             <div class="settings-row-title">Accent Color</div>
             <div class="settings-row-sub" id="accent-sub">Gold</div>
@@ -1377,7 +1397,7 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="settings-group">
       <div class="settings-row disabled">
         <div class="settings-row-left">
-          <div class="settings-row-icon">🌐</div>
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.3 3.8 5.4 3.8 8.5s-1.3 6.2-3.8 8.5c-2.5-2.3-3.8-5.4-3.8-8.5S9.5 5.8 12 3.5z"/></svg></div>
           <div>
             <div class="settings-row-title">Language</div>
             <div class="settings-row-sub">English (default)</div>
@@ -1392,7 +1412,7 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="settings-group">
       <div class="settings-row" onclick="exportData()" style="cursor:pointer;">
         <div class="settings-row-left">
-          <div class="settings-row-icon">⬇</div>
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.5v11m0 0l-3.8-3.8M12 14.5l3.8-3.8"/><path d="M4.5 16.5v2a2.5 2.5 0 002.5 2.5h10a2.5 2.5 0 002.5-2.5v-2"/></svg></div>
           <div>
             <div class="settings-row-title">Export Backup</div>
             <div class="settings-row-sub">Download your data as JSON</div>
@@ -1422,8 +1442,8 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="auth-logo">Alan's Workout</div>
     <div class="auth-tagline">Sign in to keep your history safe across devices.</div>
     <div class="auth-actions">
-      <button class="btn-cta" onclick="showAuthView('signin')">Sign In</button>
-      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signup')">Create Account</button>
+      <button class="btn-cta" onclick="showAuthView('signin')">Sign in</button>
+      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signup')">Create account</button>
       <div class="auth-divider">or</div>
       <button class="btn-provider" onclick="authSignInWithGoogle()">
         <svg class="provider-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
@@ -1447,7 +1467,7 @@ body.light-mode .auth-choice-title{color:#111;}
         </svg>
         Continue with Apple <span class="soon-badge">Coming soon</span>
       </button>
-      <div class="auth-guest-link" id="auth-guest-link" onclick="continueAsGuest()">Continue as Guest</div>
+      <div class="auth-guest-link" id="auth-guest-link" onclick="continueAsGuest()">Continue as guest</div>
     </div>
   </div>
 
@@ -1464,7 +1484,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <input class="form-inp" type="password" id="signin-password" autocomplete="current-password" placeholder="••••••••">
     </div>
     <div class="auth-error" id="signin-error"></div>
-    <button class="btn-cta" id="signin-submit" onclick="authSignInWithEmail()">Sign In</button>
+    <button class="btn-cta" id="signin-submit" onclick="authSignInWithEmail()">Sign in</button>
     <div class="auth-link" onclick="authSendPasswordReset()">Forgot your password?</div>
   </div>
 
@@ -1489,7 +1509,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <input class="form-inp" type="password" id="signup-password" autocomplete="new-password" placeholder="At least 8 characters">
     </div>
     <div class="auth-error" id="signup-error"></div>
-    <button class="btn-cta" id="signup-submit" onclick="authSignUpWithEmail()">Create Account</button>
+    <button class="btn-cta" id="signup-submit" onclick="authSignUpWithEmail()">Create account</button>
   </div>
 
   <!-- ── COMPLETE PROFILE (OAuth signups land here if they have no username yet) ── -->
@@ -1528,7 +1548,7 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="auth-logo">5 Sessions In</div>
     <div class="auth-tagline">You've used up the guest sessions on this device. Create a free account to keep your history and keep training — everything you've logged so far comes with you.</div>
     <div class="auth-actions">
-      <button class="btn-cta" onclick="showAuthView('signup')">Create Account</button>
+      <button class="btn-cta" onclick="showAuthView('signup')">Create account</button>
       <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signin')">I already have an account</button>
       <div class="auth-divider">or</div>
       <button class="btn-provider" onclick="authSignInWithGoogle()">
@@ -1569,7 +1589,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <input class="form-inp" type="password" id="reset-password-2" autocomplete="new-password" placeholder="Re-enter password">
     </div>
     <div class="auth-error" id="reset-password-error"></div>
-    <button class="btn-cta" id="reset-password-submit" onclick="authCompletePasswordReset()">Update Password</button>
+    <button class="btn-cta" id="reset-password-submit" onclick="authCompletePasswordReset()">Update password</button>
   </div>
 
 </div>
@@ -1629,7 +1649,7 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="ob-eyebrow">Step 1 of 4 · Personalize</div>
     <div class="ob-title" id="ob-title1">Make It Yours</div>
     <div class="ob-desc">Switch between dark and light mode in Settings anytime.</div>
-    <div class="ob-theme-row"><span class="mode-icon" id="ob-mode-icon">🌙</span><div class="sim-track" id="ob-sim-track"><div class="sim-thumb" id="ob-sim-thumb"></div></div><span class="sim-label" id="ob-sim-label">Dark</span></div>
+    <div class="ob-theme-row"><span class="mode-icon" id="ob-mode-icon"><svg viewBox="0 0 24 24"><path d="M20 14.1A8.5 8.5 0 1 1 9.9 4a7 7 0 0 0 10.1 10.1z"/></svg></span><div class="sim-track" id="ob-sim-track"><div class="sim-thumb" id="ob-sim-thumb"></div></div><span class="sim-label" id="ob-sim-label">Dark</span></div>
   </div>
   <div class="ob-footer"><button class="ob-skip" id="ob-skip1" type="button">Skip</button><button class="ob-next" id="ob-next1" type="button">Next →</button></div>
 </div>
@@ -3529,7 +3549,6 @@ function applyTheme(light, save) {
   document.body.classList.toggle('light-mode', light);
   const label = document.getElementById('theme-label');
   const sub = document.getElementById('theme-sub');
-  const icon = document.querySelector('.settings-row .settings-row-icon');
   if (label) label.textContent = light ? 'LIGHT' : 'DARK';
   if (sub) sub.textContent = light ? 'Light mode' : 'Dark mode';
   if (save) saveSettings();
@@ -3740,25 +3759,25 @@ async function openMyAccountModal(){
     </div>
     <div class="settings-group">
       <div class="settings-row">
-        <div class="settings-row-left"><div class="settings-row-icon">✉️</div><div>
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1.8"/><path d="M4 6.5l8 6.2 8-6.2"/></svg></div><div>
           <div class="settings-row-title">Email</div>
           <div class="settings-row-sub">${escapeHtml(currentUser.email || '')}</div>
         </div></div>
       </div>
       <div class="settings-row">
-        <div class="settings-row-left"><div class="settings-row-icon">🔐</div><div>
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.5l7 2.6v5.4c0 4.6-3 7.9-7 9-4-1.1-7-4.4-7-9V6.1z"/><path d="M9 12l2.2 2.2L15.5 9.8"/></svg></div><div>
           <div class="settings-row-title">Signed in with</div>
           <div class="settings-row-sub">${providerLabel}</div>
         </div></div>
       </div>
       <div class="settings-row">
-        <div class="settings-row-left"><div class="settings-row-icon">⭐</div><div>
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.5.6-4 3.8.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.8 5.5-.6z"/></svg></div><div>
           <div class="settings-row-title">Plan</div>
           <div class="settings-row-sub">${tierLabel}</div>
         </div></div>
       </div>
       <div class="settings-row" onclick="openPasswordModal(${hasPassword})" style="cursor:pointer;">
-        <div class="settings-row-left"><div class="settings-row-icon">🔑</div><div>
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M11.5 12h9m-4 0v3.5m3-3.5v2.5"/></svg></div><div>
           <div class="settings-row-title">Password</div>
           <div class="settings-row-sub">${passwordLabel}</div>
         </div></div>
@@ -3768,7 +3787,7 @@ async function openMyAccountModal(){
   `;
   document.getElementById('modal-footer').innerHTML =
     `<button class="btn-ghost" onclick="closeModal()">Close</button>` +
-    `<button class="btn-ghost" style="color:var(--danger,#c94444);border-color:var(--danger,#c94444);" onclick="confirmSignOutFromAccountModal()">Sign Out</button>`;
+    `<button class="btn-ghost" style="color:var(--danger,#c94444);border-color:var(--danger,#c94444);" onclick="confirmSignOutFromAccountModal()">Sign out</button>`;
   document.getElementById('modal-overlay').classList.add('active');
 }
 
@@ -4841,11 +4860,13 @@ function restExpand() {
     const icon  = document.getElementById('ob-mode-icon');
     const card  = document.getElementById('ob-card1');
     const skip  = document.getElementById('ob-skip1');
+    const sunSvg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 3.5v2.3M12 18.2v2.3M4.6 12H2.3M21.7 12h-2.3M6.3 6.3l1.6 1.6M16.1 16.1l1.6 1.6M17.7 6.3l-1.6 1.6M7.9 16.1l-1.6 1.6"/></svg>';
+    const moonSvg = '<svg viewBox="0 0 24 24"><path d="M20 14.1A8.5 8.5 0 1 1 9.9 4a7 7 0 0 0 10.1 10.1z"/></svg>';
     let light = false;
     toggleInterval = setInterval(()=>{
       light = !light;
-      if(light){ track.className='sim-track light'; label.className='sim-label light'; label.textContent='Light'; icon.textContent='☀️'; }
-      else { track.className='sim-track'; label.className='sim-label'; label.textContent='Dark'; icon.textContent='🌙'; }
+      if(light){ track.className='sim-track light'; label.className='sim-label light'; label.textContent='Light'; icon.innerHTML=sunSvg; }
+      else { track.className='sim-track'; label.className='sim-label'; label.textContent='Dark'; icon.innerHTML=moonSvg; }
       setTimeout(()=>{ light ? card.classList.add('lp') : card.classList.remove('lp'); }, 200);
       setTimeout(()=>{ if(skip) skip.style.color = light ? '#aaaaaa' : '#444444'; }, 200);
     }, 1800);
