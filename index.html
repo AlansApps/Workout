@@ -1106,7 +1106,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <div class="hero-inner">
         <div class="hero-eyebrow">Next Session</div>
         <div id="next-name" class="hero-name">—</div>
-        <div id="next-meta" class="hero-meta">—</div>
+        <div id="next-meta" class="hero-meta"></div>
       </div>
       <span class="hero-arrow">›</span>
     </div>
@@ -1264,7 +1264,6 @@ body.light-mode .auth-choice-title{color:#111;}
     <div style="padding:20px 22px 14px;border-bottom:1px solid #272727;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-family:var(--hd);font-size:16px;font-weight:700;letter-spacing:4px;color:var(--text);text-transform:uppercase;">Choose Workout</div>
-        <div style="font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:3px;text-transform:uppercase;">Select any routine to start</div>
       </div>
       <button onclick="closePicker()" style="background:none;border:1px solid var(--line2);color:var(--dim);width:28px;height:28px;cursor:pointer;font-size:13px;border-radius:2px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
@@ -1521,7 +1520,6 @@ body.light-mode .auth-choice-title{color:#111;}
       <div class="auth-choice-title">Use This Device's Data</div>
       <div class="auth-choice-sub">Upload what's on this device to your account, replacing its previous cloud data. Your account's previous data is backed up first.</div>
     </div>
-    <div class="auth-tagline" style="margin-top:4px;">Either way, your workout history from both is merged automatically — you won't lose past sessions.</div>
     <div class="auth-error" id="conflict-error"></div>
   </div>
 
@@ -2041,8 +2039,11 @@ function renderHome(){
   const nr=getNextRoutine();
   if(nr){
     document.getElementById('next-name').textContent=nr.name;
-    const exC=nr.exercises.length,setC=nr.exercises.reduce((a,e)=>a+e.sets,0);
-    document.getElementById('next-meta').textContent=exC+' exercises · '+setC+' sets';
+    // Exercise/set count deliberately not shown here — it's already
+    // visible the moment you tap in, and duplicated it on the Routines
+    // list and workout picker besides; this card just needs to say
+    // what's next, not repeat its contents.
+    document.getElementById('next-meta').textContent='';
     document.getElementById('btn-cta').disabled=false;
   } else {
     document.getElementById('next-name').textContent='No routine scheduled';
@@ -3699,16 +3700,43 @@ async function openMyAccountModal(){
   const providerLabel = provider === 'google' ? 'Google' : 'Email & Password';
   const tierLabel = (profile && profile.subscription_tier === 'premium') ? 'Premium' : 'Free';
   const verifiedBadge = (profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
+  // Real case as entered — NOT uppercased. The old header forced
+  // text-transform:uppercase on this, which is exactly the "looks cheap"
+  // complaint: a name someone typed as "Alan Albrecht" has no business
+  // being shown back to them as "ALAN ALBRECHT".
   const fullName = escapeHtml((profile && profile.full_name) || currentUser.email || '—');
+  // Username is already enforced lowercase at input time and by a DB
+  // CHECK constraint, so this is just displaying it as stored, not
+  // forcing a transform here.
   const username = escapeHtml((profile && profile.username) || '—');
   const hasPassword = !!(profile && profile.has_password);
   const passwordLabel = hasPassword ? 'Change your password' : 'Add a password so you can sign in without Google';
 
+  // Same tier system already used on the Home streak display — a user
+  // with fewer than 10 sessions has no tier yet, so show a neutral
+  // placeholder ring rather than leaving an empty gap in the layout.
+  const workoutCount = (db.workoutLog || []).length;
+  const tier = getTier(workoutCount);
+  const tierIconHtml = tier
+    ? TIER_ICONS[tier.icon]
+    : '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
+
   document.getElementById('modal-title').textContent = 'My Account';
   document.getElementById('modal-body').innerHTML = `
-    <div style="text-align:center;padding:4px 0 18px;">
-      <div style="font-family:var(--hd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--bright);text-transform:uppercase;">${fullName}${verifiedBadge}</div>
-      <div style="font-size:13px;color:var(--dim);margin-top:2px;">@${username}</div>
+    <div style="padding:4px 0 18px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;">
+          ${tierIconHtml}
+          <div class="tier-name-lbl" style="text-align:center;">${tier ? tier.name : ''}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--hd);font-size:18px;font-weight:700;letter-spacing:1px;color:var(--bright);">${fullName}${verifiedBadge}</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:2px;">@${username}</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--soft);">
+        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp; <span style="color:var(--text);font-weight:600;">0</span> Connections
+      </div>
     </div>
     <div class="settings-group">
       <div class="settings-row">
