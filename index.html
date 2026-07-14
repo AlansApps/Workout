@@ -63,11 +63,38 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .btn-cta{background:var(--gold);color:var(--void);border:none;padding:18px;border-radius:28px;font-family:var(--body);font-size:16px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:background .15s;width:100%;box-shadow:0 0 20px var(--glow-color-soft, rgba(212,168,67,.2));}
 .btn-cta:active{background:var(--gold3);}
 .btn-cta:disabled{background:var(--lift);color:var(--muted);cursor:default;box-shadow:none;}
-.bottom-nav{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-top:1px solid var(--line);background:var(--panel);}
-.bnav-btn{background:none;border:none;color:var(--dim);padding:10px 0;font-family:var(--body);font-size:10px;cursor:pointer;transition:color .15s;font-weight:600;}
-.bnav-btn:last-child{border-right:none;}
-.bnav-btn:hover{color:var(--gold);}
-.bnav-btn .ni{font-size:16px;display:block;margin-bottom:3px;}
+/* ── FLOATING NAV — Instagram-style overlay tab bar, present on the 4
+   top-level screens only (see NAV_SCREENS/updateFloatNav). Frosted glass
+   via backdrop-filter, not flat opacity — a flat translucent panel reads
+   as a rendering glitch against the app's near-black canvas instead of
+   "premium", per the 2026-07-14 design review. ── */
+.float-nav{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom, 0px));z-index:50;border-radius:26px;display:flex;padding:9px 4px;background:rgba(24,24,24,.68);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.08);}
+body.light-mode .float-nav{background:rgba(255,255,255,.72);border-color:rgba(0,0,0,.06);}
+@media (min-width:600px){.float-nav{max-width:456px;margin:0 auto;left:0;right:0;}}
+.float-nav-pill{position:absolute;top:0;left:0;border-radius:999px;background:rgba(255,255,255,.10);transition:transform .28s cubic-bezier(.34,1.2,.4,1),width .28s cubic-bezier(.34,1.2,.4,1),height .28s cubic-bezier(.34,1.2,.4,1);will-change:transform;}
+body.light-mode .float-nav-pill{background:rgba(0,0,0,.06);}
+.float-nav-item{flex:1;display:flex;justify-content:center;padding:5px 0;position:relative;z-index:1;background:none;border:none;cursor:pointer;font-family:var(--body);color:var(--dim);touch-action:manipulation;}
+.float-nav-item.active{color:var(--gold);}
+.float-nav-item-inner{display:inline-flex;flex-direction:column;align-items:center;gap:3px;}
+.float-nav-icon{position:relative;width:22px;height:22px;display:inline-block;}
+.float-nav-icon svg{position:absolute;inset:0;width:22px;height:22px;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s,transform .2s;}
+.float-nav-icon .ol{fill:none;opacity:1;transform:scale(1);}
+.float-nav-icon .fl{fill:currentColor;stroke:none;opacity:0;transform:scale(.7);}
+.float-nav-item.active .ol{opacity:0;transform:scale(.7);}
+.float-nav-item.active .fl{opacity:1;transform:scale(1);}
+.float-nav-label{font-size:9px;font-weight:600;white-space:nowrap;}
+
+/* ── NAV CLEARANCE — the floating nav overlays instead of sitting in
+   flow, so every screen it appears on (Home/Program/Search/Profile) needs
+   this much reserved space at the bottom or its last row/button sits
+   underneath the nav. One value, reused everywhere it applies, rather
+   than hand-tuned per screen. ── */
+:root{--nav-clearance:84px;}
+#screen-home .btn-cta{margin-bottom:var(--nav-clearance);}
+#schedule-list{padding-bottom:var(--nav-clearance);}
+#screen-schedule .notice{margin-bottom:var(--nav-clearance);}
+#profile-body{padding-bottom:var(--nav-clearance);}
+#screen-search{padding-bottom:var(--nav-clearance);}
 
 /* ── WORKOUT ── */
 #screen-workout{flex-direction:column;}
@@ -228,6 +255,12 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .pg-header{padding:24px 18px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
 .pg-title{font-family:var(--hd);font-size:22px;font-weight:700;letter-spacing:4px;color:var(--bright);text-transform:uppercase;}
 .btn-new{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:6px 14px;font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:all .15s;border-radius:999px;}
+
+/* ── PROGRAM sub-buttons — Workouts/Exercises, replaces what used to be
+   separate nav destinations ── */
+.prog-subrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:20px 18px 4px;}
+.prog-subbtn{background:none;border:1px solid var(--line2);color:var(--text);padding:11px;border-radius:999px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:border-color .15s;}
+.prog-subbtn:hover{border-color:var(--gold3);}
 .btn-new:hover{background:var(--gold3);color:var(--void);}
 .back-row{padding:14px 18px 0;padding-top:max(14px,calc(14px + env(safe-area-inset-top)));display:flex;align-items:center;}
 .btn-back{background:none;border:none;color:var(--dim);font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;padding:0;transition:color .15s;}
@@ -239,6 +272,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .rtn-meta{font-size:10px;color:#a0a0a0;letter-spacing:2px;margin-top:2px;font-weight:500;}
 .rtn-acts{display:flex;gap:5px;}
 .btn-ico{background:none;border:1px solid var(--line2);color:var(--muted);width:28px;height:28px;cursor:pointer;font-size:12px;transition:all .15s;display:flex;align-items:center;justify-content:center;border-radius:var(--r);}
+.btn-ico svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .btn-ico:hover{border-color:var(--gold3);color:var(--gold3);}
 .btn-ico.del:hover{border-color:var(--danger);color:var(--danger);}
 .sched-row{background:var(--panel);border:1px solid var(--line);padding:11px 16px;display:flex;align-items:center;gap:12px;}
@@ -325,8 +359,9 @@ select.form-inp option{background:var(--panel);}
 .eb-set-num{font-size:9px;color:var(--muted);font-family:var(--hd);text-align:center;}
 .eb-set-inp{width:100%;background:var(--lift);border:1px solid var(--line2);color:var(--text);padding:5px 4px;font-family:var(--body);font-size:13px;text-align:center;border-radius:var(--r);outline:none;}
 .eb-set-inp:focus{border-color:var(--gold3);}
-.eb-set-del{background:none;border:none;color:var(--line2);cursor:pointer;font-size:12px;text-align:center;transition:color .15s;padding:0;}
+.eb-set-del{background:none;border:none;color:var(--line2);cursor:pointer;font-size:12px;text-align:center;transition:color .15s;padding:0;display:flex;align-items:center;justify-content:center;}
 .eb-set-del:hover{color:var(--danger);}
+.eb-set-del svg,.ss-builder-rm svg,.ss-ex-rm svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .eb-add-set{display:flex;align-items:center;gap:6px;padding:6px 11px;cursor:pointer;border-top:1px solid var(--line);background:none;width:100%;border-left:none;border-right:none;border-bottom:none;}
 .eb-add-set:hover .eb-add-icon{color:var(--gold);}
 .eb-add-icon{color:var(--gold3);font-size:14px;line-height:1;}
@@ -340,11 +375,11 @@ select.form-inp option{background:var(--panel);}
 .ss-builder-hd{padding:8px 11px;display:flex;align-items:center;gap:8px;border-bottom:1px solid color-mix(in srgb,var(--gold) 25%,transparent);background:color-mix(in srgb,var(--gold) 8%,transparent);}
 .ss-builder-lbl{font-size:7px;letter-spacing:3px;color:var(--gold3);text-transform:uppercase;font-weight:700;flex:1;}
 .ss-builder-add-ex{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:4px 10px;font-family:var(--body);font-size:11px;letter-spacing:.2px;cursor:pointer;border-radius:999px;}
-.ss-builder-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;}
+.ss-builder-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;display:flex;align-items:center;justify-content:center;}
 .ss-builder-rm:hover{color:var(--danger);}
 .ss-ex-hd{padding:6px 11px;display:flex;align-items:center;gap:7px;border-bottom:1px solid color-mix(in srgb,var(--gold) 15%,transparent);background:color-mix(in srgb,var(--gold) 4%,transparent);}
 .ss-ex-letter{width:18px;height:18px;border-radius:50%;background:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold);font-family:var(--hd);font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.ss-ex-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;margin-left:auto;padding:0;}
+.ss-ex-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;margin-left:auto;padding:0;display:flex;align-items:center;justify-content:center;}
 .ss-ex-rm:hover{color:var(--danger);}
 .ss-round-sep{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:4px;padding:4px 11px;background:color-mix(in srgb,var(--gold) 6%,transparent);border-top:1px solid color-mix(in srgb,var(--gold) 12%,transparent);border-bottom:1px solid color-mix(in srgb,var(--gold) 12%,transparent);}
 .ss-round-num{font-size:8px;color:var(--gold3);font-family:var(--hd);font-weight:700;text-align:center;align-self:center;}
@@ -367,10 +402,6 @@ select.form-inp option{background:var(--panel);}
 .empty-state p{font-size:11px;letter-spacing:2px;line-height:2;font-weight:500;text-transform:uppercase;}
 .notice{font-size:8px;color:var(--muted);letter-spacing:3px;text-align:center;padding:10px;border-top:1px solid var(--line);margin-top:auto;text-transform:uppercase;font-weight:600;}
 /* ── PROGRESS / LOG TABS ── */
-.log-tabs{display:flex;border-top:1px solid var(--line);width:100%;}
-.log-tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);padding:10px 0;font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
-.log-tab:hover{color:var(--soft);}
-.log-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 
 /* ── PROGRESS CHARTS ── */
 .prog-time-pills{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
@@ -409,6 +440,29 @@ select.form-inp option{background:var(--panel);}
 .settings-section-label:first-child{padding-top:4px;}
 
 .settings-group{background:var(--panel);border:1px solid var(--line2);border-radius:16px;margin-bottom:4px;overflow:hidden;}
+
+/* ── PROFILE — Instagram-style header, matches the My Account identity
+   block pattern (tier icon beside real-case name/handle, not caps). ── */
+.profile-topbar{display:flex;justify-content:flex-end;align-items:center;padding:16px 16px 4px;}
+.profile-id-row{display:flex;align-items:center;gap:14px;padding:8px 18px 14px;}
+.profile-tier-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.profile-name{font-family:var(--hd);font-size:19px;font-weight:700;letter-spacing:1px;color:var(--bright);}
+.profile-handle{font-size:12px;color:var(--dim);margin-top:2px;}
+.profile-divider{height:1px;background:var(--line);margin:0 18px;}
+.profile-stats{padding:12px 18px;font-size:13px;color:var(--soft);}
+.profile-guest-card{margin:0 18px 16px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:14px;font-size:12px;color:var(--soft);line-height:1.5;}
+.profile-tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:10px;}
+.profile-tab{flex:1;text-align:center;padding:11px 0;font-size:11px;font-weight:600;color:var(--dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--body);}
+.profile-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.profile-tab-content{padding:14px 16px;}
+
+/* ── SEARCH — pill field per the pre-approved pattern, coming-soon empty state ── */
+.search-pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line2);border-radius:22px;padding:11px 16px;color:var(--dim);opacity:.55;}
+.search-pill input{background:none;border:none;outline:none;color:var(--text);font-family:var(--body);font-size:13px;width:100%;}
+.search-pill input:disabled{cursor:default;}
+.search-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px 30px;text-align:center;}
+.search-empty-title{font-size:13px;font-weight:600;color:var(--soft);}
+.search-empty-sub{font-size:11px;color:var(--muted);line-height:1.5;}
 
 .settings-row{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .15s;}
 .settings-row:hover:not(.disabled){background:var(--surface);}
@@ -764,13 +818,19 @@ input, select, textarea {
   .home-topbar,
   .wo-topbar,
   .back-row,
-  .ex-detail-header {
+  .ex-detail-header,
+  .prog-subrow,
+  .profile-topbar,
+  #screen-search .pg-header {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
   .home-topbar { --safe-top: 16px; }
   .wo-topbar   { --safe-top: 14px; }
   .back-row    { --safe-top: 14px; }
   .ex-detail-header { --safe-top: 14px; }
+  .prog-subrow { --safe-top: 16px; }
+  .profile-topbar { --safe-top: 16px; }
+  #screen-search .pg-header { --safe-top: 16px; }
 }
 
 
@@ -781,13 +841,11 @@ input, select, textarea {
 body.ob-lock{overflow:hidden;touch-action:none;}
 #screen-home.ob-target-layer{z-index:600;}
 #top-right-area.ob-lit,
-#app-gear.ob-lit,
-.bnav-btn.ob-lit{
+.float-nav-item.ob-lit{
   position:relative;
   z-index:620;
 }
-#app-gear.ob-lit,
-.bnav-btn.ob-lit{
+.float-nav-item.ob-lit{
   color:#ffffff !important;
   text-shadow:0 0 8px rgba(255,255,255,.6);
   filter:drop-shadow(0 0 6px rgba(255,255,255,.45));
@@ -897,9 +955,6 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 .light-mode .sched-badge { color:#000; }
 .light-mode .log-hd { background:var(--panel); }
 .light-mode .log-note { color:var(--dim); border-color:var(--line); }
-.light-mode .log-tabs { border-color:var(--line); background:var(--panel); }
-.light-mode .log-tab { color:var(--muted); border-color:var(--line); }
-.light-mode .log-tab.active { color:var(--gold-ink); border-color:var(--gold); }
 .light-mode .mg-header { background:var(--surface); border-color:var(--line); }
 .light-mode .ex-db-row { background:var(--panel); border-color:var(--line); color:var(--text); }
 .light-mode .ex-detail-header { background:var(--panel); border-color:var(--line); }
@@ -1114,12 +1169,6 @@ body.light-mode .auth-choice-title{color:#111;}
           <div class="tier-name-lbl" id="tier-name-el"></div>
         </div>
       </div>
-      <button id="app-gear" class="settings-btn" onclick="showScreen('settings')" aria-label="Settings">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </button>
     </div>
   </div>
   <div class="home-body">
@@ -1138,12 +1187,6 @@ body.light-mode .auth-choice-title{color:#111;}
   </div>
 
   <button id="btn-cta" class="btn-cta" onclick="openWorkoutPicker()" disabled>Start workout</button>
-  <div class="bottom-nav" id="app-bnav">
-    <button class="bnav-btn" onclick="showScreen('routines')"><span class="ni">⊞</span>Workouts</button>
-    <button class="bnav-btn" onclick="showScreen('schedule')"><span class="ni">↻</span>Program</button>
-    <button class="bnav-btn" onclick="showScreen('log')"><span class="ni">◎</span>Log</button>
-    <button class="bnav-btn" onclick="showScreen('exercises')"><span class="ni">◈</span>Exercises</button>
-  </div>
 </div>
 
 <!-- ══ WORKOUT ══ -->
@@ -1182,37 +1225,37 @@ body.light-mode .auth-choice-title{color:#111;}
   <button class="btn-main" id="btn-go-home" onclick="goHome()">Back to home</button>
 </div>
 
-<!-- ══ ROUTINES ══ -->
+<!-- ══ ROUTINES ══ (reached from Program's "Workouts" sub-button) -->
 <div id="screen-routines" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('home')">← Back</button></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')">← Back</button></div>
   <div class="pg-header"><div class="pg-title">Workouts</div><button class="btn-new" onclick="openRoutineModal()">+ New</button></div>
   <div id="routines-list" class="list-scroll"></div>
 </div>
 
-<!-- ══ SCHEDULE ══ -->
+<!-- ══ SCHEDULE ══ (Program — top-level nav destination, no back button;
+     Workouts/Exercises sub-buttons above replace what used to be separate
+     nav items) -->
 <div id="screen-schedule" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('home')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">Program</div><button class="btn-new" onclick="openScheduleModal()">+ Add</button></div>
+  <div class="prog-subrow">
+    <button class="prog-subbtn" onclick="showScreen('routines')">Workouts</button>
+    <button class="prog-subbtn" onclick="showScreen('exercises')">Exercises</button>
+  </div>
+  <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
+    <span>Rotation</span>
+    <button class="btn-new" onclick="openScheduleModal()">+ Add</button>
+  </div>
   <div id="schedule-list" class="list-scroll"></div>
   <div class="notice">Loops automatically · Advances after each saved session</div>
 </div>
 
-<!-- ══ LOG ══ -->
-<div id="screen-log" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('home')">← Back</button></div>
-  <div class="pg-header" style="padding-bottom:0;flex-direction:column;align-items:flex-start;gap:0;">
-    <div class="pg-title" style="padding-bottom:14px;">Log</div>
-    <div class="log-tabs">
-      <button class="log-tab active" id="tab-log" onclick="switchLogTab('log')">Sessions</button>
-      <button class="log-tab" id="tab-progress" onclick="switchLogTab('progress')">Progress</button>
-    </div>
-  </div>
-
-  <!-- SESSIONS TAB -->
-  <div id="log-tab-log" class="list-scroll" style="padding-top:10px;"></div>
-
-  <!-- PROGRESS TAB -->
-  <div id="log-tab-progress" style="display:none;flex:1;overflow-y:auto;padding:14px;">
+<!-- ══ ANALYTICS ══ (was the Log screen's "Progress" tab — moved into
+     Settings since Alan doesn't want PR/progress data visible to other
+     users once profiles go public; Settings is always private. Sessions
+     history moved to Profile's Log tab instead, see screen-profile.) -->
+<div id="screen-analytics" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')">← Back</button></div>
+  <div class="pg-header"><div class="pg-title">Analytics</div></div>
+  <div style="flex:1;overflow-y:auto;padding:14px;">
 
     <!-- Exercise Progress -->
     <div style="margin-bottom:20px;">
@@ -1265,16 +1308,16 @@ body.light-mode .auth-choice-title{color:#111;}
           <svg id="rt-svg" style="width:100%;display:block;"></svg>
         </div>
         <div id="rt-legend" class="prog-legend"></div>
-        <div style="font-size:9px;color:#555;letter-spacing:1px;padding:8px 14px;border-top:1px solid var(--line);font-style:italic;">Center = 0% (first session baseline). Tap dots for kg detail.</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;padding:8px 14px;border-top:1px solid var(--line);font-style:italic;">Center = 0% (first session baseline). Tap dots for kg detail.</div>
       </div>
     </div>
 
   </div>
 </div>
 
-<!-- ══ EXERCISES ══ -->
+<!-- ══ EXERCISES ══ (reached from Program's "Exercises" sub-button) -->
 <div id="screen-exercises" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('home')">← Back</button></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')">← Back</button></div>
   <div class="pg-header"><div class="pg-title">Exercises</div></div>
   <div id="exercises-list" class="list-scroll"></div>
 </div>
@@ -1305,13 +1348,16 @@ body.light-mode .auth-choice-title{color:#111;}
 </div>
 
 <!-- ══ CONFIRM MODAL ══ -->
+<!-- Generic styled confirm dialog — replaces native confirm() wherever a
+     yes/no decision needs the app's own look instead of the browser's.
+     Populated dynamically by showConfirm(); see that function for usage. -->
 <div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:28px 24px;width:100%;max-width:320px;text-align:center;">
-    <div style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:3px;color:var(--text);text-transform:uppercase;margin-bottom:10px;">Quit Workout?</div>
-    <div style="font-size:12px;color:var(--soft);margin-bottom:22px;letter-spacing:1px;line-height:1.6;">Progress will not be saved.</div>
+    <div id="confirm-title" style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:3px;color:var(--text);text-transform:uppercase;margin-bottom:10px;"></div>
+    <div id="confirm-msg" style="font-size:12px;color:var(--soft);margin-bottom:22px;letter-spacing:1px;line-height:1.6;"></div>
     <div style="display:flex;gap:10px;">
-      <button onclick="confirmQuit(false)" style="flex:1;background:none;border:1px solid var(--line2);border-radius:20px;color:var(--muted);padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;">Keep going</button>
-      <button onclick="confirmQuit(true)" style="flex:1;background:var(--danger);border:none;border-radius:20px;color:#fff;padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;">Quit</button>
+      <button id="confirm-cancel-btn" onclick="_confirmResolve(false)" style="flex:1;background:none;border:1px solid var(--line2);border-radius:20px;color:var(--muted);padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;"></button>
+      <button id="confirm-ok-btn" onclick="_confirmResolve(true)" style="flex:1;border:none;border-radius:20px;padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;"></button>
     </div>
   </div>
 </div>
@@ -1330,19 +1376,29 @@ body.light-mode .auth-choice-title{color:#111;}
 
 <!-- ══ SETTINGS ══ -->
 <div id="screen-settings" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('home')">← Back</button></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('profile')">← Back</button></div>
   <div class="pg-header"><div class="pg-title">Settings</div></div>
   <div class="list-scroll" style="gap:0;padding:12px 14px;">
 
-    <!-- MY ACCOUNT — title/sub/click behavior filled in by renderAccountRow() -->
+    <!-- ACCOUNT — flattened inline instead of opening a "My Account" modal
+         (Profile now owns the public-facing identity view; this is the
+         private account-management surface). Filled in by
+         renderAccountSection(). -->
     <div class="settings-section-label">Account</div>
+    <div id="account-section-body"></div>
+
+    <!-- ANALYTICS — moved out of the old Log screen's "Progress" tab.
+         Kept private in Settings rather than a Profile tab since Alan
+         doesn't want PRs/progress visible to other users once profiles
+         go public. -->
+    <div class="settings-section-label">Analytics</div>
     <div class="settings-group">
-      <div class="settings-row" id="my-account-row" onclick="openMyAccountModal()" style="cursor:pointer;">
+      <div class="settings-row" onclick="showScreen('analytics')" style="cursor:pointer;">
         <div class="settings-row-left">
-          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div>
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div>
           <div>
-            <div class="settings-row-title" id="my-account-title">My Account</div>
-            <div class="settings-row-sub" id="my-account-sub">Sign in to manage your account</div>
+            <div class="settings-row-title">Progress</div>
+            <div class="settings-row-sub">PRs, charts by exercise and routine</div>
           </div>
         </div>
         <div class="settings-row-arrow">›</div>
@@ -1427,6 +1483,78 @@ body.light-mode .auth-choice-title{color:#111;}
     <div style="text-align:center;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">Alan's Workout · v1.0</div>
     <div style="height:16px;"></div>
   </div>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div id="screen-profile" class="screen">
+  <div class="profile-topbar">
+    <div></div>
+    <button class="settings-btn" onclick="showScreen('settings')" aria-label="Settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+  <div id="profile-body" style="flex:1;overflow-y:auto;"></div>
+</div>
+
+<!-- ══ SEARCH ══ (placeholder until profiles go public) -->
+<div id="screen-search" class="screen">
+  <div class="pg-header"><div class="pg-title">Search</div></div>
+  <div style="padding:0 16px 14px;">
+    <div class="search-pill">
+      <svg viewBox="0 0 24 24" width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
+      <input type="text" placeholder="Search people, programs..." disabled>
+    </div>
+  </div>
+  <div class="search-empty">
+    <svg viewBox="0 0 24 24" width="34" height="34" style="stroke:var(--line2);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
+    <div class="search-empty-title">Coming soon</div>
+    <div class="search-empty-sub">Search for people and programs once profiles go live.</div>
+  </div>
+</div>
+
+<!-- ══ FLOATING NAV ══ persistent across Home/Program/Search/Profile only
+     (updateFloatNav toggles display:none on every other screen) -->
+<div id="app-float-nav" class="float-nav" style="display:none;">
+  <div class="float-nav-pill" id="floatNavPill"></div>
+  <button class="float-nav-item active" data-screen="home" onclick="showScreen('home')">
+    <span class="float-nav-item-inner">
+      <span class="float-nav-icon">
+        <svg class="ol" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>
+        <svg class="fl" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>
+      </span>
+      <span class="float-nav-label">Home</span>
+    </span>
+  </button>
+  <button class="float-nav-item" data-screen="schedule" onclick="showScreen('schedule')">
+    <span class="float-nav-item-inner">
+      <span class="float-nav-icon">
+        <svg class="ol" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 9.5h16"/><path d="M8 3v4M16 3v4"/></svg>
+        <svg class="fl" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 9.5h16" stroke="var(--void)" stroke-width="1.7" fill="none"/></svg>
+      </span>
+      <span class="float-nav-label">Program</span>
+    </span>
+  </button>
+  <button class="float-nav-item" data-screen="search" onclick="showScreen('search')">
+    <span class="float-nav-item-inner">
+      <span class="float-nav-icon">
+        <svg class="ol" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
+        <svg class="fl" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
+      </span>
+      <span class="float-nav-label">Search</span>
+    </span>
+  </button>
+  <button class="float-nav-item" data-screen="profile" onclick="showScreen('profile')">
+    <span class="float-nav-item-inner">
+      <span class="float-nav-icon">
+        <svg class="ol" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg>
+        <svg class="fl" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7z"/></svg>
+      </span>
+      <span class="float-nav-label">Profile</span>
+    </span>
+  </button>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -1630,7 +1758,7 @@ body.light-mode .auth-choice-title{color:#111;}
 <!-- ══ MODAL ══ -->
 <div id="modal-overlay">
   <div class="modal">
-    <div class="modal-hd"><div id="modal-title" class="modal-title">Workout</div><button class="btn-ico" onclick="closeModal()">✕</button></div>
+    <div class="modal-hd"><div id="modal-title" class="modal-title">Workout</div><button class="btn-ico" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div id="modal-body" class="modal-bd"></div>
     <div class="modal-ft" id="modal-footer"></div>
   </div>
@@ -2003,32 +2131,82 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','log','exercises','ex-detail','settings'];
+const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics'];
+// Screens that show the floating nav (the 4 top-level destinations). Every
+// other screen is reached via a back button and hides the nav, matching
+// the app's existing back-row pattern rather than stacking two nav layers.
+const NAV_SCREENS=['home','schedule','search','profile'];
 function showScreen(id){
   SCR.forEach(s=>document.getElementById('screen-'+s).classList.toggle('active',s===id));
   if(id==='home') renderHome();
   if(id==='routines') renderRoutines();
   if(id==='schedule') renderSchedule();
-  if(id==='log') renderLog();
   if(id==='exercises') renderExercisesDB();
-  if(id==='settings') renderAccountRow();
+  if(id==='settings') renderAccountSection();
+  if(id==='profile') renderProfile();
+  if(id==='analytics') initProgressCharts();
+  updateFloatNav(id);
 }
 
-// Updates the "My Account" settings row to reflect sign-in state. Defined
-// up here near showScreen() since that's what calls it; the actual account
-// data fetch + modal live with the rest of the auth code (openMyAccountModal).
-function renderAccountRow(){
-  const titleEl = document.getElementById('my-account-title');
-  const subEl = document.getElementById('my-account-sub');
-  if(!titleEl || !subEl) return;
-  if(currentUser){
-    titleEl.textContent = 'My Account';
-    subEl.textContent = currentUser.email || 'Signed in';
-  } else {
-    titleEl.textContent = 'My Account';
-    subEl.textContent = 'Sign in to manage your account';
+// Floating nav only shows on the 4 top-level destinations — every other
+// screen already has its own back-row, and showing both would be two
+// competing navigation layers on screen at once.
+let _floatNavInitialized=false;
+function updateFloatNav(id){
+  const nav=document.getElementById('app-float-nav');
+  if(!nav) return;
+  const show=NAV_SCREENS.includes(id);
+  nav.style.display=show?'flex':'none';
+  if(show){
+    setFloatNavActive(id, _floatNavInitialized);
+    _floatNavInitialized=true;
   }
 }
+
+// Sums offsetLeft/offsetTop up the offsetParent chain instead of
+// subtracting getBoundingClientRect() values — the latter mixes
+// border-box and padding-box coordinate spaces whenever the ancestor has
+// its own padding (as .float-nav does), which drifted the capsule a few
+// px off-center. offsetLeft/offsetParent are guaranteed to use the same
+// padding-edge reference point that position:absolute uses, so this is
+// the version that's actually correct, not just visually close.
+function _offsetRelativeTo(el, ancestor){
+  let x=0, y=0, node=el;
+  while(node && node!==ancestor){ x+=node.offsetLeft; y+=node.offsetTop; node=node.offsetParent; }
+  return {x,y};
+}
+function _placeFloatNavPill(itemEl, animate){
+  const nav=document.getElementById('app-float-nav');
+  const pill=document.getElementById('floatNavPill');
+  const inner=itemEl.querySelector('.float-nav-item-inner');
+  if(!nav||!pill||!inner) return;
+  const PAD_X=16, PAD_Y=7;
+  const pos=_offsetRelativeTo(inner, nav);
+  const w=inner.offsetWidth+PAD_X*2, h=inner.offsetHeight+PAD_Y*2;
+  const x=pos.x-PAD_X, y=pos.y-PAD_Y;
+  if(!animate) pill.style.transition='none';
+  pill.style.width=w+'px'; pill.style.height=h+'px';
+  pill.style.transform='translate('+x+'px, '+y+'px)';
+  if(!animate){ pill.offsetHeight; pill.style.transition=''; }
+}
+function setFloatNavActive(id, animate){
+  const nav=document.getElementById('app-float-nav');
+  if(!nav) return;
+  const items=nav.querySelectorAll('.float-nav-item');
+  let activeEl=null;
+  items.forEach(el=>{
+    const on=el.getAttribute('data-screen')===id;
+    el.classList.toggle('active', on);
+    if(on) activeEl=el;
+  });
+  if(activeEl) _placeFloatNavPill(activeEl, animate!==false);
+}
+window.addEventListener('resize', function(){
+  const nav=document.getElementById('app-float-nav');
+  if(!nav || nav.style.display==='none') return;
+  const active=nav.querySelector('.float-nav-item.active');
+  if(active) _placeFloatNavPill(active, false);
+});
 
 // ═══════════════════════════════════════════
 //  HOME
@@ -2450,18 +2628,45 @@ function startElapsed(){
   },1000);
 }
 
-function cancelWorkout(){
+// Generic styled confirm dialog — replaces native confirm() so every
+// yes/no decision in the app looks like the app instead of the browser.
+// Reuses the single #confirm-overlay element; only one confirm can be
+// open at a time, which matches every current call site.
+let _confirmOnOk=null;
+function showConfirm({title, message, cancelLabel='Cancel', okLabel='OK', danger=false, onOk}){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=message;
+  const cancelBtn=document.getElementById('confirm-cancel-btn');
+  const okBtn=document.getElementById('confirm-ok-btn');
+  cancelBtn.textContent=cancelLabel;
+  okBtn.textContent=okLabel;
+  okBtn.style.background=danger?'var(--danger)':'var(--gold)';
+  okBtn.style.color=danger?'#fff':'var(--void)';
+  _confirmOnOk=onOk;
   document.getElementById('confirm-overlay').style.display='flex';
 }
-function confirmQuit(yes){
+function _confirmResolve(yes){
   document.getElementById('confirm-overlay').style.display='none';
-  if(!yes) return;
-  clearInterval(elTimer);
-  clearInterval(restInt);
-  document.getElementById('rest-overlay').classList.remove('active','minimized'); document.getElementById('rest-overlay').style.transform='';
-  session=null;
-  clearSession();
-  showScreen('home');
+  const cb=_confirmOnOk; _confirmOnOk=null;
+  if(yes && cb) cb();
+}
+
+function cancelWorkout(){
+  showConfirm({
+    title:'Quit Workout?',
+    message:'Progress will not be saved.',
+    cancelLabel:'Keep going',
+    okLabel:'Quit',
+    danger:true,
+    onOk:()=>{
+      clearInterval(elTimer);
+      clearInterval(restInt);
+      document.getElementById('rest-overlay').classList.remove('active','minimized'); document.getElementById('rest-overlay').style.transform='';
+      session=null;
+      clearSession();
+      showScreen('home');
+    }
+  });
 }
 
 // ── FINISH & SAVE ──
@@ -2592,17 +2797,25 @@ function renderRoutines(){
     <div class="rtn-row">
       <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
       <div class="rtn-acts">
-        <button class="btn-ico" onclick="openRoutineModal('${r.id}')">✎</button>
-        <button class="btn-ico del" onclick="delRoutine('${r.id}')">✕</button>
+        <button class="btn-ico" onclick="openRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
+        <button class="btn-ico del" onclick="delRoutine('${r.id}')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
     </div>`).join('');
 }
 
 function delRoutine(id){
-  if(!confirm('Delete this workout?')) return;
-  db.routines=db.routines.filter(r=>r.id!==id);
-  db.schedule=db.schedule.filter(i=>i!==id);
-  saveDB(); renderRoutines();
+  showConfirm({
+    title:'Delete Workout?',
+    message:'This can\'t be undone.',
+    cancelLabel:'Cancel',
+    okLabel:'Delete',
+    danger:true,
+    onOk:()=>{
+      db.routines=db.routines.filter(r=>r.id!==id);
+      db.schedule=db.schedule.filter(i=>i!==id);
+      saveDB(); renderRoutines();
+    }
+  });
 }
 
 function openRoutineModal(editId){
@@ -2671,15 +2884,15 @@ function openRoutineModal(editId){
         <span class="eb-set-num">${si+1}</span>
         <input class="eb-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].setRows[${si}].kg=parseKg(this.value)">
         <input class="eb-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].setRows[${si}].reps=parseInt(this.value)||0">
-        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set">✕</button>
+        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>`).join('');
     return `
       <div class="ex-builder" id="exb-${i}">
         <div class="eb-hd">
           ${buildExSelect(re.id, `mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value);`, `eid-${i}`)}
-          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}>↑</button>
-          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}>↓</button>
-          <button class="btn-ico del" onclick="rmItem(${i})">✕</button>
+          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+          <button class="btn-ico del" onclick="rmItem(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         <div class="eb-sets-head">
           <span>Set</span><span>KG</span><span>Reps</span><span></span>
@@ -2714,7 +2927,7 @@ function openRoutineModal(editId){
           <span class="ss-set-exlbl">${String.fromCharCode(65+e)}</span>
           <input class="ss-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].sets[${r}][${e}].kg=parseKg(this.value)">
           <input class="ss-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].sets[${r}][${e}].reps=parseInt(this.value)||0">
-          ${canDel?`<button class="eb-set-del" onclick="rmSSRound(${i},${r})" title="Remove round">✕</button>`:'<span></span>'}
+          ${canDel?`<button class="eb-set-del" onclick="rmSSRound(${i},${r})" title="Remove round"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:'<span></span>'}
         </div>`;
       }
     }
@@ -2722,16 +2935,16 @@ function openRoutineModal(editId){
       <div class="ss-ex-hd" id="ssexhd-${i}-${e}">
         <span class="ss-ex-letter">${String.fromCharCode(65+e)}</span>
         ${buildExSelect(ex.id, `mItems[${i}].exercises[${e}].id=this.value;`, '')}
-        ${exCount>2?`<button class="ss-ex-rm" onclick="rmSSEx(${i},${e})">✕</button>`:'<span></span>'}
+        ${exCount>2?`<button class="ss-ex-rm" onclick="rmSSEx(${i},${e})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:'<span></span>'}
       </div>`).join('');
     return `
       <div class="ss-builder" id="exb-${i}">
         <div class="ss-builder-hd">
           <span class="ss-builder-lbl">Superset</span>
-          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}>↑</button>
-          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}>↓</button>
+          <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+          <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
           <button class="ss-builder-add-ex" onclick="addSSEx(${i})">+ Exercise</button>
-          <button class="ss-builder-rm" onclick="rmItem(${i})">✕</button>
+          <button class="ss-builder-rm" onclick="rmItem(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         ${exSelects}
         ${rowsHtml}
@@ -2853,9 +3066,9 @@ function renderSchedule(){
       <span class="sched-name">${r?r.name:'(deleted)'}</span>
       ${isCur?'<span class="sched-badge">Next</span>':''}
       <div style="display:flex;gap:4px">
-        ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)">↑</button>`:''}
-        ${i<db.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)">↓</button>`:''}
-        <button class="btn-ico del" onclick="rmSched(${i})">✕</button>
+        ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`:''}
+        ${i<db.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
+        <button class="btn-ico del" onclick="rmSched(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div></div>`;
   }).join('');
 }
@@ -2873,18 +3086,11 @@ function rmSched(i){db.schedule.splice(i,1);if(db.schedulePos>=db.schedule.lengt
 function moveSched(i,d){const j=i+d;if(j<0||j>=db.schedule.length)return;[db.schedule[i],db.schedule[j]]=[db.schedule[j],db.schedule[i]];saveDB();renderSchedule();}
 
 // ═══════════════════════════════════════════
-//  LOG
+//  LOG — rendered inside Profile's Log tab, see renderProfile()
 // ═══════════════════════════════════════════
-function switchLogTab(tab){
-  document.getElementById('log-tab-log').style.display = tab==='log' ? 'flex' : 'none';
-  document.getElementById('log-tab-progress').style.display = tab==='progress' ? 'block' : 'none';
-  document.getElementById('tab-log').classList.toggle('active', tab==='log');
-  document.getElementById('tab-progress').classList.toggle('active', tab==='progress');
-  if(tab==='progress') initProgressCharts();
-}
-
 function renderLog(){
-  const el=document.getElementById('log-tab-log');
+  const el=document.getElementById('profile-log-list');
+  if(!el) return;
   if(!db.workoutLog.length){el.innerHTML='<div class="empty-state"><p>No sessions logged yet.<br>Get off this screen<br>and go lift something.</p></div>';return;}
   el.innerHTML=[...db.workoutLog].reverse().map(entry=>{
     const d=new Date(entry.date);
@@ -2904,6 +3110,115 @@ function renderLog(){
       <div class="log-bd">${noteHtml}${det}</div>
     </div>`;
   }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  PROFILE — Instagram-style: identity header (or guest card), then
+//  Program/Workouts/Log tabs. Program/Workouts show read-only summaries
+//  built from the same local data as the full editable screens (reached
+//  via the nav's Program destination) — Profile is the more "public"
+//  view per Alan, so it doesn't carry the add/edit/reorder controls.
+// ═══════════════════════════════════════════
+async function renderProfile(){
+  const body=document.getElementById('profile-body');
+  body.innerHTML=`
+    <div id="profile-header"></div>
+    <div class="profile-tabs">
+      <button class="profile-tab active" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
+      <button class="profile-tab" id="ptab-workouts" onclick="switchProfileTab('workouts')">Workouts</button>
+      <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
+    </div>
+    <div id="profile-tab-program" class="profile-tab-content"></div>
+    <div id="profile-tab-workouts" class="profile-tab-content" style="display:none;"></div>
+    <div id="profile-tab-log" class="profile-tab-content" style="display:none;padding:0;">
+      <div id="profile-log-list" class="list-scroll"></div>
+    </div>
+  `;
+  await renderProfileHeader();
+  renderProfileProgramTab();
+  renderProfileWorkoutsTab();
+  renderLog();
+}
+
+function switchProfileTab(tab){
+  ['program','workouts','log'].forEach(t=>{
+    document.getElementById('profile-tab-'+t).style.display=(t===tab?'block':'none');
+    document.getElementById('ptab-'+t).classList.toggle('active',t===tab);
+  });
+}
+
+async function renderProfileHeader(){
+  const el=document.getElementById('profile-header');
+  const workoutCount=(db.workoutLog||[]).length;
+  const tier=getTier(workoutCount);
+  const tierIconHtml=tier
+    ? TIER_ICONS[tier.icon]
+    : '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
+
+  if(!currentUser){
+    // Guest: no followers/following concept yet, and "N of 5 sessions
+    // used" isn't meaningful for an exempted/grandfathered guest — see
+    // isGuestExempt() — so that line only shows when it's actually accurate.
+    const used=getGuestSessionCount();
+    const usageLine=isGuestExempt()
+      ? `<span style="color:var(--text);font-weight:600;">${workoutCount}</span> workouts logged on this device`
+      : `${used} of ${GUEST_SESSION_LIMIT} free workouts used`;
+    el.innerHTML=`
+      <div class="profile-id-row">
+        <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tier?tier.name:''}</div></div>
+        <div><div class="profile-name">Guest session</div><div class="profile-handle">${usageLine}</div></div>
+      </div>
+      <div class="profile-guest-card">
+        Create a free account to get a profile, follow other lifters, and keep your history safe.
+        <button class="btn-cta" style="margin-top:10px;" onclick="showAuthScreen('signup')">Create account</button>
+      </div>
+    `;
+    return;
+  }
+
+  let profile=null;
+  try{
+    const { data }=await supabaseClient
+      .from('profiles')
+      .select('username, full_name, verified')
+      .eq('id', currentUser.id)
+      .single();
+    profile=data;
+  }catch(e){ /* fall back to currentUser.email below */ }
+
+  const fullName=escapeHtml((profile && profile.full_name) || currentUser.email || '—');
+  const username=escapeHtml((profile && profile.username) || '—');
+  const verifiedBadge=(profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
+
+  el.innerHTML=`
+    <div class="profile-id-row">
+      <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tier?tier.name:''}</div></div>
+      <div><div class="profile-name">${fullName}${verifiedBadge}</div><div class="profile-handle">@${username}</div></div>
+    </div>
+    <div class="profile-divider"></div>
+    <div class="profile-stats">
+      <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
+      <span style="color:var(--text);font-weight:600;">0</span> Followers &nbsp;·&nbsp;
+      <span style="color:var(--text);font-weight:600;">0</span> Following
+    </div>
+  `;
+}
+
+function renderProfileProgramTab(){
+  const el=document.getElementById('profile-tab-program');
+  const nr=getNextRoutine();
+  el.innerHTML=nr
+    ? `<div class="hero-card" style="cursor:default;"><div class="hero-inner"><div class="hero-eyebrow">Next up</div><div class="hero-name">${escapeHtml(nr.name)}</div></div></div>`
+    : `<div class="empty-state"><p>No program set up yet.</p></div>`;
+}
+
+function renderProfileWorkoutsTab(){
+  const el=document.getElementById('profile-tab-workouts');
+  if(!db.routines.length){el.innerHTML='<div class="empty-state"><p>No workouts yet.</p></div>';return;}
+  el.innerHTML=sortedRoutines().map(r=>`
+    <div class="rtn-row" onclick="openRoutineModal('${r.id}')" style="cursor:pointer;">
+      <div><div class="rtn-name">${escapeHtml(r.name)}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
+    </div>`).join('');
 }
 
 // ═══════════════════════════════════════════
@@ -3706,12 +4021,31 @@ function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// "My Account" settings row — shows the signed-in user's identity and
-// basic account info in the existing modal system. Guests get sent to
-// the sign-in screen instead, since there's no account to show yet.
-async function openMyAccountModal(){
+// Flattened Account section in Settings — populates #account-section-body
+// with identity + Email/Signed-in-with/Plan/Password/Sign-out rows inline,
+// no modal. Profile (the public-facing identity view) owns its own
+// separate header render (renderProfileHeader) since it shows different
+// fields (stats, no email/plan/password) — this one is deliberately kept
+// as its own function rather than shared, since the two will keep
+// diverging as more account-only vs profile-only fields get added.
+async function renderAccountSection(){
+  const el = document.getElementById('account-section-body');
+  if(!el) return;
   if(!currentUser){
-    showAuthScreen('welcome');
+    el.innerHTML = `
+      <div class="settings-group">
+        <div class="settings-row" onclick="showAuthScreen('welcome')" style="cursor:pointer;">
+          <div class="settings-row-left">
+            <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div>
+            <div>
+              <div class="settings-row-title">Sign in</div>
+              <div class="settings-row-sub">Sign in to manage your account</div>
+            </div>
+          </div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+      </div>
+    `;
     return;
   }
   let profile = null;
@@ -3728,45 +4062,28 @@ async function openMyAccountModal(){
   const providerLabel = provider === 'google' ? 'Google' : 'Email & Password';
   const tierLabel = (profile && profile.subscription_tier === 'premium') ? 'Premium' : 'Free';
   const verifiedBadge = (profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
-  // Real case as entered — NOT uppercased. The old header forced
-  // text-transform:uppercase on this, which is exactly the "looks cheap"
-  // complaint: a name someone typed as "Alan Albrecht" has no business
-  // being shown back to them as "ALAN ALBRECHT".
+  // Real case as entered — NOT uppercased. See My Account's original fix:
+  // a name someone typed as "Alan Albrecht" has no business being shown
+  // back to them as "ALAN ALBRECHT".
   const fullName = escapeHtml((profile && profile.full_name) || currentUser.email || '—');
-  // Username is already enforced lowercase at input time and by a DB
-  // CHECK constraint, so this is just displaying it as stored, not
-  // forcing a transform here.
   const username = escapeHtml((profile && profile.username) || '—');
   const hasPassword = !!(profile && profile.has_password);
   const passwordLabel = hasPassword ? 'Change your password' : 'Add a password so you can sign in without Google';
 
-  // Same tier system already used on the Home streak display — a user
-  // with fewer than 10 sessions has no tier yet, so show a neutral
-  // placeholder ring rather than leaving an empty gap in the layout.
-  const workoutCount = (db.workoutLog || []).length;
-  const tier = getTier(workoutCount);
-  const tierIconHtml = tier
-    ? TIER_ICONS[tier.icon]
-    : '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
-
-  document.getElementById('modal-title').textContent = 'My Account';
-  document.getElementById('modal-body').innerHTML = `
-    <div style="padding:4px 0 18px;">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;">
-          ${tierIconHtml}
-          <div class="tier-name-lbl" style="text-align:center;">${tier ? tier.name : ''}</div>
-        </div>
-        <div>
-          <div style="font-family:var(--hd);font-size:18px;font-weight:700;letter-spacing:1px;color:var(--bright);">${fullName}${verifiedBadge}</div>
-          <div style="font-size:13px;color:var(--dim);margin-top:2px;">@${username}</div>
-        </div>
-      </div>
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--soft);">
-        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp; <span style="color:var(--text);font-weight:600;">0</span> Connections
-      </div>
-    </div>
+  el.innerHTML = `
     <div class="settings-group">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div><div>
+          <div class="settings-row-title">Name</div>
+          <div class="settings-row-sub">${fullName}${verifiedBadge}</div>
+        </div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-5.5 8.28"/></svg></div><div>
+          <div class="settings-row-title">Handle</div>
+          <div class="settings-row-sub">@${username}</div>
+        </div></div>
+      </div>
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1.8"/><path d="M4 6.5l8 6.2 8-6.2"/></svg></div><div>
           <div class="settings-row-title">Email</div>
@@ -3792,19 +4109,18 @@ async function openMyAccountModal(){
         </div></div>
         <div class="settings-row-arrow">›</div>
       </div>
+      <div class="settings-row" onclick="confirmSignOut()" style="cursor:pointer;border-bottom:none;">
+        <div class="settings-row-left"><div class="settings-row-icon" style="color:var(--danger,#c94444);"><svg viewBox="0 0 24 24"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M15 8l4 4-4 4M19 12H9"/></svg></div>
+          <div class="settings-row-title" style="color:var(--danger,#c94444);">Sign out</div>
+        </div>
+      </div>
     </div>
   `;
-  document.getElementById('modal-footer').innerHTML =
-    `<button class="btn-ghost" onclick="closeModal()">Close</button>` +
-    `<button class="btn-ghost" style="color:var(--danger,#c94444);border-color:var(--danger,#c94444);" onclick="confirmSignOutFromAccountModal()">Sign out</button>`;
-  document.getElementById('modal-overlay').classList.add('active');
 }
 
-// Reuses the My Account modal (swaps its body/footer) rather than a
-// separate overlay, since only one modal can be open at a time and this
-// is always reached from that screen. "Back" re-renders the account view
-// instead of just restoring old HTML, so the Password row's label stays
-// correct if this is opened again after a successful change.
+// Reuses the app's generic modal system for the password form. "Back"
+// just closes it — Settings underneath already shows the flattened
+// account rows directly, there's no separate account view to return to.
 function openPasswordModal(hasPassword){
   document.getElementById('modal-title').textContent = hasPassword ? 'Change Password' : 'Set a Password';
   document.getElementById('modal-body').innerHTML = `
@@ -3822,7 +4138,7 @@ function openPasswordModal(hasPassword){
     <div class="auth-error" id="account-password-error"></div>
   `;
   document.getElementById('modal-footer').innerHTML =
-    `<button class="btn-ghost" onclick="openMyAccountModal()">Back</button>` +
+    `<button class="btn-ghost" onclick="closeModal()">Back</button>` +
     `<button class="btn-main" id="account-password-submit" style="padding:9px 22px;font-size:12px;width:auto" onclick="submitAccountPassword()">Save</button>`;
 }
 
@@ -3842,18 +4158,26 @@ async function submitAccountPassword(){
     // whether this flag write succeeds, so a failure here just means the
     // Password row's label might stay stale until the next successful save.
     await supabaseClient.from('profiles').update({ has_password: true }).eq('id', currentUser.id);
-    await openMyAccountModal();
+    closeModal();
+    await renderAccountSection();
   }catch(e){
     errEl.textContent = e.message || 'Could not update your password.';
     btn.disabled = false;
   }
 }
 
-function confirmSignOutFromAccountModal(){
-  if(!confirm('Sign out of your account? Everything stays saved in the cloud — signing back in brings it all back.')) return;
-  closeModal();
-  authSignOut();
-  location.reload(); // simplest reliable reset of all in-memory auth/session state
+function confirmSignOut(){
+  showConfirm({
+    title:'Sign Out?',
+    message:'Everything stays saved in the cloud — signing back in brings it all back.',
+    cancelLabel:'Cancel',
+    okLabel:'Sign out',
+    danger:true,
+    onOk:()=>{
+      authSignOut();
+      location.reload(); // simplest reliable reset of all in-memory auth/session state
+    }
+  });
 }
 
 // Redraw charts on resize
@@ -3861,8 +4185,8 @@ let _resizeTimer;
 window.addEventListener('resize',()=>{
   clearTimeout(_resizeTimer);
   _resizeTimer=setTimeout(()=>{
-    const prog=document.getElementById('log-tab-progress');
-    if(prog&&prog.style.display!=='none'){drawExChart();drawRtChart();}
+    const analytics=document.getElementById('screen-analytics');
+    if(analytics&&analytics.classList.contains('active')){drawExChart();drawRtChart();}
   },200);
 });
 document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
@@ -4766,7 +5090,11 @@ function restExpand() {
       home: document.getElementById('screen-home'),
       gear: document.getElementById('app-gear') || document.querySelector('.settings-btn'),
       topRight: document.getElementById('top-right-area'),
-      navBtns: document.querySelectorAll('#app-bnav .bnav-btn, #screen-home .bottom-nav .bnav-btn')
+      // TODO(pending onboarding rework, see project_social_redesign memory):
+      // these still point at the new floating nav just to avoid a null
+      // classList crash — the tour's copy/steps haven't been reconsidered
+      // for the new nav yet, that's a deliberately separate follow-up pass.
+      navBtns: document.querySelectorAll('#app-float-nav .float-nav-item')
     };
   }
 
