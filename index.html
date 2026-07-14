@@ -111,7 +111,8 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .ex-card-notes{font-size:10px;color:#b0b0b0;letter-spacing:1px;margin-top:2px;font-style:italic;}
 .wo-notes-row{display:flex;align-items:center;gap:6px;margin-top:2px;min-height:18px;}
 .wo-notes-text{font-size:10px;color:#b0b0b0;letter-spacing:1px;font-style:italic;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
-.wo-notes-btn{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 4px;flex-shrink:0;line-height:1;opacity:.6;transition:opacity .15s;}
+.wo-notes-btn{background:none;border:none;color:var(--dim);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:30px;height:30px;opacity:.85;transition:opacity .15s,color .15s;touch-action:manipulation;}
+.wo-notes-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .wo-notes-btn:hover{opacity:1;color:var(--gold);}
 .wo-notes-inp{width:100%;background:var(--lift);border:1px solid var(--line2);color:var(--text);padding:4px 7px;font-family:var(--body);font-size:10px;font-style:italic;border-radius:var(--r);outline:none;flex:1;}
 .wo-notes-inp:focus{border-color:var(--gold3);}
@@ -613,8 +614,8 @@ input, select, textarea {
 
 /* ── BOTTOM NAV — taller touch area ── */
 .bnav-btn {
-  padding: 12px 0 10px;
-  min-height: 56px;
+  padding: 9px 0 8px;
+  min-height: 48px;
   touch-action: manipulation;
 }
 .bnav-btn .ni { font-size: 20px; margin-bottom: 2px; }
@@ -637,7 +638,7 @@ input, select, textarea {
 .hero-inner { padding: 18px 44px 16px 22px; }
 
 /* ── HOME TOPBAR ── */
-.home-topbar { padding: 28px 20px 20px; }
+.home-topbar { padding: 16px 20px 14px; }
 .logo-name { font-size: 16px; letter-spacing: 5px; }
 
 /* ── WORKOUT TOPBAR ── */
@@ -766,7 +767,7 @@ input, select, textarea {
   .ex-detail-header {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
-  .home-topbar { --safe-top: 28px; }
+  .home-topbar { --safe-top: 16px; }
   .wo-topbar   { --safe-top: 14px; }
   .back-row    { --safe-top: 14px; }
   .ex-detail-header { --safe-top: 14px; }
@@ -2134,8 +2135,8 @@ function renderWoScreen(){
       card.className='ex-card'; card.id='exc-ei-'+ei;
       let rows='';
       for(let s=0;s<item.sets;s++) rows+=makeSetRow(ei,s,item);
-      const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="Edit notes">&#9998;</button></div>`;
-      const lastHtml=item.lastHistory?`<div class="ex-card-last">&#8617; Last: ${item.lastHistory}</div>`:'';
+      const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="Edit notes"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>`;
+      const lastHtml=item.lastHistory?`<div class="ex-card-last">${ICON_LAST} Last: ${item.lastHistory}</div>`:'';
       card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name">${item.name}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
       body.appendChild(card);
     } else if(item.type==='ss'){
@@ -2206,7 +2207,7 @@ function editWoNote(ei){
   if(!row) return;
   const ex=session.exercises[ei];
   const cur=ex.notes||'';
-  row.innerHTML=`<input class="wo-notes-inp" id="wo-notes-inp-${ei}" value="${cur.replace(/"/g,'&quot;')}" placeholder="Add notes..." maxlength="200"><button class="wo-notes-btn" onclick="saveWoNote(${ei})" title="Save">&#10003;</button>`;
+  row.innerHTML=`<input class="wo-notes-inp" id="wo-notes-inp-${ei}" value="${cur.replace(/"/g,'&quot;')}" placeholder="Add notes..." maxlength="200"><button class="wo-notes-btn" onclick="saveWoNote(${ei})" title="Save"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></button>`;
   const inp=document.getElementById('wo-notes-inp-'+ei);
   inp.focus();
   inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveWoNote(ei);}});
@@ -2223,7 +2224,7 @@ function saveWoNote(ei){
   if(dbEx){dbEx.notes=val;saveDB();}
   // Re-render the notes row
   const row=document.getElementById('wo-notes-'+ei);
-  if(row) row.innerHTML=`<span class="wo-notes-text">${val}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="Edit notes">&#9998;</button>`;
+  if(row) row.innerHTML=`<span class="wo-notes-text">${val}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="Edit notes"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>`;
   saveSession();
 }
 
@@ -2922,8 +2923,8 @@ function renderExercisesDB(){
         ${groups[muscle].map(e=>{
           const pr=db.allTimePRs[e.id];
           const lw=db.lastWeights[e.id];
-          const prHtml=pr?`<div class="ex-db-pr">&#9889; PR: ${pr.weight}kg</div>`:'';
-          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">&#8617; Last: ${lw.history||lw.weight+'kg'}</div>`:'';
+          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${pr.weight}kg</div>`:'';
+          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} Last: ${lw.history||lw.weight+'kg'}</div>`:'';
           return `<div class="ex-db-row" onclick="openExDetail('${e.id}')">
             <div class="ex-db-row-inner">
               <div class="ex-db-info">
@@ -3029,7 +3030,7 @@ function renderExDetail(exId){
               </div>
             </div>`
         }
-        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold);letter-spacing:1px;">&#9889; All-time PR: ${pr.weight}kg &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
+        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${pr.weight}kg &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
       </div>
     </div>
 
@@ -3179,7 +3180,7 @@ function _startWithRoutine(rt){
   const prevNote=db.lastNotes&&db.lastNotes[rt.id];
   const prevNoteEl=document.getElementById('prev-note-bar');
   if(prevNoteEl){
-    if(prevNote){prevNoteEl.textContent='📝 Last time: "'+prevNote+'"';prevNoteEl.style.display='block';}
+    if(prevNote){prevNoteEl.innerHTML=ICON_NOTE+' Last time: "'+escapeHtml(prevNote)+'"';prevNoteEl.style.display='block';}
     else prevNoteEl.style.display='none';
   }
   renderWoScreen();
@@ -3638,6 +3639,14 @@ const TIER_ICONS = {
   veteran:  '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M16 2L17.6 7H22.5L18.7 9.8L20.3 14.8L16 12L11.7 14.8L13.3 9.8L9.5 7H14.4Z" fill="#d4a843"/><rect x="6" y="17" width="20" height="3" fill="#d4a843"/><rect x="6" y="22" width="20" height="3" fill="#d4a843" opacity=".6"/><rect x="6" y="27" width="20" height="3" fill="#d4a843" opacity=".3"/></svg>',
   crown:   '<svg width="22" height="22" viewBox="0 0 36 32" fill="none"><rect x="5" y="25" width="26" height="5" fill="#d4a843"/><path d="M5 25L5 11L11 19L18 7L25 19L31 11L31 25Z" fill="#d4a843" opacity=".9"/><circle cx="5" cy="11" r="2.5" fill="#d4a843"/><circle cx="18" cy="7" r="3" fill="#d4a843"/><circle cx="31" cy="11" r="2.5" fill="#d4a843"/></svg>',
 };
+
+// Small inline icons used as prefixes inside text lines (e.g. "Last: 60kg"),
+// replacing the old emoji/dingbat prefixes (↩ ⚡ 📝) per the 2026-07-14
+// icon-system sweep. currentColor so they inherit whatever gold/muted tone
+// the surrounding text already uses.
+const ICON_LAST = '<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 10L4 15l5 5"/><path d="M4 15h11a5 5 0 0 0 0-10H9"/></svg>';
+const ICON_PR = '<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
+const ICON_NOTE = '<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg>';
 
 function getTier(count) {
   for (const t of TIERS) {
