@@ -459,6 +459,21 @@ select.form-inp option{background:var(--panel);}
 .profile-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 .profile-tab-content{padding:14px 16px;}
 
+/* Program tab — one routine per row, tap to expand (Option A) */
+.prof-rtn-item{margin-bottom:8px;}
+.prof-rtn-row{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;}
+.prof-rtn-row.next{border-color:color-mix(in srgb,var(--gold) 40%,transparent);background:color-mix(in srgb,var(--gold) 5%,var(--panel));}
+.prof-rtn-num{font-size:10px;color:var(--muted);width:16px;flex-shrink:0;}
+.prof-rtn-name{font-family:var(--hd);font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--bright);text-transform:uppercase;}
+.prof-rtn-meta{font-size:10px;color:var(--dim);margin-top:3px;}
+.prof-rtn-badge{background:var(--gold);color:var(--void);font-size:7px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:999px;text-transform:uppercase;flex-shrink:0;}
+.prof-rtn-detail{display:none;padding:8px 14px 2px;}
+.prof-rtn-detail.open{display:block;}
+.prof-rtn-ex-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px;}
+.prof-rtn-ex-row:last-child{border-bottom:none;}
+.prof-rtn-ex-name{font-weight:600;color:var(--text);flex-shrink:0;}
+.prof-rtn-ex-target{color:var(--dim);font-size:11px;text-align:right;}
+
 /* ── SEARCH — pill field per the pre-approved pattern, coming-soon empty state ── */
 .search-pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line2);border-radius:22px;padding:11px 16px;color:var(--dim);opacity:.55;}
 .search-pill input{background:none;border:none;outline:none;color:var(--text);font-family:var(--body);font-size:13px;width:100%;}
@@ -482,6 +497,15 @@ select.form-inp option{background:var(--panel);}
 .theme-toggle-track{width:44px;height:26px;background:var(--lift);border:1px solid var(--line2);border-radius:13px;position:relative;transition:background .25s,border-color .25s;flex-shrink:0;}
 .theme-toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--dim);border-radius:50%;transition:transform .25s,background .25s;}
 .theme-toggle-label{font-size:9px;letter-spacing:2px;font-weight:700;color:var(--dim);text-transform:uppercase;min-width:32px;}
+
+/* Generic on/off switch — same track/thumb visual as the theme toggle,
+   but driven by an .on class instead of body.light-mode, so it's reusable
+   for any boolean setting (Private Account, and future ones). */
+.switch{display:flex;align-items:center;cursor:pointer;flex-shrink:0;}
+.switch-track{width:44px;height:26px;background:var(--lift);border:1px solid var(--line2);border-radius:13px;position:relative;transition:background .25s,border-color .25s;}
+.switch-track.on{background:var(--gold);border-color:var(--gold3);}
+.switch-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--dim);border-radius:50%;transition:transform .25s,background .25s;}
+.switch-track.on .switch-thumb{background:#fff;transform:translateX(18px);}
 
 /* When light mode */
 body.light-mode .theme-toggle-track{background:var(--gold);border-color:var(--gold3);}
@@ -1383,31 +1407,6 @@ body.light-mode .auth-choice-title{color:#111;}
   <div class="pg-header"><div class="pg-title">Settings</div></div>
   <div class="list-scroll" style="gap:0;padding:12px 14px;">
 
-    <!-- ACCOUNT — flattened inline instead of opening a "My Account" modal
-         (Profile now owns the public-facing identity view; this is the
-         private account-management surface). Filled in by
-         renderAccountSection(). -->
-    <div class="settings-section-label">Account</div>
-    <div id="account-section-body"></div>
-
-    <!-- ANALYTICS — moved out of the old Log screen's "Progress" tab.
-         Kept private in Settings rather than a Profile tab since Alan
-         doesn't want PRs/progress visible to other users once profiles
-         go public. -->
-    <div class="settings-section-label">Analytics</div>
-    <div class="settings-group">
-      <div class="settings-row" onclick="showScreen('analytics')" style="cursor:pointer;">
-        <div class="settings-row-left">
-          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div>
-          <div>
-            <div class="settings-row-title">Progress</div>
-            <div class="settings-row-sub">PRs, charts by exercise and routine</div>
-          </div>
-        </div>
-        <div class="settings-row-arrow">›</div>
-      </div>
-    </div>
-
     <!-- APPEARANCE -->
     <div class="settings-section-label">Appearance</div>
     <div class="settings-group">
@@ -1466,6 +1465,31 @@ body.light-mode .auth-choice-title{color:#111;}
         <div class="settings-row-arrow">›</div>
       </div>
     </div>
+
+    <!-- ANALYTICS — moved out of the old Log screen's "Progress" tab.
+         Kept private in Settings rather than a Profile tab since Alan
+         doesn't want PRs/progress visible to other users once profiles
+         go public. -->
+    <div class="settings-section-label">Analytics</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="showScreen('analytics')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div>
+          <div>
+            <div class="settings-row-title">Progress</div>
+            <div class="settings-row-sub">PRs, charts by exercise and routine</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT — flattened inline instead of opening a "My Account" modal
+         (Profile now owns the public-facing identity view; this is the
+         private account-management surface). Filled in by
+         renderAccountSection(). -->
+    <div class="settings-section-label">Account</div>
+    <div id="account-section-body"></div>
 
     <!-- DATA -->
     <div class="settings-section-label">Data</div>
@@ -3121,27 +3145,53 @@ async function renderProfile(){
     <div id="profile-header"></div>
     <div class="profile-tabs">
       <button class="profile-tab active" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
-      <button class="profile-tab" id="ptab-workouts" onclick="switchProfileTab('workouts')">Workouts</button>
       <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
     </div>
     <div id="profile-tab-program" class="profile-tab-content"></div>
-    <div id="profile-tab-workouts" class="profile-tab-content" style="display:none;"></div>
     <div id="profile-tab-log" class="profile-tab-content" style="display:none;padding:0;">
       <div id="profile-log-list" class="list-scroll"></div>
     </div>
   `;
   await renderProfileHeader();
   renderProfileProgramTab();
-  renderProfileWorkoutsTab();
   renderLog();
 }
 
 function switchProfileTab(tab){
-  ['program','workouts','log'].forEach(t=>{
+  ['program','log'].forEach(t=>{
     document.getElementById('profile-tab-'+t).style.display=(t===tab?'block':'none');
     document.getElementById('ptab-'+t).classList.toggle('active',t===tab);
   });
 }
+
+// Stale-while-revalidate cache for the signed-in user's own profile row.
+// Profile and Settings both used to do their own live Supabase round
+// trip on every screen open, which was the visible ~1s delay opening
+// either for the first time. Now the fetch happens once per session and
+// is cached in memory — every later open reads it instantly. There's no
+// in-app way to edit name/handle/tier yet, so staleness risk is
+// essentially zero; call invalidateMyProfileCache() if that changes.
+let _myProfileCache=null;
+async function getMyProfile(){
+  if(!currentUser) return null;
+  if(_myProfileCache) return _myProfileCache;
+  return await fetchMyProfile();
+}
+async function fetchMyProfile(){
+  if(!currentUser) return null;
+  try{
+    const { data }=await supabaseClient
+      .from('profiles')
+      .select('username, full_name, verified, subscription_tier, has_password, is_private')
+      .eq('id', currentUser.id)
+      .single();
+    _myProfileCache=data;
+    return data;
+  }catch(e){
+    return _myProfileCache; // network hiccup — keep showing whatever we had
+  }
+}
+function invalidateMyProfileCache(){ _myProfileCache=null; }
 
 async function renderProfileHeader(){
   const el=document.getElementById('profile-header');
@@ -3183,15 +3233,7 @@ async function renderProfileHeader(){
     return;
   }
 
-  let profile=null;
-  try{
-    const { data }=await supabaseClient
-      .from('profiles')
-      .select('username, full_name, verified')
-      .eq('id', currentUser.id)
-      .single();
-    profile=data;
-  }catch(e){ /* fall back to currentUser.email below */ }
+  const profile=await getMyProfile();
 
   const fullName=escapeHtml((profile && profile.full_name) || currentUser.email || '—');
   const username=escapeHtml((profile && profile.username) || '—');
@@ -3212,21 +3254,39 @@ async function renderProfileHeader(){
   `;
 }
 
+// Profile's Program tab — the full rotation, one routine per row (not
+// just "next up"), read-only. Tapping a row expands it inline (same
+// accordion pattern as Log/Exercises) to show what's IN the routine —
+// exercise names and the actual per-set kg×reps target — deliberately
+// NOT the historical stats a Log entry shows (no date, no duration, no
+// total volume), since this is what the routine IS, not a record of a
+// session that happened.
 function renderProfileProgramTab(){
   const el=document.getElementById('profile-tab-program');
-  const nr=getNextRoutine();
-  el.innerHTML=nr
-    ? `<div class="hero-card" style="cursor:default;"><div class="hero-inner"><div class="hero-eyebrow">Next up</div><div class="hero-name">${escapeHtml(nr.name)}</div></div></div>`
-    : `<div class="empty-state"><p>No program set up yet.</p></div>`;
-}
-
-function renderProfileWorkoutsTab(){
-  const el=document.getElementById('profile-tab-workouts');
-  if(!db.routines.length){el.innerHTML='<div class="empty-state"><p>No workouts yet.</p></div>';return;}
-  el.innerHTML=sortedRoutines().map(r=>`
-    <div class="rtn-row" onclick="openRoutineModal('${r.id}')" style="cursor:pointer;">
-      <div><div class="rtn-name">${escapeHtml(r.name)}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
-    </div>`).join('');
+  if(!db.schedule.length){el.innerHTML='<div class="empty-state"><p>No program set up yet.</p></div>';return;}
+  const cur=db.schedulePos%db.schedule.length;
+  el.innerHTML=db.schedule.map((rId,i)=>{
+    const r=db.routines.find(x=>x.id===rId);
+    if(!r) return '';
+    const isCur=i===cur;
+    const exRows=r.exercises.map(re=>{
+      const ex=db.exercises.find(e=>e.id===re.id)||{id:re.id,name:re.id};
+      // Older/default routines predate the per-set setRows model and only
+      // have a flat sets/reps/weight — synthesize the same number of
+      // identical entries so the format is consistent either way.
+      const setRows=(re.setRows&&re.setRows.length)?re.setRows:Array(re.sets||0).fill({kg:re.weight||0,reps:re.reps||0});
+      const target=setRows.map(sr=>`${sr.kg||0}kg × ${sr.reps||0}`).join(' | ');
+      return `<div class="prof-rtn-ex-row"><span class="prof-rtn-ex-name">${escapeHtml(ex.name)}</span><span class="prof-rtn-ex-target">${target}</span></div>`;
+    }).join('');
+    return `<div class="prof-rtn-item">
+      <div class="prof-rtn-row ${isCur?'next':''}" onclick="toggleEl(this)">
+        <span class="prof-rtn-num">${String(i+1).padStart(2,'0')}</span>
+        <div style="flex:1;"><div class="prof-rtn-name">${escapeHtml(r.name)}</div><div class="prof-rtn-meta">${r.exercises.length} exercises</div></div>
+        ${isCur?'<span class="prof-rtn-badge">Next</span>':''}
+      </div>
+      <div class="prof-rtn-detail">${exRows}</div>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════
@@ -4071,15 +4131,7 @@ async function renderAccountSection(){
     `;
     return;
   }
-  let profile = null;
-  try{
-    const { data } = await supabaseClient
-      .from('profiles')
-      .select('username, full_name, verified, subscription_tier, has_password')
-      .eq('id', currentUser.id)
-      .single();
-    profile = data;
-  }catch(e){ /* fall back to whatever's already on currentUser below */ }
+  const profile = await getMyProfile();
 
   const provider = (currentUser.app_metadata && currentUser.app_metadata.provider) || 'email';
   const providerLabel = provider === 'google' ? 'Google' : 'Email & Password';
@@ -4092,6 +4144,7 @@ async function renderAccountSection(){
   const username = escapeHtml((profile && profile.username) || '—');
   const hasPassword = !!(profile && profile.has_password);
   const passwordLabel = hasPassword ? 'Change your password' : 'Add a password so you can sign in without Google';
+  const isPrivate = !!(profile && profile.is_private);
 
   el.innerHTML = `
     <div class="settings-group">
@@ -4106,6 +4159,15 @@ async function renderAccountSection(){
           <div class="settings-row-title">Handle</div>
           <div class="settings-row-sub">@${username}</div>
         </div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div><div>
+          <div class="settings-row-title">Private Account</div>
+          <div class="settings-row-sub">Only people you approve can see your Program and Log</div>
+        </div></div>
+        <div class="switch" onclick="togglePrivateAccount()">
+          <div class="switch-track ${isPrivate?'on':''}" id="private-toggle-track"><div class="switch-thumb"></div></div>
+        </div>
       </div>
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1.8"/><path d="M4 6.5l8 6.2 8-6.2"/></svg></div><div>
@@ -4139,6 +4201,25 @@ async function renderAccountSection(){
       </div>
     </div>
   `;
+}
+
+// Enforcement (hiding Program/Log from non-followers when true) isn't
+// wired up yet — that ships with the public-profile-viewing feature.
+// This just persists the preference so it's ready when that lands.
+async function togglePrivateAccount(){
+  if(!currentUser) return;
+  const track = document.getElementById('private-toggle-track');
+  const wasOn = track.classList.contains('on');
+  const newVal = !wasOn;
+  track.classList.toggle('on', newVal); // optimistic
+  try{
+    const { error } = await supabaseClient.from('profiles').update({ is_private: newVal }).eq('id', currentUser.id);
+    if(error) throw error;
+    if(_myProfileCache) _myProfileCache.is_private = newVal;
+  }catch(e){
+    track.classList.toggle('on', wasOn); // revert
+    alert('Could not update this setting. Try again.');
+  }
 }
 
 // Reuses the app's generic modal system for the password form. "Back"
@@ -4181,6 +4262,7 @@ async function submitAccountPassword(){
     // whether this flag write succeeds, so a failure here just means the
     // Password row's label might stay stale until the next successful save.
     await supabaseClient.from('profiles').update({ has_password: true }).eq('id', currentUser.id);
+    invalidateMyProfileCache();
     closeModal();
     await renderAccountSection();
   }catch(e){
