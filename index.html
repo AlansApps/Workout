@@ -3310,6 +3310,12 @@ async function fetchMyProfile(){
 }
 function invalidateMyProfileCache(){ _myProfileCache=null; }
 
+// Same stale-while-revalidate idea as _myProfileCache, but for follow
+// counts specifically, which DO change during a session (following/
+// unfollowing, accepting a request) — see createFollow/removeFollow/
+// acceptFollow, which null this out right after any of those succeed.
+let _myFollowCountsCache=null;
+
 async function renderProfileHeader(){
   const el=document.getElementById('profile-header');
   const workoutCount=getSessionDayCount();
@@ -3350,25 +3356,38 @@ async function renderProfileHeader(){
     return;
   }
 
-  const [profile, counts]=await Promise.all([getMyProfile(), getFollowCounts(currentUser.id)]);
-
+  const profile=await getMyProfile(); // cached — instant on every open after the first
   const fullName=escapeHtml((profile && profile.full_name) || currentUser.email || '—');
   const username=escapeHtml((profile && profile.username) || '—');
   const verifiedBadge=(profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
 
-  el.innerHTML=`
-    <div class="profile-id-row">
-      <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tier?tier.name:''}</div></div>
-      <div style="flex:1;"><div class="profile-name">${fullName}${verifiedBadge}</div><div class="profile-handle">@${username}</div></div>
-      ${gearBtnHtml}
-    </div>
-    <div class="profile-divider"></div>
-    <div class="profile-stats">
-      <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
-      <span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers &nbsp;·&nbsp;
-      <span style="color:var(--text);font-weight:600;">${counts.following}</span> Following
-    </div>
-  `;
+  const paint=(counts)=>{
+    el.innerHTML=`
+      <div class="profile-id-row">
+        <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tier?tier.name:''}</div></div>
+        <div style="flex:1;"><div class="profile-name">${fullName}${verifiedBadge}</div><div class="profile-handle">@${username}</div></div>
+        ${gearBtnHtml}
+      </div>
+      <div class="profile-divider"></div>
+      <div class="profile-stats">
+        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
+        <span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers &nbsp;·&nbsp;
+        <span style="color:var(--text);font-weight:600;">${counts.following}</span> Following
+      </div>
+    `;
+  };
+
+  // Stale-while-revalidate: paint immediately with whatever's cached (or a
+  // zeroed placeholder on the very first open this session), then patch
+  // in real numbers the moment they arrive — the header never blocks on
+  // this network round trip, only the count digits update a beat later.
+  if(_myFollowCountsCache){
+    paint(_myFollowCountsCache);
+  } else {
+    paint({followers:0, following:0});
+    _myFollowCountsCache=await getFollowCounts(currentUser.id);
+    paint(_myFollowCountsCache);
+  }
 }
 
 // Profile's Program tab — the full rotation, one routine per row (not
@@ -3455,14 +3474,17 @@ async function createFollow(targetUserId, targetIsPrivate){
   const status = targetIsPrivate ? 'pending' : 'accepted';
   const { error } = await supabaseClient.from('follows').insert({follower_id:currentUser.id, following_id:targetUserId, status});
   if(error) throw error;
+  _myFollowCountsCache=null; // our own following/followers count may have just changed
 }
 async function removeFollow(followerId, followingId){
   const { error } = await supabaseClient.from('follows').delete().eq('follower_id', followerId).eq('following_id', followingId);
   if(error) throw error;
+  _myFollowCountsCache=null;
 }
 async function acceptFollow(followerId){
   const { error } = await supabaseClient.from('follows').update({status:'accepted'}).eq('follower_id', followerId).eq('following_id', currentUser.id);
   if(error) throw error;
+  _myFollowCountsCache=null;
 }
 
 // The one click handler behind every follow button, wherever it appears —
@@ -3727,12 +3749,25 @@ async function refreshPendingBadge(){
     _pendingRequestCount = count||0;
   }catch(e){ _pendingRequestCount=0; }
 }
+// Patches just the badge dot in place (see renderSearchScreen) instead of
+// re-rendering the whole toprow, so it can't wipe out anything the user
+// has already typed into #search-input.
+function updateSearchPendingBadge(){
+  const badge=document.getElementById('search-pending-badge');
+  if(badge) badge.style.display = _pendingRequestCount>0 ? 'block' : 'none';
+}
 
-async function renderSearchScreen(){
-  await refreshPendingBadge();
+function renderSearchScreen(){
+  // Toprow + body paint immediately using whatever _pendingRequestCount
+  // already holds (0 on the very first open this session) — the search
+  // field must never wait on a network round trip to appear. The pending
+  // badge dot is patched in a beat later once the real count arrives,
+  // via a stable-id span rather than re-rendering the toprow, so it can't
+  // clobber text the user's already typed into #search-input.
   document.getElementById('search-title').textContent = _searchMode==='interactions' ? 'Interactions' : 'Search';
   renderSearchTopRow();
   renderSearchBody();
+  refreshPendingBadge().then(updateSearchPendingBadge);
 }
 
 function setSearchMode(mode){
@@ -3745,7 +3780,7 @@ function setSearchMode(mode){
 function renderSearchTopRow(){
   const el=document.getElementById('search-toprow');
   if(_searchMode==='search'){
-    const badgeHtml = _pendingRequestCount>0 ? '<span class="search-circle-badge"></span>' : '';
+    const badgeHtml = `<span class="search-circle-badge" id="search-pending-badge" style="display:${_pendingRequestCount>0?'block':'none'}"></span>`;
     el.innerHTML=`
       <div class="search-toprow-inner">
         <div class="search-pill-real">
