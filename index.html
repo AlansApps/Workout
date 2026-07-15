@@ -446,16 +446,20 @@ select.form-inp option{background:var(--panel);}
 
 /* ── PROFILE — Instagram-style header, matches the My Account identity
    block pattern (tier icon beside real-case name/handle, not caps). ── */
-.profile-id-row{display:flex;align-items:center;gap:14px;padding:16px 16px 14px 18px;}
+/* Pinned to the top of #profile-body while only the tab content below it
+   scrolls — same treatment for your own profile and anyone else's. */
+.profile-sticky{position:sticky;top:0;z-index:2;background:var(--void);}
+.profile-id-row{display:flex;align-items:center;gap:16px;padding:24px 18px 20px;}
 .profile-id-row .settings-btn{margin-left:auto;align-self:flex-start;flex-shrink:0;}
-.profile-tier-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
-.profile-name{font-family:var(--hd);font-size:19px;font-weight:700;letter-spacing:1px;color:var(--bright);}
-.profile-handle{font-size:12px;color:var(--dim);margin-top:2px;}
+.profile-tier-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
+.profile-tier-col svg{width:32px;height:32px;}
+.profile-name{font-family:var(--hd);font-size:23px;font-weight:700;letter-spacing:1px;color:var(--bright);}
+.profile-handle{font-size:13px;color:var(--dim);margin-top:3px;}
 .profile-divider{height:1px;background:var(--line);margin:0 18px;}
-.profile-stats{padding:12px 18px;font-size:13px;color:var(--soft);}
+.profile-stats{padding:16px 18px;font-size:14px;color:var(--soft);}
 .profile-guest-card{margin:0 18px 16px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:14px;font-size:12px;color:var(--soft);line-height:1.5;}
-.profile-tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:10px;}
-.profile-tab{flex:1;text-align:center;padding:11px 0;font-size:11px;font-weight:600;color:var(--dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--body);}
+.profile-tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:8px;}
+.profile-tab{flex:1;text-align:center;padding:14px 0;font-size:12px;font-weight:600;color:var(--dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--body);}
 .profile-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 .profile-tab-content{padding:14px 16px;}
 
@@ -3142,10 +3146,12 @@ function renderLog(){
 async function renderProfile(){
   const body=document.getElementById('profile-body');
   body.innerHTML=`
-    <div id="profile-header"></div>
-    <div class="profile-tabs">
-      <button class="profile-tab active" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
-      <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
+    <div id="profile-sticky" class="profile-sticky">
+      <div id="profile-header"></div>
+      <div class="profile-tabs">
+        <button class="profile-tab active" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
+        <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
+      </div>
     </div>
     <div id="profile-tab-program" class="profile-tab-content"></div>
     <div id="profile-tab-log" class="profile-tab-content" style="display:none;padding:0;">
