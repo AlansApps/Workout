@@ -23,7 +23,17 @@
   --r:10px; --hd:'Orbitron',sans-serif; --body:'Rajdhani',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{background:var(--void);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;;width:100%;}
+html,body{background:var(--void);color:var(--text);font-family:var(--body);min-height:100vh;width:100%;}
+/* overflow-x:hidden lives on html only — CSS auto-computes the OTHER axis
+   (overflow-y) to "auto" on any element where one axis is non-visible and
+   the other isn't (spec: https://www.w3.org/TR/css-overflow-3/#overflow-properties).
+   Putting it on both html and body turned body into a second, phantom
+   "scroll container" that never actually scrolls (the real scroll happens
+   on html, i.e. document.scrollingElement) — and position:sticky binds to
+   the NEAREST such container, so anything sticky inside body silently
+   stopped sticking, tracking page scroll instead of staying pinned. html
+   alone still clips all horizontal overflow for the whole document. */
+html{overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.012) 3px,rgba(255,255,255,.012) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.006) 3px,rgba(255,255,255,.006) 4px);pointer-events:none;z-index:0;width:100vw;}
 .screen{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;position:relative;z-index:1;width:100%;}
 .screen.active{display:flex;width:100%;}
@@ -484,7 +494,7 @@ select.form-inp option{background:var(--panel);}
    Interactions — a magnifying-glass icon that goes back to Search. Same
    position, same size, so the swap reads as one control changing modes
    rather than two different buttons. ── */
-.search-toprow-inner{display:flex;align-items:center;gap:10px;padding:0 18px 14px;}
+.search-toprow-inner{display:flex;align-items:center;gap:10px;padding:6px 18px 18px;border-bottom:1px solid var(--line);margin-bottom:10px;}
 .search-pill-real{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line2);border-radius:22px;padding:11px 16px;color:var(--dim);}
 .search-pill-real input{background:none;border:none;outline:none;color:var(--text);font-family:var(--body);font-size:13px;width:100%;}
 .search-pill-real input::placeholder{color:var(--muted);}
@@ -499,6 +509,7 @@ select.form-inp option{background:var(--panel);}
    identity block on the left, one action control on the right. */
 .search-result-row{display:flex;align-items:center;gap:12px;padding:12px 8px;border-radius:12px;cursor:pointer;transition:background .15s;}
 .search-result-row:hover{background:var(--surface);}
+.list-row-tier{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--line);}
 .search-result-id{flex:1;min-width:0;}
 .search-result-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .search-result-handle{font-size:11px;color:var(--dim);margin-top:2px;}
@@ -1563,7 +1574,14 @@ body.light-mode .auth-choice-title{color:#111;}
 
 <!-- ══ PROFILE ══ -->
 <div id="screen-profile" class="screen">
-  <div id="profile-body" style="flex:1;overflow-y:auto;"></div>
+  <!-- No overflow-y here on purpose: the whole page scrolls (html is
+       document.scrollingElement), never this div itself — giving it its
+       own overflow-y:auto made it a second, non-functional "scroll
+       container" that broke #profile-sticky's position:sticky (sticky
+       binds to the NEAREST such container, and this one never actually
+       scrolls). See the html/body overflow-x comment near the top of
+       <style> for the matching root-level half of this same bug. -->
+  <div id="profile-body" style="flex:1;"></div>
 </div>
 
 <!-- ══ SEARCH / INTERACTIONS ══ one screen, two modes (see setSearchMode) —
@@ -1594,7 +1612,8 @@ body.light-mode .auth-choice-title{color:#111;}
       <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
     </button>
   </div>
-  <div id="other-profile-body" style="flex:1;overflow-y:auto;"></div>
+  <!-- Same reasoning as #profile-body — no overflow-y here, see its comment. -->
+  <div id="other-profile-body" style="flex:1;"></div>
 </div>
 
 <!-- ══ FLOATING NAV ══ persistent across Home/Program/Search/Profile only
@@ -3758,23 +3777,51 @@ async function runSearch(query){
         .or(`and(follower_id.eq.${myId},following_id.in.(${ids.join(',')})),and(follower_id.in.(${ids.join(',')}),following_id.eq.${myId})`);
       rel = relRows || [];
     }
+    const tierIcons = await getTierIconsForUsers(ids);
+    if(_searchMode!=='search') return; // user switched away while the tier lookup was in flight
     el.innerHTML = data.map(p=>{
       const state = {
         mine: rel.find(r=>r.follower_id===myId && r.following_id===p.id) || null,
         theirs: rel.find(r=>r.follower_id===p.id && r.following_id===myId) || null,
       };
-      return buildSearchResultRowHtml(p, state);
+      return buildSearchResultRowHtml(p, state, tierIcons[p.id]);
     }).join('');
   }catch(e){
     el.innerHTML='<div class="search-empty"><div class="search-empty-title">Search unavailable</div><div class="search-empty-sub">Try again in a moment.</div></div>';
   }
 }
 
-function buildSearchResultRowHtml(p, state){
+// Shared circular tier-icon slot for any person-row list (search results,
+// Interactions, Requests) — same height as the small follow button beside
+// it, so the row reads as one aligned line: tier · identity · action.
+// Batches the day-count lookup for a whole list of ids in one RPC call
+// (get_session_day_counts) rather than one query per row.
+function untieredIconHtml(){
+  return '<svg width="20" height="20" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
+}
+async function getTierIconsForUsers(userIds){
+  const map={};
+  userIds.forEach(id=>{ map[id]=untieredIconHtml(); });
+  if(!userIds.length) return map;
+  try{
+    const { data } = await supabaseClient.rpc('get_session_day_counts', { user_ids:userIds });
+    (data||[]).forEach(row=>{
+      const tier=getTier(row.day_count);
+      if(tier) map[row.user_id]=TIER_ICONS[tier.icon];
+    });
+  }catch(e){}
+  return map;
+}
+function buildListRowTierHtml(tierIconHtml){
+  return `<div class="list-row-tier">${tierIconHtml||untieredIconHtml()}</div>`;
+}
+
+function buildSearchResultRowHtml(p, state, tierIconHtml){
   const label=followButtonLabel(state);
   const isPrimary=(label==='Follow' || label==='Follow back');
   const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
   return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
+    ${buildListRowTierHtml(tierIconHtml)}
     <div class="search-result-id">
       <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
       <div class="search-result-handle">@${escapeHtml(p.username||'—')}</div>
@@ -3793,6 +3840,7 @@ async function renderInteractionsFeed(el){
   el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
   const requestsBannerHtml = _pendingRequestCount>0
     ? `<div class="search-result-row" onclick="showScreen('requests')">
+        <div class="list-row-tier"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
         <div class="search-result-id"><div class="search-result-name">Requests</div><div class="search-result-handle">${_pendingRequestCount} pending</div></div>
         <span style="color:var(--muted);font-size:16px;">›</span>
       </div>`
@@ -3810,9 +3858,10 @@ async function renderInteractionsFeed(el){
       return;
     }
     const ids=accepted.map(r=>r.follower_id);
-    const [{data:profiles}, {data:myOutgoing}] = await Promise.all([
+    const [{data:profiles}, {data:myOutgoing}, tierIcons] = await Promise.all([
       supabaseClient.from('public_profiles').select('id, username, full_name, verified, is_private').in('id', ids),
       supabaseClient.from('follows').select('follower_id, following_id, status').eq('follower_id', currentUser.id).in('following_id', ids),
+      getTierIconsForUsers(ids),
     ]);
     const byId={};
     (profiles||[]).forEach(p=>byId[p.id]=p);
@@ -3823,6 +3872,7 @@ async function renderInteractionsFeed(el){
       const isPrimary=(label==='Follow' || label==='Follow back');
       const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
       return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
+        ${buildListRowTierHtml(tierIcons[p.id])}
         <div class="search-result-id">
           <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
           <div class="search-result-handle">is now following you</div>
@@ -3859,13 +3909,17 @@ async function renderRequestsScreen(){
       return;
     }
     const ids=pending.map(r=>r.follower_id);
-    const { data:profiles } = await supabaseClient.from('public_profiles').select('id, username, full_name, verified, is_private').in('id', ids);
+    const [{data:profiles}, tierIcons] = await Promise.all([
+      supabaseClient.from('public_profiles').select('id, username, full_name, verified, is_private').in('id', ids),
+      getTierIconsForUsers(ids),
+    ]);
     const byId={};
     (profiles||[]).forEach(p=>byId[p.id]=p);
     el.innerHTML = pending.map(r=>{
       const p=byId[r.follower_id]||{username:'—', full_name:'—', is_private:false};
       const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
       return `<div class="search-result-row" id="req-row-${r.follower_id}" onclick="openOtherProfile('${r.follower_id}','requests')">
+        ${buildListRowTierHtml(tierIcons[r.follower_id])}
         <div class="search-result-id">
           <div class="search-result-name">${escapeHtml(p.full_name||p.username)}${verifiedBadge}</div>
           <div class="search-result-handle">wants to follow you</div>
