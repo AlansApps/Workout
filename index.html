@@ -3631,11 +3631,19 @@ function closeOtherProfile(){
   });
 })();
 
+// Whole-screen stale-while-revalidate: revisiting a profile already seen
+// this session repaints its last-known state instantly (full HTML snapshot,
+// buttons and all — every onclick is self-contained with the uid baked in,
+// so it stays fully functional even before the refresh below lands) instead
+// of a blank "Loading…" every time. Keyed per uid rather than a single slot
+// since different profiles' data obviously can't share one cache entry.
+let _otherProfileHtmlCache={};
+
 async function renderOtherProfile(){
   const uid=_otherProfileUserId;
   const body=document.getElementById('other-profile-body');
   if(!uid){ body.innerHTML=''; return; }
-  body.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  body.innerHTML = _otherProfileHtmlCache[uid] || '<div class="empty-state"><p>Loading…</p></div>';
 
   const [{data:profile}, followState, counts, pingUsed] = await Promise.all([
     supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private').eq('id', uid).maybeSingle(),
@@ -3643,6 +3651,7 @@ async function renderOtherProfile(){
     getFollowCounts(uid),
     hasPingedToday(),
   ]);
+  if(_otherProfileUserId!==uid) return; // navigated to a different profile while this was in flight
   if(!profile){
     body.innerHTML='<div class="empty-state"><p>This account no longer exists.</p></div>';
     return;
@@ -3702,6 +3711,7 @@ async function renderOtherProfile(){
   if(!canView){
     document.getElementById('oprof-tab-program').innerHTML=buildPrivateLockHtml();
     document.getElementById('oprof-log-list').innerHTML=buildPrivateLockHtml();
+    _otherProfileHtmlCache[uid]=body.innerHTML;
     return;
   }
 
@@ -3709,8 +3719,10 @@ async function renderOtherProfile(){
     fetchUserProgramData(uid),
     fetchUserWorkoutLog(uid),
   ]);
+  if(_otherProfileUserId!==uid) return; // navigated away again while these were in flight
   document.getElementById('oprof-tab-program').innerHTML=buildProgramRotationHtml(programData.schedule, programData.schedulePos, programData.routines);
   document.getElementById('oprof-log-list').innerHTML=buildLogListHtml(logEntries);
+  _otherProfileHtmlCache[uid]=body.innerHTML;
 }
 
 function buildPrivateLockHtml(){
@@ -3917,10 +3929,14 @@ function buildSearchResultRowHtml(p, state, tierIconHtml){
 // banner row up top when there's anything pending (tapping it goes to the
 // dedicated Requests screen, since a pending request needs a Confirm/
 // Delete decision — a different action shape than the rest of this feed).
+// Cached as one HTML blob (not per-row) — simplest way to get the same
+// "shows instantly, refreshes a beat later" feel as the rest of the app
+// without a more elaborate per-item cache for a screen this size.
+let _interactionsFeedHtmlCache=null;
 async function renderInteractionsFeed(el){
   el=el||document.getElementById('search-body');
   if(!currentUser){ el.innerHTML='<div class="empty-state"><p>Sign in to see activity.</p></div>'; return; }
-  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  el.innerHTML = _interactionsFeedHtmlCache || '<div class="empty-state"><p>Loading…</p></div>';
   const requestsBannerHtml = _pendingRequestCount>0
     ? `<div class="search-result-row" onclick="showScreen('requests')">
         <div class="list-row-tier"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
@@ -3938,7 +3954,10 @@ async function renderInteractionsFeed(el){
       ...(pings||[]).map(r=>({type:'ping', userId:r.sender_id, message:r.message, kind:r.kind, at:r.created_at})),
     ].sort((a,b)=>new Date(b.at)-new Date(a.at));
     if(!events.length){
-      el.innerHTML=requestsBannerHtml+'<div class="empty-state"><p>No activity yet.<br>When people follow or ping you,<br>it\'ll show up here.</p></div>';
+      if(_searchMode!=='interactions') return; // switched away while this was in flight
+      const html=requestsBannerHtml+'<div class="empty-state"><p>No activity yet.<br>When people follow or ping you,<br>it\'ll show up here.</p></div>';
+      el.innerHTML=html;
+      _interactionsFeedHtmlCache=html;
       return;
     }
     const ids=[...new Set(events.map(e=>e.userId))];
@@ -3974,9 +3993,13 @@ async function renderInteractionsFeed(el){
         <button class="oprof-followbtn small ${isPrimary?'primary':'secondary'}" onclick="event.stopPropagation();handleFollowClick('${p.id}', ${!!p.is_private}, ()=>renderInteractionsFeed())">${label}</button>
       </div>`;
     }).join('');
-    el.innerHTML=requestsBannerHtml+rowsHtml;
+    if(_searchMode!=='interactions') return; // switched away while this was in flight
+    const html=requestsBannerHtml+rowsHtml;
+    el.innerHTML=html;
+    _interactionsFeedHtmlCache=html;
   }catch(e){
-    el.innerHTML=requestsBannerHtml+'<div class="empty-state"><p>Could not load activity.</p></div>';
+    if(_searchMode!=='interactions') return;
+    el.innerHTML=requestsBannerHtml+'<div class="empty-state"><p>Could not load activity.</p></div>'; // not cached — a transient failure shouldn't stick around as "the" cached view
   }
 }
 
@@ -3987,9 +4010,14 @@ async function renderInteractionsFeed(el){
 //  — it collapses that row's actions in place into a single "Follow back"
 //  button, so the confirmation is visible.
 // ═══════════════════════════════════════════
+// Same whole-blob cache as the Interactions feed — a request confirmed/
+// deleted in-place via respondToRequest() while this was showing won't be
+// reflected in the cached snapshot, but the fetch below always runs
+// regardless and corrects it within a beat, so that's a non-issue.
+let _requestsScreenHtmlCache=null;
 async function renderRequestsScreen(){
   const el=document.getElementById('requests-list');
-  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  el.innerHTML = _requestsScreenHtmlCache || '<div class="empty-state"><p>Loading…</p></div>';
   if(!currentUser){ el.innerHTML='<div class="empty-state"><p>Sign in to see requests.</p></div>'; return; }
   try{
     const { data:pending } = await supabaseClient
@@ -4000,6 +4028,7 @@ async function renderRequestsScreen(){
       .order('created_at', {ascending:false});
     if(!pending || !pending.length){
       el.innerHTML='<div class="empty-state"><p>No pending requests.</p></div>';
+      _requestsScreenHtmlCache=el.innerHTML;
       return;
     }
     const ids=pending.map(r=>r.follower_id);
@@ -4024,6 +4053,7 @@ async function renderRequestsScreen(){
         </div>
       </div>`;
     }).join('');
+    _requestsScreenHtmlCache=el.innerHTML;
   }catch(e){
     el.innerHTML='<div class="empty-state"><p>Could not load requests.</p></div>';
   }
