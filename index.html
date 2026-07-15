@@ -446,16 +446,20 @@ select.form-inp option{background:var(--panel);}
 
 /* ── PROFILE — Instagram-style header, matches the My Account identity
    block pattern (tier icon beside real-case name/handle, not caps). ── */
-.profile-id-row{display:flex;align-items:center;gap:14px;padding:16px 16px 14px 18px;}
+/* Pinned to the top of #profile-body while only the tab content below it
+   scrolls — same treatment for your own profile and anyone else's. */
+.profile-sticky{position:sticky;top:0;z-index:2;background:var(--void);}
+.profile-id-row{display:flex;align-items:center;gap:16px;padding:24px 18px 20px;}
 .profile-id-row .settings-btn{margin-left:auto;align-self:flex-start;flex-shrink:0;}
-.profile-tier-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
-.profile-name{font-family:var(--hd);font-size:19px;font-weight:700;letter-spacing:1px;color:var(--bright);}
-.profile-handle{font-size:12px;color:var(--dim);margin-top:2px;}
+.profile-tier-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
+.profile-tier-col svg{width:32px;height:32px;}
+.profile-name{font-family:var(--hd);font-size:23px;font-weight:700;letter-spacing:1px;color:var(--bright);}
+.profile-handle{font-size:13px;color:var(--dim);margin-top:3px;}
 .profile-divider{height:1px;background:var(--line);margin:0 18px;}
-.profile-stats{padding:12px 18px;font-size:13px;color:var(--soft);}
+.profile-stats{padding:16px 18px;font-size:14px;color:var(--soft);}
 .profile-guest-card{margin:0 18px 16px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:14px;font-size:12px;color:var(--soft);line-height:1.5;}
-.profile-tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:10px;}
-.profile-tab{flex:1;text-align:center;padding:11px 0;font-size:11px;font-weight:600;color:var(--dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--body);}
+.profile-tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:8px;}
+.profile-tab{flex:1;text-align:center;padding:14px 0;font-size:12px;font-weight:600;color:var(--dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--body);}
 .profile-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 .profile-tab-content{padding:14px 16px;}
 
@@ -474,13 +478,56 @@ select.form-inp option{background:var(--panel);}
 .prof-rtn-ex-name{font-weight:600;color:var(--text);flex-shrink:0;}
 .prof-rtn-ex-target{color:var(--dim);font-size:11px;text-align:right;}
 
-/* ── SEARCH — pill field per the pre-approved pattern, coming-soon empty state ── */
-.search-pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line2);border-radius:22px;padding:11px 16px;color:var(--dim);opacity:.55;}
-.search-pill input{background:none;border:none;outline:none;color:var(--text);font-family:var(--body);font-size:13px;width:100%;}
-.search-pill input:disabled{cursor:default;}
+/* ── SEARCH — real search field + circular Interactions button. The
+   circle slot is reused for both: a bell icon that opens Interactions
+   (with a red dot when there are pending requests), and — once inside
+   Interactions — a magnifying-glass icon that goes back to Search. Same
+   position, same size, so the swap reads as one control changing modes
+   rather than two different buttons. ── */
+.search-toprow-inner{display:flex;align-items:center;gap:10px;padding:0 18px 14px;}
+.search-pill-real{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line2);border-radius:22px;padding:11px 16px;color:var(--dim);}
+.search-pill-real input{background:none;border:none;outline:none;color:var(--text);font-family:var(--body);font-size:13px;width:100%;}
+.search-pill-real input::placeholder{color:var(--muted);}
+.search-circle-btn{position:relative;flex-shrink:0;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--line2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,color .15s;padding:0;}
+.search-circle-btn:hover{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 40%,var(--line2));}
+.search-circle-badge{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;background:#e0453f;border:2px solid var(--void);}
 .search-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px 30px;text-align:center;}
 .search-empty-title{font-size:13px;font-weight:600;color:var(--soft);}
 .search-empty-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* Shared row for search results / Interactions feed / Connection Requests —
+   identity block on the left, one action control on the right. */
+.search-result-row{display:flex;align-items:center;gap:12px;padding:12px 8px;border-radius:12px;cursor:pointer;transition:background .15s;}
+.search-result-row:hover{background:var(--surface);}
+.search-result-id{flex:1;min-width:0;}
+.search-result-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.search-result-handle{font-size:11px;color:var(--dim);margin-top:2px;}
+.req-actions{display:flex;gap:8px;flex-shrink:0;}
+
+/* Follow button — same primary/secondary language as .btn-cta everywhere
+   else (gold fill = the affirmative action; outline = already-acted-on
+   states like Following/Requested, which still need to stay tappable to
+   unfollow/cancel). .small is the compact variant used inline in rows;
+   the full-size version sits alone in the other-user profile header. */
+.oprof-followbtn{font-family:var(--body);font-weight:600;letter-spacing:.2px;border-radius:20px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;white-space:nowrap;}
+.oprof-followbtn.primary{background:var(--gold);color:var(--void);border:none;}
+.oprof-followbtn.primary:active{background:var(--gold3);}
+.oprof-followbtn.secondary{background:none;color:var(--text);border:1px solid var(--line2);}
+.oprof-followbtn.secondary:hover{border-color:var(--dim);}
+.oprof-followbtn:not(.small){width:100%;padding:12px;font-size:13px;}
+.oprof-followbtn.small{padding:8px 16px;font-size:12px;}
+.oprof-followbtn-row{padding:0 18px 16px;}
+
+.oprof-lock{display:flex;flex-direction:column;align-items:center;gap:10px;padding:60px 30px;text-align:center;color:var(--dim);}
+.oprof-lock-title{font-size:13px;font-weight:600;color:var(--soft);}
+.oprof-lock-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* ── OTHER USER'S PROFILE topbar — back arrow + inert 3-dot menu, no
+   settings gear (that's only ever shown on your own profile). ── */
+.oprof-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 12px;}
+.oprof-icon-btn{background:none;border:none;color:var(--text);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;padding:0;}
+.oprof-icon-btn:hover{background:var(--surface);}
+.oprof-icon-btn svg{width:22px;height:22px;}
 
 .settings-row{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .15s;}
 .settings-row:hover:not(.disabled){background:var(--surface);}
@@ -848,7 +895,8 @@ input, select, textarea {
   .ex-detail-header,
   .prog-subrow,
   #profile-body,
-  #screen-search .pg-header {
+  #screen-search .pg-header,
+  .oprof-topbar {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
   .home-topbar { --safe-top: 16px; }
@@ -858,6 +906,7 @@ input, select, textarea {
   .prog-subrow { --safe-top: 16px; }
   #profile-body { --safe-top: 16px; }
   #screen-search .pg-header { --safe-top: 16px; }
+  .oprof-topbar { --safe-top: 16px; }
 }
 
 
@@ -1517,20 +1566,35 @@ body.light-mode .auth-choice-title{color:#111;}
   <div id="profile-body" style="flex:1;overflow-y:auto;"></div>
 </div>
 
-<!-- ══ SEARCH ══ (placeholder until profiles go public) -->
+<!-- ══ SEARCH / INTERACTIONS ══ one screen, two modes (see setSearchMode) —
+     title and top row swap, bottom nav still shows Search as active either
+     way since this is still "the Search tab," just showing activity
+     instead of the search field. -->
 <div id="screen-search" class="screen">
-  <div class="pg-header"><div class="pg-title">Search</div></div>
-  <div style="padding:0 16px 14px;">
-    <div class="search-pill">
-      <svg viewBox="0 0 24 24" width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
-      <input type="text" placeholder="Search people, programs..." disabled>
-    </div>
+  <div class="pg-header"><div class="pg-title" id="search-title">Search</div></div>
+  <div id="search-toprow"></div>
+  <div id="search-body" style="flex:1;overflow-y:auto;"></div>
+</div>
+
+<!-- ══ CONNECTION REQUESTS ══ -->
+<div id="screen-requests" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('search')">← Back</button></div>
+  <div class="pg-header"><div class="pg-title">Requests</div></div>
+  <div id="requests-list" class="list-scroll"></div>
+</div>
+
+<!-- ══ OTHER USER'S PROFILE ══ (drill-down, not a nav-level screen — no
+     settings gear, no floating nav while this is showing) -->
+<div id="screen-other-profile" class="screen">
+  <div class="oprof-topbar">
+    <button class="oprof-icon-btn" onclick="closeOtherProfile()" aria-label="Back">
+      <svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="oprof-icon-btn" aria-label="Options">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+    </button>
   </div>
-  <div class="search-empty">
-    <svg viewBox="0 0 24 24" width="34" height="34" style="stroke:var(--line2);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
-    <div class="search-empty-title">Coming soon</div>
-    <div class="search-empty-sub">Search for people and programs once profiles go live.</div>
-  </div>
+  <div id="other-profile-body" style="flex:1;overflow-y:auto;"></div>
 </div>
 
 <!-- ══ FLOATING NAV ══ persistent across Home/Program/Search/Profile only
@@ -2149,7 +2213,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics'];
+const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','other-profile','requests'];
 // Screens that show the floating nav (the 4 top-level destinations). Every
 // other screen is reached via a back button and hides the nav, matching
 // the app's existing back-row pattern rather than stacking two nav layers.
@@ -2163,6 +2227,9 @@ function showScreen(id){
   if(id==='settings') renderAccountSection();
   if(id==='profile') renderProfile();
   if(id==='analytics') initProgressCharts();
+  if(id==='search'){ _searchMode='search'; renderSearchScreen(); }
+  if(id==='requests') renderRequestsScreen();
+  if(id==='other-profile') renderOtherProfile();
   updateFloatNav(id);
 }
 
@@ -3108,28 +3175,36 @@ function moveSched(i,d){const j=i+d;if(j<0||j>=db.schedule.length)return;[db.sch
 // ═══════════════════════════════════════════
 //  LOG — rendered inside Profile's Log tab, see renderProfile()
 // ═══════════════════════════════════════════
-function renderLog(){
-  const el=document.getElementById('profile-log-list');
-  if(!el) return;
-  if(!db.workoutLog.length){el.innerHTML='<div class="empty-state"><p>No sessions logged yet.<br>Get off this screen<br>and go lift something.</p></div>';return;}
-  el.innerHTML=[...db.workoutLog].reverse().map(entry=>{
+// Builds the session-history list markup from an array already ordered
+// most-recent-first. Shared by the own-profile Log tab (local db data) and
+// the other-user profile viewer (data fetched fresh from Supabase, since
+// there's no local copy of someone else's device storage) — same visual
+// output either way.
+function buildLogListHtml(entries){
+  if(!entries.length) return '<div class="empty-state"><p>No sessions logged yet.<br>Get off this screen<br>and go lift something.</p></div>';
+  return entries.map(entry=>{
     const d=new Date(entry.date);
     const ds=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     const dur=Math.floor(entry.duration/60)+'min';
     const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.weight*s.reps),0),0);
     const det=entry.exercises.map(ex=>{
       const ss=ex.sets.map((s,i)=>`${i+1}: ${s.weight===0?'BW':s.weight+'kg'}×${s.reps}`).join('  ·  ');
-      return`<div class="log-ex"><div class="log-ex-n">${ex.name}</div><div class="log-sets">${ss||'—'}</div></div>`;
+      return`<div class="log-ex"><div class="log-ex-n">${escapeHtml(ex.name)}</div><div class="log-sets">${ss||'—'}</div></div>`;
     }).join('');
-    const noteHtml=entry.note?`<div class="log-note">"${entry.note}"</div>`:'';
+    const noteHtml=entry.note?`<div class="log-note">"${escapeHtml(entry.note)}"</div>`:'';
     return`<div class="log-item">
       <div class="log-hd" onclick="toggleEl(this)">
-        <div><div class="log-n">${entry.routineName}</div><div class="log-d">${ds} · ${dur} · ${Math.round(vol)}kg</div></div>
+        <div><div class="log-n">${escapeHtml(entry.routineName)}</div><div class="log-d">${ds} · ${dur} · ${Math.round(vol)}kg</div></div>
         <span style="color:var(--muted);font-size:15px">›</span>
       </div>
       <div class="log-bd">${noteHtml}${det}</div>
     </div>`;
   }).join('');
+}
+function renderLog(){
+  const el=document.getElementById('profile-log-list');
+  if(!el) return;
+  el.innerHTML=buildLogListHtml([...db.workoutLog].reverse());
 }
 
 // ═══════════════════════════════════════════
@@ -3142,10 +3217,12 @@ function renderLog(){
 async function renderProfile(){
   const body=document.getElementById('profile-body');
   body.innerHTML=`
-    <div id="profile-header"></div>
-    <div class="profile-tabs">
-      <button class="profile-tab active" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
-      <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
+    <div id="profile-sticky" class="profile-sticky">
+      <div id="profile-header"></div>
+      <div class="profile-tabs">
+        <button class="profile-tab active" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
+        <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
+      </div>
     </div>
     <div id="profile-tab-program" class="profile-tab-content"></div>
     <div id="profile-tab-log" class="profile-tab-content" style="display:none;padding:0;">
@@ -3233,7 +3310,7 @@ async function renderProfileHeader(){
     return;
   }
 
-  const profile=await getMyProfile();
+  const [profile, counts]=await Promise.all([getMyProfile(), getFollowCounts(currentUser.id)]);
 
   const fullName=escapeHtml((profile && profile.full_name) || currentUser.email || '—');
   const username=escapeHtml((profile && profile.username) || '—');
@@ -3248,8 +3325,8 @@ async function renderProfileHeader(){
     <div class="profile-divider"></div>
     <div class="profile-stats">
       <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
-      <span style="color:var(--text);font-weight:600;">0</span> Followers &nbsp;·&nbsp;
-      <span style="color:var(--text);font-weight:600;">0</span> Following
+      <span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers &nbsp;·&nbsp;
+      <span style="color:var(--text);font-weight:600;">${counts.following}</span> Following
     </div>
   `;
 }
@@ -3261,19 +3338,26 @@ async function renderProfileHeader(){
 // NOT the historical stats a Log entry shows (no date, no duration, no
 // total volume), since this is what the routine IS, not a record of a
 // session that happened.
-function renderProfileProgramTab(){
-  const el=document.getElementById('profile-tab-program');
-  if(!db.schedule.length){el.innerHTML='<div class="empty-state"><p>No program set up yet.</p></div>';return;}
-  const cur=db.schedulePos%db.schedule.length;
-  el.innerHTML=db.schedule.map((rId,i)=>{
-    const r=db.routines.find(x=>x.id===rId);
+// Shared by the own-profile Program tab (local db data) and the
+// other-user profile viewer (data fetched from Supabase and normalized
+// into this same shape first — see fetchUserProgramData). exercisesCatalog
+// defaults to the local db.exercises since the exercise catalogue itself
+// is global/shared, not per-user.
+function buildProgramRotationHtml(schedule, schedulePos, routines, exercisesCatalog){
+  exercisesCatalog=exercisesCatalog||db.exercises;
+  if(!schedule.length) return '<div class="empty-state"><p>No program set up yet.</p></div>';
+  const cur=schedulePos%schedule.length;
+  return schedule.map((rId,i)=>{
+    const r=routines.find(x=>x.id===rId);
     if(!r) return '';
     const isCur=i===cur;
     const exRows=r.exercises.map(re=>{
-      const ex=db.exercises.find(e=>e.id===re.id)||{id:re.id,name:re.id};
+      const ex=exercisesCatalog.find(e=>e.id===re.id)||{id:re.id,name:re.id};
       // Older/default routines predate the per-set setRows model and only
       // have a flat sets/reps/weight — synthesize the same number of
-      // identical entries so the format is consistent either way.
+      // identical entries so the format is consistent either way. Cloud
+      // routine_exercises rows never have setRows at all (only the
+      // averaged target_* columns), so they always take this path too.
       const setRows=(re.setRows&&re.setRows.length)?re.setRows:Array(re.sets||0).fill({kg:re.weight||0,reps:re.reps||0});
       const target=setRows.map(sr=>`${sr.kg||0}kg × ${sr.reps||0}`).join(' | ');
       return `<div class="prof-rtn-ex-row"><span class="prof-rtn-ex-name">${escapeHtml(ex.name)}</span><span class="prof-rtn-ex-target">${target}</span></div>`;
@@ -3287,6 +3371,541 @@ function renderProfileProgramTab(){
       <div class="prof-rtn-detail">${exRows}</div>
     </div>`;
   }).join('');
+}
+function renderProfileProgramTab(){
+  document.getElementById('profile-tab-program').innerHTML=buildProgramRotationHtml(db.schedule, db.schedulePos, db.routines);
+}
+
+// ═══════════════════════════════════════════
+//  FOLLOWS — shared logic for the follow button, used by both the
+//  other-user profile viewer and the Connection Requests list. The whole
+//  state machine is derived from at most two rows: "my row pointing at
+//  them" and "their row pointing at me" — see project_social_redesign
+//  memory / the design discussion this shipped from for the full state
+//  table (Follow / Requested / Following / Follow back).
+// ═══════════════════════════════════════════
+
+// Fetches both possible relationship rows in one query rather than two,
+// since RLS already scopes what's readable (accepted rows are public,
+// pending rows only visible to the two parties involved, which is exactly
+// what we are here).
+async function getFollowState(targetUserId){
+  if(!currentUser || currentUser.id===targetUserId) return {mine:null, theirs:null};
+  try{
+    const { data, error } = await supabaseClient
+      .from('follows')
+      .select('follower_id, following_id, status')
+      .or(`and(follower_id.eq.${currentUser.id},following_id.eq.${targetUserId}),and(follower_id.eq.${targetUserId},following_id.eq.${currentUser.id})`);
+    if(error || !data) return {mine:null, theirs:null};
+    return {
+      mine: data.find(r=>r.follower_id===currentUser.id) || null,
+      theirs: data.find(r=>r.follower_id===targetUserId) || null,
+    };
+  }catch(e){ return {mine:null, theirs:null}; }
+}
+
+function followButtonLabel(state){
+  if(state.mine && state.mine.status==='accepted') return 'Following';
+  if(state.mine && state.mine.status==='pending') return 'Requested';
+  if(state.theirs && state.theirs.status==='accepted') return 'Follow back';
+  return 'Follow';
+}
+
+async function createFollow(targetUserId, targetIsPrivate){
+  const status = targetIsPrivate ? 'pending' : 'accepted';
+  const { error } = await supabaseClient.from('follows').insert({follower_id:currentUser.id, following_id:targetUserId, status});
+  if(error) throw error;
+}
+async function removeFollow(followerId, followingId){
+  const { error } = await supabaseClient.from('follows').delete().eq('follower_id', followerId).eq('following_id', followingId);
+  if(error) throw error;
+}
+async function acceptFollow(followerId){
+  const { error } = await supabaseClient.from('follows').update({status:'accepted'}).eq('follower_id', followerId).eq('following_id', currentUser.id);
+  if(error) throw error;
+}
+
+// The one click handler behind every follow button, wherever it appears —
+// Follow/Follow back both create a row (pending or accepted depending on
+// the target's privacy); Requested/Following both remove a row, but ask
+// first since both are a step backward the user might not have meant to
+// tap.
+async function handleFollowClick(targetUserId, targetIsPrivate, onChanged){
+  const state=await getFollowState(targetUserId);
+  const label=followButtonLabel(state);
+  if(label==='Follow' || label==='Follow back'){
+    try{ await createFollow(targetUserId, targetIsPrivate); onChanged&&onChanged(); }
+    catch(e){ alert('Could not follow. Try again.'); }
+  } else if(label==='Requested'){
+    showConfirm({
+      title:'Cancel Request?',
+      message:'This withdraws your follow request.',
+      cancelLabel:'Keep waiting',
+      okLabel:'Cancel request',
+      danger:true,
+      onOk: async ()=>{
+        try{ await removeFollow(currentUser.id, targetUserId); onChanged&&onChanged(); }
+        catch(e){ alert('Could not cancel. Try again.'); }
+      }
+    });
+  } else if(label==='Following'){
+    showConfirm({
+      title:'Unfollow?',
+      message:'You can follow them again later.',
+      cancelLabel:'Cancel',
+      okLabel:'Unfollow',
+      danger:true,
+      onOk: async ()=>{
+        try{ await removeFollow(currentUser.id, targetUserId); onChanged&&onChanged(); }
+        catch(e){ alert('Could not unfollow. Try again.'); }
+      }
+    });
+  }
+}
+
+// Two accepted-only counts for a profile header — followers (people
+// following them) and following (people they follow). head:true so
+// Postgres only returns the count, not the matching rows.
+async function getFollowCounts(userId){
+  try{
+    const [{count:followers}, {count:following}] = await Promise.all([
+      supabaseClient.from('follows').select('follower_id', {count:'exact', head:true}).eq('following_id', userId).eq('status', 'accepted'),
+      supabaseClient.from('follows').select('following_id', {count:'exact', head:true}).eq('follower_id', userId).eq('status', 'accepted'),
+    ]);
+    return { followers: followers||0, following: following||0 };
+  }catch(e){ return { followers:0, following:0 }; }
+}
+
+// Fetches another user's routines + rotation from Supabase and normalizes
+// them into the exact shape buildProgramRotationHtml() already expects
+// (the same shape pullCloudDataToLocal() builds for the local db.routines
+// on this device) — so the shared builder needs no other-user-specific
+// branch at all. user_settings.schedule already stores client_id strings
+// (see the comment in pullCloudDataToLocal), so no id translation needed.
+async function fetchUserProgramData(userId){
+  try{
+    const [{data:settings}, {data:routineRows}] = await Promise.all([
+      supabaseClient.from('user_settings').select('schedule, schedule_pos').eq('user_id', userId).maybeSingle(),
+      supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', userId),
+    ]);
+    const routines = (routineRows||[]).map(r=>({
+      id: r.client_id || r.id,
+      name: r.name,
+      exercises: (r.routine_exercises||[])
+        .sort((a,b)=>a.position-b.position)
+        .map(re=>({ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds })),
+    }));
+    return { schedule: (settings && settings.schedule) || [], schedulePos: (settings && settings.schedule_pos) || 0, routines };
+  }catch(e){ return { schedule:[], schedulePos:0, routines:[] }; }
+}
+
+// Fetches another user's session history, normalized into the same shape
+// buildLogListHtml() expects, already ordered most-recent-first (unlike
+// the local db.workoutLog which is stored oldest-first and reversed by
+// the caller — this one asks Postgres to sort descending directly).
+async function fetchUserWorkoutLog(userId){
+  try{
+    const { data } = await supabaseClient
+      .from('workout_logs')
+      .select('routine_name, performed_at, duration_seconds, note, workout_log_exercises(exercise_name, position, workout_log_sets(set_index, weight, reps))')
+      .eq('user_id', userId)
+      .order('performed_at', {ascending:false});
+    return (data||[]).map(row=>({
+      routineName: row.routine_name,
+      date: new Date(row.performed_at).getTime(),
+      duration: row.duration_seconds,
+      note: row.note || '',
+      exercises: (row.workout_log_exercises||[])
+        .sort((a,b)=>a.position-b.position)
+        .map(re=>({
+          name: re.exercise_name,
+          sets: (re.workout_log_sets||[]).sort((a,b)=>a.set_index-b.set_index).map(s=>({weight:s.weight, reps:s.reps})),
+        })),
+    }));
+  }catch(e){ return []; }
+}
+
+// ═══════════════════════════════════════════
+//  OTHER USER'S PROFILE — a drill-down screen (back arrow, not a nav
+//  destination). closeOtherProfile() returns to whichever screen opened
+//  it (search results, the Interactions feed, or Requests), tracked in
+//  _otherProfileReturnTo rather than a fixed 'search' so the back arrow
+//  always feels correct regardless of entry point.
+// ═══════════════════════════════════════════
+let _otherProfileUserId=null;
+let _otherProfileReturnTo='search';
+let _otherProfileIsPrivate=false;
+
+function openOtherProfile(userId, returnTo){
+  if(!currentUser || userId===currentUser.id) return; // no drill-down into your own profile
+  _otherProfileUserId=userId;
+  _otherProfileReturnTo=returnTo||'search';
+  showScreen('other-profile');
+}
+function closeOtherProfile(){
+  showScreen(_otherProfileReturnTo||'search');
+}
+
+async function renderOtherProfile(){
+  const uid=_otherProfileUserId;
+  const body=document.getElementById('other-profile-body');
+  if(!uid){ body.innerHTML=''; return; }
+  body.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+
+  const [{data:profile}, followState, counts] = await Promise.all([
+    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private').eq('id', uid).maybeSingle(),
+    getFollowState(uid),
+    getFollowCounts(uid),
+  ]);
+  if(!profile){
+    body.innerHTML='<div class="empty-state"><p>This account no longer exists.</p></div>';
+    return;
+  }
+  _otherProfileIsPrivate=!!profile.is_private;
+
+  // Private content is only visible once WE follow THEM and they've
+  // accepted — mirrors public.can_view_profile_content() server-side, but
+  // checking it here too lets the UI show a lock state instead of relying
+  // on RLS silently returning empty rows (which would look like "no
+  // routines yet" rather than "this is private").
+  const canView = !profile.is_private || (followState.mine && followState.mine.status==='accepted');
+  const label = followButtonLabel(followState);
+  const isPrimary = (label==='Follow' || label==='Follow back');
+
+  let tierIconHtml='<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
+  let workoutCount='—', tierName='';
+  if(canView){
+    try{
+      const { data:cnt } = await supabaseClient.rpc('get_session_day_counts', { user_ids:[uid] });
+      const dayCount = (cnt && cnt[0] && cnt[0].day_count) || 0;
+      workoutCount = dayCount;
+      const tier=getTier(dayCount);
+      if(tier){ tierIconHtml=TIER_ICONS[tier.icon]; tierName=tier.name; }
+    }catch(e){}
+  }
+
+  const verifiedBadge = profile.verified ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
+
+  body.innerHTML=`
+    <div id="oprof-sticky" class="profile-sticky">
+      <div class="profile-id-row">
+        <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tierName}</div></div>
+        <div style="flex:1;"><div class="profile-name">${escapeHtml(profile.full_name||'—')}${verifiedBadge}</div><div class="profile-handle">@${escapeHtml(profile.username||'—')}</div></div>
+      </div>
+      <div class="profile-divider"></div>
+      <div class="profile-stats">
+        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
+        <span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers &nbsp;·&nbsp;
+        <span style="color:var(--text);font-weight:600;">${counts.following}</span> Following
+      </div>
+      <div class="oprof-followbtn-row">
+        <button class="oprof-followbtn ${isPrimary?'primary':'secondary'}" id="oprof-follow-btn" onclick="onOtherProfileFollowClick()">${label}</button>
+      </div>
+      <div class="profile-tabs">
+        <button class="profile-tab active" id="optab-program" onclick="switchOtherProfileTab('program')">Program</button>
+        <button class="profile-tab" id="optab-log" onclick="switchOtherProfileTab('log')">Log</button>
+      </div>
+    </div>
+    <div id="oprof-tab-program" class="profile-tab-content"></div>
+    <div id="oprof-tab-log" class="profile-tab-content" style="display:none;padding:0;">
+      <div id="oprof-log-list" class="list-scroll"></div>
+    </div>
+  `;
+
+  if(!canView){
+    document.getElementById('oprof-tab-program').innerHTML=buildPrivateLockHtml();
+    document.getElementById('oprof-log-list').innerHTML=buildPrivateLockHtml();
+    return;
+  }
+
+  const [programData, logEntries] = await Promise.all([
+    fetchUserProgramData(uid),
+    fetchUserWorkoutLog(uid),
+  ]);
+  document.getElementById('oprof-tab-program').innerHTML=buildProgramRotationHtml(programData.schedule, programData.schedulePos, programData.routines);
+  document.getElementById('oprof-log-list').innerHTML=buildLogListHtml(logEntries);
+}
+
+function buildPrivateLockHtml(){
+  return `<div class="oprof-lock">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    <div class="oprof-lock-title">This account is private</div>
+    <div class="oprof-lock-sub">Follow to see their program and workout history.</div>
+  </div>`;
+}
+
+function switchOtherProfileTab(tab){
+  ['program','log'].forEach(t=>{
+    document.getElementById('oprof-tab-'+t).style.display=(t===tab?'block':'none');
+    document.getElementById('optab-'+t).classList.toggle('active',t===tab);
+  });
+}
+
+function onOtherProfileFollowClick(){
+  handleFollowClick(_otherProfileUserId, _otherProfileIsPrivate, renderOtherProfile);
+}
+
+// ═══════════════════════════════════════════
+//  SEARCH / INTERACTIONS — one screen, two modes. _searchMode drives both
+//  the title text and which top-row control set is shown (search field +
+//  circular Interactions button, vs. a single button back to search) —
+//  see the HTML comment above #screen-search.
+// ═══════════════════════════════════════════
+let _searchMode='search';
+let _searchDebounce=null;
+let _pendingRequestCount=0;
+
+async function refreshPendingBadge(){
+  if(!currentUser){ _pendingRequestCount=0; return; }
+  try{
+    const { count } = await supabaseClient.from('follows').select('follower_id', {count:'exact', head:true}).eq('following_id', currentUser.id).eq('status', 'pending');
+    _pendingRequestCount = count||0;
+  }catch(e){ _pendingRequestCount=0; }
+}
+
+async function renderSearchScreen(){
+  await refreshPendingBadge();
+  document.getElementById('search-title').textContent = _searchMode==='interactions' ? 'Interactions' : 'Search';
+  renderSearchTopRow();
+  renderSearchBody();
+}
+
+function setSearchMode(mode){
+  _searchMode=mode;
+  document.getElementById('search-title').textContent = mode==='interactions' ? 'Interactions' : 'Search';
+  renderSearchTopRow();
+  renderSearchBody();
+}
+
+function renderSearchTopRow(){
+  const el=document.getElementById('search-toprow');
+  if(_searchMode==='search'){
+    const badgeHtml = _pendingRequestCount>0 ? '<span class="search-circle-badge"></span>' : '';
+    el.innerHTML=`
+      <div class="search-toprow-inner">
+        <div class="search-pill-real">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="search-input" placeholder="Search people" autocomplete="off" oninput="onSearchInput()">
+        </div>
+        <button class="search-circle-btn" onclick="setSearchMode('interactions')" aria-label="Interactions">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          ${badgeHtml}
+        </button>
+      </div>`;
+  } else {
+    el.innerHTML=`
+      <div class="search-toprow-inner">
+        <button class="search-circle-btn" onclick="setSearchMode('search')" aria-label="Back to search">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </button>
+      </div>`;
+  }
+}
+
+function renderSearchBody(){
+  const el=document.getElementById('search-body');
+  if(_searchMode==='interactions'){
+    renderInteractionsFeed(el);
+    return;
+  }
+  const q=(document.getElementById('search-input')||{}).value || '';
+  if(!q.trim()){
+    el.innerHTML='<div class="search-empty"><div class="search-empty-title">Find people to follow</div><div class="search-empty-sub">Search by name or handle.</div></div>';
+    return;
+  }
+  runSearch(q);
+}
+
+function onSearchInput(){
+  clearTimeout(_searchDebounce);
+  _searchDebounce=setTimeout(()=>{
+    const q=document.getElementById('search-input').value;
+    if(!q.trim()){
+      document.getElementById('search-body').innerHTML='<div class="search-empty"><div class="search-empty-title">Find people to follow</div><div class="search-empty-sub">Search by name or handle.</div></div>';
+      return;
+    }
+    runSearch(q);
+  }, 300);
+}
+
+// Two-step fetch (matching profiles, then their relationship to us) so we
+// never issue one relationship query per row — RLS already scopes what's
+// readable (accepted rows are public, pending only to the two parties),
+// same reasoning as getFollowState().
+async function runSearch(query){
+  const el=document.getElementById('search-body');
+  el.innerHTML='<div class="empty-state"><p>Searching…</p></div>';
+  const myId = currentUser ? currentUser.id : null;
+  try{
+    const safeQ = query.replace(/[%,]/g,'');
+    const { data } = await supabaseClient
+      .from('public_profiles')
+      .select('id, username, full_name, verified, subscription_tier, is_private')
+      .or(`username.ilike.%${safeQ}%,full_name.ilike.%${safeQ}%`)
+      .neq('id', myId || '00000000-0000-0000-0000-000000000000')
+      .limit(20);
+    if(_searchMode!=='search') return; // user switched away while this was in flight
+    if(!data || !data.length){
+      el.innerHTML='<div class="search-empty"><div class="search-empty-title">No results</div><div class="search-empty-sub">Try a different name or handle.</div></div>';
+      return;
+    }
+    const ids=data.map(p=>p.id);
+    let rel=[];
+    if(myId){
+      const { data:relRows } = await supabaseClient
+        .from('follows')
+        .select('follower_id, following_id, status')
+        .or(`and(follower_id.eq.${myId},following_id.in.(${ids.join(',')})),and(follower_id.in.(${ids.join(',')}),following_id.eq.${myId})`);
+      rel = relRows || [];
+    }
+    el.innerHTML = data.map(p=>{
+      const state = {
+        mine: rel.find(r=>r.follower_id===myId && r.following_id===p.id) || null,
+        theirs: rel.find(r=>r.follower_id===p.id && r.following_id===myId) || null,
+      };
+      return buildSearchResultRowHtml(p, state);
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div class="search-empty"><div class="search-empty-title">Search unavailable</div><div class="search-empty-sub">Try again in a moment.</div></div>';
+  }
+}
+
+function buildSearchResultRowHtml(p, state){
+  const label=followButtonLabel(state);
+  const isPrimary=(label==='Follow' || label==='Follow back');
+  const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
+  return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
+    <div class="search-result-id">
+      <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
+      <div class="search-result-handle">@${escapeHtml(p.username||'—')}</div>
+    </div>
+    <button class="oprof-followbtn small ${isPrimary?'primary':'secondary'}" onclick="event.stopPropagation();handleFollowClick('${p.id}', ${!!p.is_private}, ()=>runSearch(document.getElementById('search-input').value))">${label}</button>
+  </div>`;
+}
+
+// "X is now following you" activity feed, plus a "Requests" banner row up
+// top when there's anything pending (tapping it goes to the dedicated
+// Requests screen, since a pending request needs a Confirm/Delete
+// decision — a different action shape than the rest of this feed).
+async function renderInteractionsFeed(el){
+  el=el||document.getElementById('search-body');
+  if(!currentUser){ el.innerHTML='<div class="empty-state"><p>Sign in to see activity.</p></div>'; return; }
+  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  const requestsBannerHtml = _pendingRequestCount>0
+    ? `<div class="search-result-row" onclick="showScreen('requests')">
+        <div class="search-result-id"><div class="search-result-name">Requests</div><div class="search-result-handle">${_pendingRequestCount} pending</div></div>
+        <span style="color:var(--muted);font-size:16px;">›</span>
+      </div>`
+    : '';
+  try{
+    const { data:accepted } = await supabaseClient
+      .from('follows')
+      .select('follower_id, accepted_at')
+      .eq('following_id', currentUser.id)
+      .eq('status', 'accepted')
+      .order('accepted_at', {ascending:false})
+      .limit(50);
+    if(!accepted || !accepted.length){
+      el.innerHTML=requestsBannerHtml+'<div class="empty-state"><p>No activity yet.<br>When people follow you,<br>it\'ll show up here.</p></div>';
+      return;
+    }
+    const ids=accepted.map(r=>r.follower_id);
+    const [{data:profiles}, {data:myOutgoing}] = await Promise.all([
+      supabaseClient.from('public_profiles').select('id, username, full_name, verified, is_private').in('id', ids),
+      supabaseClient.from('follows').select('follower_id, following_id, status').eq('follower_id', currentUser.id).in('following_id', ids),
+    ]);
+    const byId={};
+    (profiles||[]).forEach(p=>byId[p.id]=p);
+    const rowsHtml = accepted.map(r=>{
+      const p=byId[r.follower_id]; if(!p) return '';
+      const state = { mine: (myOutgoing||[]).find(x=>x.following_id===r.follower_id)||null, theirs:{status:'accepted'} };
+      const label=followButtonLabel(state);
+      const isPrimary=(label==='Follow' || label==='Follow back');
+      const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
+      return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
+        <div class="search-result-id">
+          <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
+          <div class="search-result-handle">is now following you</div>
+        </div>
+        <button class="oprof-followbtn small ${isPrimary?'primary':'secondary'}" onclick="event.stopPropagation();handleFollowClick('${p.id}', ${!!p.is_private}, ()=>renderInteractionsFeed())">${label}</button>
+      </div>`;
+    }).join('');
+    el.innerHTML=requestsBannerHtml+rowsHtml;
+  }catch(e){
+    el.innerHTML=requestsBannerHtml+'<div class="empty-state"><p>Could not load activity.</p></div>';
+  }
+}
+
+// ═══════════════════════════════════════════
+//  CONNECTION REQUESTS — dedicated screen for pending "wants to follow
+//  you" rows. Confirming a request doesn't remove the row (a full
+//  re-render would just make it vanish, which reads as "did that work?")
+//  — it collapses that row's actions in place into a single "Follow back"
+//  button, so the confirmation is visible.
+// ═══════════════════════════════════════════
+async function renderRequestsScreen(){
+  const el=document.getElementById('requests-list');
+  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  if(!currentUser){ el.innerHTML='<div class="empty-state"><p>Sign in to see requests.</p></div>'; return; }
+  try{
+    const { data:pending } = await supabaseClient
+      .from('follows')
+      .select('follower_id, created_at')
+      .eq('following_id', currentUser.id)
+      .eq('status', 'pending')
+      .order('created_at', {ascending:false});
+    if(!pending || !pending.length){
+      el.innerHTML='<div class="empty-state"><p>No pending requests.</p></div>';
+      return;
+    }
+    const ids=pending.map(r=>r.follower_id);
+    const { data:profiles } = await supabaseClient.from('public_profiles').select('id, username, full_name, verified, is_private').in('id', ids);
+    const byId={};
+    (profiles||[]).forEach(p=>byId[p.id]=p);
+    el.innerHTML = pending.map(r=>{
+      const p=byId[r.follower_id]||{username:'—', full_name:'—', is_private:false};
+      const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
+      return `<div class="search-result-row" id="req-row-${r.follower_id}" onclick="openOtherProfile('${r.follower_id}','requests')">
+        <div class="search-result-id">
+          <div class="search-result-name">${escapeHtml(p.full_name||p.username)}${verifiedBadge}</div>
+          <div class="search-result-handle">wants to follow you</div>
+        </div>
+        <div class="req-actions" onclick="event.stopPropagation();">
+          <button class="oprof-followbtn small primary" onclick="respondToRequest('${r.follower_id}', true, ${!!p.is_private})">Confirm</button>
+          <button class="oprof-followbtn small secondary" onclick="respondToRequest('${r.follower_id}', false)">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div class="empty-state"><p>Could not load requests.</p></div>';
+  }
+}
+
+async function respondToRequest(followerId, accept, targetIsPrivate){
+  if(accept){
+    try{
+      await acceptFollow(followerId);
+      await refreshPendingBadge();
+      const actionsEl=document.querySelector('#req-row-'+followerId+' .req-actions');
+      if(actionsEl) actionsEl.innerHTML=`<button class="oprof-followbtn small secondary" onclick="event.stopPropagation();handleFollowClick('${followerId}', ${!!targetIsPrivate}, ()=>renderRequestsScreen())">Follow back</button>`;
+    }catch(e){ alert('Could not confirm. Try again.'); }
+  } else {
+    showConfirm({
+      title:'Delete Request?',
+      message:'This removes their follow request.',
+      cancelLabel:'Cancel',
+      okLabel:'Delete',
+      danger:true,
+      onOk: async ()=>{
+        try{
+          await removeFollow(followerId, currentUser.id);
+          await refreshPendingBadge();
+          const rowEl=document.getElementById('req-row-'+followerId);
+          if(rowEl) rowEl.remove();
+        }catch(e){ alert('Could not delete. Try again.'); }
+      }
+    });
+  }
 }
 
 // ═══════════════════════════════════════════
