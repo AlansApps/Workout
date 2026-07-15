@@ -3565,6 +3565,29 @@ function closeOtherProfile(){
   showScreen(_otherProfileReturnTo||'search');
 }
 
+// Swipe left-to-right anywhere on someone else's profile = same as tapping
+// the back arrow (matches the iOS edge-swipe-back convention). Passive
+// listeners only — this never calls preventDefault, so normal vertical
+// scrolling of Program/Log underneath is completely unaffected; only the
+// touchend distance is checked, nothing is dragged live.
+(function(){
+  let sx=0, sy=0, tracking=false;
+  window.addEventListener('load', function(){
+    const el = document.getElementById('screen-other-profile');
+    if(!el) return;
+    el.addEventListener('touchstart', function(e){
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+    }, {passive:true});
+    el.addEventListener('touchend', function(e){
+      if(!tracking) return;
+      tracking = false;
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      if(dx > 70 && Math.abs(dy) < dx * 0.6) closeOtherProfile();
+    }, {passive:true});
+  });
+})();
+
 async function renderOtherProfile(){
   const uid=_otherProfileUserId;
   const body=document.getElementById('other-profile-body');
@@ -4836,7 +4859,7 @@ async function renderAccountSection(){
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div><div>
           <div class="settings-row-title">Private Account</div>
-          <div class="settings-row-sub">Only people you approve can see your Program and Log</div>
+          <div class="settings-row-sub">Only people you approve can follow you and see your Program and Log</div>
         </div></div>
         <div class="switch" onclick="togglePrivateAccount()">
           <div class="switch-track ${isPrivate?'on':''}" id="private-toggle-track"><div class="switch-thumb"></div></div>
@@ -4876,9 +4899,10 @@ async function renderAccountSection(){
   `;
 }
 
-// Enforcement (hiding Program/Log from non-followers when true) isn't
-// wired up yet — that ships with the public-profile-viewing feature.
-// This just persists the preference so it's ready when that lands.
+// Enforcement lives server-side: follows' INSERT policy forces a new
+// follow on a private account to 'pending' instead of 'accepted', and
+// can_view_profile_content() gates Program/Log visibility on having an
+// accepted follow — this toggle just flips the flag those checks read.
 async function togglePrivateAccount(){
   if(!currentUser) return;
   const track = document.getElementById('private-toggle-track');
