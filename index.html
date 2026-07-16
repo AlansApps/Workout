@@ -147,7 +147,22 @@ body.light-mode .float-nav-pill{background:rgba(0,0,0,.06);}
 .light-mode .ss-block-hd{background:color-mix(in srgb,var(--gold) 8%,transparent);}
 .light-mode .ss-round-tick.ticked{background:var(--gold);border-color:var(--gold);color:#000;}
 .ex-card-header{padding:11px 16px 9px;border-bottom:1px solid var(--line);}
+.ex-card-name-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .ex-card-name{font-family:var(--hd);font-size:15px;font-weight:700;letter-spacing:2px;color:var(--bright);text-transform:uppercase;}
+
+/* ── EXERCISE VIDEO — Play button. Circular variant (.ex-video-btn) for
+   Exercise Detail and the workout screen's cards; .ex-video-has recolors
+   the routine builder's existing square .btn-ico for the same purpose,
+   so it fits its row's icon language instead of introducing a new shape
+   there. Both share the same on/off logic: gold when ex.video is set,
+   greyed-out and unclickable (real disabled attribute, not just styled)
+   when it isn't — the button stays visible either way so the feature
+   reads as "not available for this one yet", not as randomly missing. ── */
+.ex-video-btn{border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--gold);color:var(--gold);cursor:pointer;padding:0;transition:border-color .15s,color .15s;}
+.ex-video-btn:hover:not(.disabled){border-color:var(--gold2);}
+.ex-video-btn.disabled{border-color:var(--line2);color:var(--muted);cursor:default;}
+.btn-ico.ex-video-has{border-color:color-mix(in srgb,var(--gold) 45%,var(--line2));color:var(--gold);}
+.btn-ico.ex-video-has:hover{border-color:var(--gold);color:var(--gold2);}
 .ex-card-notes{font-size:10px;color:#b0b0b0;letter-spacing:1px;margin-top:2px;font-style:italic;}
 .wo-notes-row{display:flex;align-items:center;gap:6px;margin-top:2px;min-height:18px;}
 .wo-notes-text{font-size:10px;color:#b0b0b0;letter-spacing:1px;font-style:italic;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
@@ -326,6 +341,7 @@ body.light-mode .float-nav-pill{background:rgba(0,0,0,.06);}
 /* Exercise detail slide-in */
 #screen-ex-detail{flex-direction:column;}
 .ex-detail-header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--panel);position:sticky;top:0;z-index:5;}
+.ex-detail-title-row{display:flex;align-items:center;gap:12px;}
 .ex-detail-muscle{font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:3px;}
 .ex-detail-name{font-family:var(--hd);font-size:20px;font-weight:700;letter-spacing:3px;color:#fff;text-transform:uppercase;}
 .ex-detail-body{flex:1;overflow-y:auto;padding:16px;}
@@ -1470,12 +1486,26 @@ body.light-mode .auth-choice-title{color:#111;}
   </div>
 </div>
 
+<!-- ══ EXERCISE VIDEO ══ GIF demo popup, see openExerciseVideo() -->
+<div id="exercise-video-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:20px;width:100%;max-width:340px;text-align:center;">
+    <div id="exercise-video-title" style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:2px;color:var(--text);text-transform:uppercase;margin-bottom:14px;"></div>
+    <div style="border-radius:10px;overflow:hidden;background:var(--void);">
+      <img id="exercise-video-img" src="" alt="" style="width:100%;display:block;">
+    </div>
+    <button onclick="closeExerciseVideo()" style="margin-top:16px;background:none;border:none;color:var(--muted);font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;padding:0;">Close</button>
+  </div>
+</div>
+
 <!-- ══ EXERCISE DETAIL ══ -->
 <div id="screen-ex-detail" class="screen">
   <div class="ex-detail-header">
-    <div>
-      <div class="ex-detail-muscle" id="exd-muscle"></div>
-      <div class="ex-detail-name" id="exd-name"></div>
+    <div class="ex-detail-title-row">
+      <div>
+        <div class="ex-detail-muscle" id="exd-muscle"></div>
+        <div class="ex-detail-name" id="exd-name"></div>
+      </div>
+      <div id="exd-video-btn"></div>
     </div>
     <button class="btn-back" onclick="showScreen('exercises')" style="padding:0;color:var(--dim);">← Back</button>
   </div>
@@ -1957,10 +1987,11 @@ body.light-mode .auth-choice-title{color:#111;}
 //  DEFAULT DATA  (Alan's baseline from docx)
 // ═══════════════════════════════════════════
 const DEFAULT_EXERCISES=[
-  {id:"e01",name:"Squats",muscle:"Legs",notes:"90º depth"},
+  {id:"e01",name:"Barbell Squat",muscle:"Legs",notes:"90º depth",video:"0043-qXTaZnJ"},
   {id:"e61",name:"Bulgarian Split Squats",muscle:"Legs",notes:""},
   {id:"e62",name:"Hack Squats",muscle:"Legs",notes:""},
-  {id:"e06",name:"Leg Press",muscle:"Legs",notes:""},
+  {id:"e78",name:"Barbell Hack Squats",muscle:"Legs",notes:"",video:"0046-5VCj6iH"},
+  {id:"e06",name:"Leg Press",muscle:"Legs",notes:"",video:"0739-10Z2DXU"},
   {id:"e02",name:"Romanian Deadlifts",muscle:"Legs",notes:"Chest: OUT · Stance: SHOULDER · Hands: OUTSIDE"},
   {id:"e36",name:"Deadlifts",muscle:"Legs",notes:""},
   {id:"e03",name:"Hip Thrusts",muscle:"Legs",notes:""},
@@ -2163,6 +2194,30 @@ function restoreSession(){
     return true;
   }catch(e){ return false; }
 }
+// The exercise catalogue ships with the app, not per-device — a device
+// that installed before a rename/new-exercise/video-link went out would
+// otherwise be stuck showing the old catalogue forever, since db.exercises
+// is only ever seeded once (see the guard right above this call). Keeps
+// name/muscle/video in sync with DEFAULT_EXERCISES for every existing
+// entry and adds any brand-new ones, but deliberately never touches
+// `notes` — that's the one field a user actually edits per exercise, and
+// there's no rename UI, so name/muscle/video are safe to overwrite.
+function syncDefaultExercises(){
+  if(!db.exercises) return;
+  const byId={};
+  db.exercises.forEach(e=>{ byId[e.id]=e; });
+  DEFAULT_EXERCISES.forEach(def=>{
+    const existing=byId[def.id];
+    if(!existing){
+      db.exercises.push({...def});
+    } else {
+      existing.name=def.name;
+      existing.muscle=def.muscle;
+      if(def.video) existing.video=def.video; else delete existing.video;
+    }
+  });
+}
+
 function loadDB() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -2170,6 +2225,7 @@ function loadDB() {
       const parsed = JSON.parse(raw);
       db = { ...DEFAULT_DB, ...parsed };
       if (!db.exercises || !db.exercises.length) db.exercises = DEFAULT_EXERCISES;
+      syncDefaultExercises(); // pulls in renames/new entries/video links added after this device's install — never touches notes, the one field users actually customize
       if (!db.routines)    db.routines    = DEFAULT_ROUTINES;
       if (!db.schedule)    db.schedule    = DEFAULT_SCHEDULE;
       if (!db.workoutLog)  db.workoutLog  = [];
@@ -2440,7 +2496,8 @@ function renderWoScreen(){
       for(let s=0;s<item.sets;s++) rows+=makeSetRow(ei,s,item);
       const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="Edit notes"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>`;
       const lastHtml=item.lastHistory?`<div class="ex-card-last">${ICON_LAST} Last: ${item.lastHistory}</div>`:'';
-      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name">${item.name}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
+      const videoBtnHtml=buildExerciseVideoBtnHtml(item.id, 26);
+      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${item.name}</div>${videoBtnHtml}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
       body.appendChild(card);
     } else if(item.type==='ss'){
       // Superset block
@@ -3016,7 +3073,8 @@ function openRoutineModal(editId){
     return `
       <div class="ex-builder" id="exb-${i}">
         <div class="eb-hd">
-          ${buildExSelect(re.id, `mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value);`, `eid-${i}`)}
+          ${buildExSelect(re.id, `mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value); refreshExerciseVideoIco(${i}, this.value);`, `eid-${i}`)}
+          ${buildExerciseVideoIcoHtml(re.id, `exvid-row-${i}`)}
           <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
           <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
           <button class="btn-ico del" onclick="rmItem(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -4245,11 +4303,76 @@ function renderExercisesDB(){
     </div>`).join('');
 }
 
+// ═══════════════════════════════════════════
+//  EXERCISE VIDEOS — a GIF demo per exercise, matched from
+//  github.com/hasaneyldrm/exercises-dataset. Only exercises with an
+//  `ex.video` id (the dataset's own file stem, e.g. "0043-qXTaZnJ") have
+//  one; everything else shows a greyed-out, unclickable Play button
+//  rather than hiding it, so the feature's presence is still visible.
+//  NOTE: loaded directly from GitHub's raw CDN for now — no offline
+//  caching yet. That's deliberately deferred (see the project memory on
+//  this) until the whole exercise catalogue has been through manual
+//  video-match approval; caching pre-approval matches would be wasted
+//  device storage.
+// ═══════════════════════════════════════════
+const EXERCISE_VIDEO_BASE='https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/';
+function exerciseVideoUrl(ex){ return (ex && ex.video) ? EXERCISE_VIDEO_BASE+ex.video+'.gif' : null; }
+
+// Circular variant — used in Exercise Detail (larger) and the workout
+// screen's exercise cards (smaller), both of which sit on their own row
+// with room for a standalone round button.
+function buildExerciseVideoBtnHtml(exId, size){
+  size = size || 34;
+  const ex = db.exercises.find(e=>e.id===exId);
+  const has = !!(ex && ex.video);
+  return `<button class="ex-video-btn${has?'':' disabled'}" style="width:${size}px;height:${size}px;" ${has?`onclick="event.stopPropagation();openExerciseVideo('${exId}')"`:'disabled'} aria-label="Play exercise video">
+    <svg viewBox="0 0 24 24" style="width:${Math.round(size*0.4)}px;height:${Math.round(size*0.4)}px;fill:currentColor;stroke:none;margin-left:2px;"><path d="M8 5v14l11-7z"/></svg>
+  </button>`;
+}
+
+// Square variant matching the routine builder's existing .btn-ico row
+// (reorder/delete icons) — same size and radius, just recolored gold
+// when a video exists, so it reads as part of that same icon-button group.
+// domId is the row-scoped id (e.g. "exvid-row-2") rather than one derived
+// from exId, since the exercise a given row points at can change via its
+// <select> without the row index changing.
+function buildExerciseVideoIcoHtml(exId, domId){
+  const ex = db.exercises.find(e=>e.id===exId);
+  const has = !!(ex && ex.video);
+  return `<button class="btn-ico${has?' ex-video-has':''}" id="${domId}" ${has?`onclick="openExerciseVideo('${exId}')"`:'disabled'} aria-label="Play exercise video">
+    <svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none;width:12px;height:12px;"><path d="M8 5v14l11-7z"/></svg>
+  </button>`;
+}
+// Called from the routine builder's exercise <select> onchange, since that
+// button's enabled state is tied to whichever exercise is currently
+// selected in that row, not fixed at render time.
+function refreshExerciseVideoIco(rowIndex, exId){
+  const domId='exvid-row-'+rowIndex;
+  const el=document.getElementById(domId);
+  if(el) el.outerHTML=buildExerciseVideoIcoHtml(exId, domId);
+}
+
+function openExerciseVideo(exId){
+  const ex=db.exercises.find(e=>e.id===exId);
+  const url=exerciseVideoUrl(ex);
+  if(!url) return;
+  document.getElementById('exercise-video-title').textContent=ex.name;
+  const img=document.getElementById('exercise-video-img');
+  img.alt=ex.name+' demonstration';
+  img.src=url;
+  document.getElementById('exercise-video-overlay').style.display='flex';
+}
+function closeExerciseVideo(){
+  document.getElementById('exercise-video-overlay').style.display='none';
+  document.getElementById('exercise-video-img').src=''; // stop decoding/animating the GIF while the popup is closed
+}
+
 function openExDetail(exId){
   const ex=db.exercises.find(e=>e.id===exId);
   if(!ex) return;
   document.getElementById('exd-muscle').textContent=ex.muscle;
   document.getElementById('exd-name').textContent=ex.name;
+  document.getElementById('exd-video-btn').innerHTML=buildExerciseVideoBtnHtml(exId, 38);
   renderExDetail(exId);
   showScreen('ex-detail');
 }
