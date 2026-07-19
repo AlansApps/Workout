@@ -3024,6 +3024,7 @@ function delRoutine(id){
       db.routines=db.routines.filter(r=>r.id!==id);
       db.schedule=db.schedule.filter(i=>i!==id);
       saveDB(); renderRoutines();
+      syncOfflineVideoCache(); // deleted routine may have been the last one referencing some cached videos
     }
   });
 }
@@ -3256,6 +3257,7 @@ function openRoutineModal(editId){
     if(editing){const idx=db.routines.findIndex(r=>r.id===editing.id);db.routines[idx]={...editing,name,exercises};}
     else db.routines.push({id:uid(),name,exercises});
     saveDB(); closeModal(); renderRoutines();
+    syncOfflineVideoCache(); // this routine's exercises may have changed which videos are actually needed offline
   };
   rdr();
   document.getElementById('modal-overlay').classList.add('active');
@@ -4378,19 +4380,95 @@ function refreshExerciseVideoIco(rowIndex, exId){
   if(el) el.outerHTML=buildExerciseVideoIcoHtml(exId, domId);
 }
 
-function openExerciseVideo(exId){
+async function openExerciseVideo(exId){
   const ex=db.exercises.find(e=>e.id===exId);
   const url=exerciseVideoUrl(ex);
   if(!url) return;
   document.getElementById('exercise-video-title').textContent=ex.name;
   const img=document.getElementById('exercise-video-img');
   img.alt=ex.name+' demonstration';
-  img.src=url;
   document.getElementById('exercise-video-overlay').style.display='flex';
+  img.src=await getExerciseVideoSrc(ex); // cached blob when this exercise is in a routine and already downloaded; live URL otherwise
 }
 function closeExerciseVideo(){
   document.getElementById('exercise-video-overlay').style.display='none';
   document.getElementById('exercise-video-img').src=''; // stop decoding/animating the GIF while the popup is closed
+}
+
+// ═══════════════════════════════════════════
+//  OFFLINE VIDEO CACHE — Cache Storage API works fine from plain page
+//  scripts (no service worker needed just to call cache.put/match/keys),
+//  so this manually mirrors whichever GIFs the user's own routines
+//  actually reference into a named cache, and evicts anything no longer
+//  referenced. Deliberately NOT the whole exercise library — someone
+//  training 15 of the app's 102 exercises shouldn't have the other 87
+//  GIFs taking up phone storage they'll never use.
+// ═══════════════════════════════════════════
+const EXERCISE_VIDEO_CACHE_NAME='exercise-videos-v1';
+
+function getRoutineVideoIds(){
+  const ids=new Set();
+  (db.routines||[]).forEach(r=>{
+    (r.exercises||[]).forEach(re=>{
+      const ex=db.exercises.find(e=>e.id===re.id);
+      if(ex && ex.video) ids.add(ex.video);
+    });
+  });
+  return ids;
+}
+
+// Pulls the video id back out of a cached request's URL so we can compare
+// against getRoutineVideoIds() without keeping a separate id<->url map.
+function videoIdFromCacheUrl(url){
+  const m=url.match(/\/videos\/([^/]+)\.gif(?:\?|$)/);
+  return m?m[1]:null;
+}
+
+// Downloads anything the current routines need that isn't cached yet, and
+// deletes anything cached that no routine references anymore (e.g. after
+// swapping an exercise out or deleting a routine) — so the cache tracks
+// "what my routines need right now", not "everything ever added".
+async function syncOfflineVideoCache(){
+  if(!('caches' in window)) return; // unsupported browser — videos just stream live instead
+  try{
+    const cache=await caches.open(EXERCISE_VIDEO_CACHE_NAME);
+    const needed=getRoutineVideoIds();
+
+    const existingRequests=await cache.keys();
+    const existingIds=new Set();
+    existingRequests.forEach(req=>{
+      const id=videoIdFromCacheUrl(req.url);
+      if(id) existingIds.add(id);
+    });
+
+    await Promise.all(existingRequests.map(async req=>{
+      const id=videoIdFromCacheUrl(req.url);
+      if(id && !needed.has(id)) await cache.delete(req);
+    }));
+
+    for(const id of needed){
+      if(existingIds.has(id)) continue;
+      try{ await cache.add(EXERCISE_VIDEO_BASE+id+'.gif'); }
+      catch(e){ /* offline or fetch failed — next sync (routine save, or next app open) retries it */ }
+    }
+  }catch(e){ /* Cache Storage blocked/unavailable — videos just stream live instead */ }
+}
+
+// Serves the cached copy when this exercise's video is part of a saved
+// routine and has already been downloaded (works with no signal); falls
+// back to the live network URL otherwise — e.g. previewing a video from
+// the Exercises DB for something not yet added to any routine.
+async function getExerciseVideoSrc(ex){
+  const url=exerciseVideoUrl(ex);
+  if(!url) return null;
+  if('caches' in window){
+    try{
+      const cache=await caches.open(EXERCISE_VIDEO_CACHE_NAME);
+      const cached=await cache.match(url);
+      if(cached) return URL.createObjectURL(await cached.blob());
+    }catch(e){}
+  }
+  return url;
 }
 
 function openExDetail(exId){
@@ -6143,6 +6221,7 @@ let db = null;
 loadDB();
 loadSettings();
 bootstrapAuthGate();
+syncOfflineVideoCache(); // fire-and-forget: mirrors this device's routine videos into the cache in the background
 
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
