@@ -293,6 +293,12 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .pg-header{padding:24px 18px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
 .pg-title{font-family:var(--hd);font-size:22px;font-weight:700;letter-spacing:4px;color:var(--bright);text-transform:uppercase;}
 .btn-new{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:6px 14px;font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:all .15s;border-radius:999px;}
+.btn-browse{background:none;border:1px solid var(--line2);color:var(--dim);padding:6px 14px;font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:all .15s;border-radius:999px;}
+.btn-browse:hover{border-color:var(--gold3);color:var(--gold3);}
+.browse-row{background:var(--panel);border:1px solid var(--line);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.browse-dl-btn{background:none;border:1px solid var(--gold3);color:var(--gold3);padding:6px 12px;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:all .15s;border-radius:999px;flex-shrink:0;display:flex;align-items:center;gap:5px;}
+.browse-dl-btn:hover{background:var(--gold3);color:var(--void);}
+.browse-dl-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
 /* ── PROGRAM sub-buttons — Workouts/Exercises, replaces what used to be
    separate nav destinations ── */
@@ -490,6 +496,27 @@ select.form-inp option{background:var(--panel);}
 .profile-id-row .settings-btn{margin-left:auto;align-self:flex-start;flex-shrink:0;}
 .profile-tier-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
 .profile-tier-col svg{width:32px;height:32px;}
+
+/* ── Insignia badge — takes the "profile photo" slot; this app has no
+   avatar photos, so the equipped tier/special badge fills that circle
+   directly instead, per Alan's explicit call. ── */
+.insignia-badge-wrap{position:relative;width:78px;height:78px;flex-shrink:0;}
+.insignia-badge-wrap[onclick]{cursor:pointer;}
+.insignia-badge{width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--lift),var(--void));border:2px solid var(--gold3);display:flex;align-items:center;justify-content:center;box-sizing:border-box;color:var(--gold);}
+.insignia-badge svg{width:100%;height:100%;}
+.insignia-badge-plus{position:absolute;bottom:-1px;right:-1px;width:25px;height:25px;border-radius:50%;background:var(--gold3);border:3px solid var(--void);display:flex;align-items:center;justify-content:center;}
+.insignia-badge-plus svg{width:12px;height:12px;stroke:var(--void);stroke-width:3;stroke-linecap:round;fill:none;}
+
+/* ── Insignia picker popup grid ── */
+.insignia-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.insignia-pick{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;position:relative;}
+.insignia-pick-ic{width:44px;height:44px;border-radius:50%;background:var(--void);border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--gold);box-sizing:border-box;padding:9px;}
+.insignia-pick-ic svg{width:100%;height:100%;}
+.insignia-pick.selected .insignia-pick-ic{border-color:var(--gold3);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold3) 30%,transparent);}
+.insignia-pick-lbl{font-size:9px;color:var(--dim);font-weight:600;text-align:center;line-height:1.3;}
+.insignia-pick.locked{cursor:default;}
+.insignia-pick.locked .insignia-pick-ic{opacity:.3;filter:grayscale(1);}
+.insignia-pick-req{font-size:7.5px;color:var(--dim);opacity:.7;}
 .profile-name{font-family:var(--hd);font-size:23px;font-weight:700;letter-spacing:1px;color:var(--bright);}
 .profile-handle{font-size:13px;color:var(--dim);margin-top:3px;}
 .profile-divider{height:1px;background:var(--line);margin:0 18px;}
@@ -1375,7 +1402,7 @@ body.light-mode .auth-choice-title{color:#111;}
 <!-- ══ ROUTINES ══ (reached from Program's "Workouts" sub-button) -->
 <div id="screen-routines" class="screen">
   <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">Workouts</div><button class="btn-new" onclick="openRoutineModal()">+ New</button></div>
+  <div class="pg-header"><div class="pg-title">Workouts</div><div style="display:flex;gap:8px;"><button class="btn-browse" onclick="openBrowseRoutines()">Browse</button><button class="btn-new" onclick="openRoutineModal()">+ New</button></div></div>
   <div id="routines-list" class="list-scroll"></div>
 </div>
 
@@ -2150,13 +2177,17 @@ const DEFAULT_EXERCISES=[
 ];
 
 
+// Source data for the Browse Workouts catalog only (openBrowseRoutines()) —
+// no longer auto-seeded into new installs. Renaming/editing these entries
+// is safe at any time: once a user downloads a copy, it becomes their own
+// independent routine object and is never read from this array again.
 const DEFAULT_ROUTINES=[
-  {id:"r01",name:"Leg Day 1",exercises:[{id:"e01",sets:3,reps:8,weight:0,rest:150},{id:"e02",sets:3,reps:8,weight:0,rest:150},{id:"e03",sets:3,reps:8,weight:0,rest:90},{id:"e04",sets:3,reps:8,weight:0,rest:90},{id:"e37",sets:3,reps:8,weight:0,rest:60}]},
-  {id:"r02",name:"Leg Day 2",exercises:[{id:"e01",sets:3,reps:8,weight:0,rest:150},{id:"e06",sets:3,reps:8,weight:0,rest:150},{id:"e35",sets:3,reps:8,weight:0,rest:90},{id:"e08",sets:3,reps:8,weight:0,rest:90},{id:"e09",sets:3,reps:8,weight:0,rest:90},{id:"e37",sets:3,reps:8,weight:0,rest:60}]},
-  {id:"r03",name:"Push Day 1",exercises:[{id:"e10",sets:3,reps:8,weight:0,rest:150},{id:"e11",sets:3,reps:8,weight:0,rest:90},{id:"e12",sets:3,reps:8,weight:0,rest:90},{id:"e15",sets:3,reps:8,weight:0,rest:90},{id:"e33",sets:3,reps:8,weight:0,rest:90},{id:"e34",sets:3,reps:8,weight:0,rest:90}]},
-  {id:"r04",name:"Push Day 2",exercises:[{id:"e10",sets:3,reps:8,weight:0,rest:150},{id:"e13",sets:3,reps:8,weight:0,rest:90},{id:"e16",sets:3,reps:8,weight:0,rest:90},{id:"e12",sets:3,reps:8,weight:0,rest:90},{id:"e19",sets:3,reps:8,weight:0,rest:90},{id:"e18",sets:3,reps:8,weight:0,rest:90}]},
-  {id:"r05",name:"Pull Day 1",exercises:[{id:"e24",sets:3,reps:8,weight:0,rest:150},{id:"e23",sets:3,reps:8,weight:0,rest:90},{id:"e29",sets:3,reps:8,weight:0,rest:90},{id:"e30",sets:3,reps:8,weight:0,rest:90},{id:"e31",sets:3,reps:8,weight:0,rest:60}]},
-  {id:"r06",name:"Pull Day 2",exercises:[{id:"e20",sets:3,reps:8,weight:0,rest:90},{id:"e21",sets:3,reps:8,weight:0,rest:90},{id:"e22",sets:3,reps:8,weight:0,rest:60},{id:"e27",sets:3,reps:8,weight:0,rest:90},{id:"e28",sets:3,reps:8,weight:0,rest:90},{id:"e31",sets:3,reps:8,weight:0,rest:60}]},
+  {id:"r01",name:"Alan's Leg Day I",exercises:[{id:"e01",sets:3,reps:8,weight:0,rest:150},{id:"e02",sets:3,reps:8,weight:0,rest:150},{id:"e03",sets:3,reps:10,weight:0,rest:90},{id:"e04",sets:3,reps:12,weight:0,rest:90},{id:"e37",sets:3,reps:12,weight:0,rest:60}]},
+  {id:"r02",name:"Alan's Leg Day II",exercises:[{id:"e01",sets:3,reps:8,weight:0,rest:150},{id:"e06",sets:3,reps:10,weight:0,rest:150},{id:"e35",sets:3,reps:12,weight:0,rest:90},{id:"e08",sets:3,reps:12,weight:0,rest:90},{id:"e09",sets:3,reps:12,weight:0,rest:90},{id:"e37",sets:3,reps:12,weight:0,rest:60}]},
+  {id:"r03",name:"Alan's Push Day I",exercises:[{id:"e10",sets:3,reps:8,weight:0,rest:150},{id:"e11",sets:3,reps:8,weight:0,rest:90},{id:"e12",sets:3,reps:12,weight:0,rest:90},{id:"e15",sets:3,reps:12,weight:0,rest:90},{id:"e33",sets:3,reps:12,weight:0,rest:90},{id:"e34",sets:3,reps:12,weight:0,rest:90}]},
+  {id:"r04",name:"Alan's Push Day II",exercises:[{id:"e10",sets:3,reps:8,weight:0,rest:150},{id:"e13",sets:3,reps:12,weight:0,rest:90},{id:"e16",sets:3,reps:10,weight:0,rest:90},{id:"e12",sets:3,reps:12,weight:0,rest:90},{id:"e19",sets:3,reps:10,weight:0,rest:90},{id:"e18",sets:3,reps:12,weight:0,rest:90}]},
+  {id:"r05",name:"Alan's Pull Day I",exercises:[{id:"e24",sets:3,reps:8,weight:0,rest:150},{id:"e23",sets:3,reps:8,weight:0,rest:90},{id:"e29",sets:3,reps:12,weight:0,rest:90},{id:"e30",sets:3,reps:12,weight:0,rest:90},{id:"e31",sets:3,reps:20,weight:0,rest:60}]},
+  {id:"r06",name:"Alan's Pull Day II",exercises:[{id:"e20",sets:3,reps:10,weight:0,rest:90},{id:"e21",sets:3,reps:10,weight:0,rest:90},{id:"e22",sets:3,reps:12,weight:0,rest:60},{id:"e27",sets:3,reps:12,weight:0,rest:90},{id:"e28",sets:3,reps:12,weight:0,rest:90},{id:"e31",sets:3,reps:20,weight:0,rest:60}]},
 ];
 
 const DEFAULT_LAST_WEIGHTS={
@@ -2201,13 +2232,22 @@ const DEFAULT_LAST_WEIGHTS={
 const DEFAULT_DB={
   version:1,
   exercises:DEFAULT_EXERCISES,
-  routines:DEFAULT_ROUTINES,
-  schedule:["r01","r03","r05","r02","r04","r06"],
+  // Fresh installs start with an empty workout list — Alan's own 6 routines
+  // (DEFAULT_ROUTINES) now live only in the Browse Workouts catalog, where
+  // anyone can copy them in under their own chosen name. See openBrowseRoutines().
+  routines:[],
+  schedule:[],
   schedulePos:0,
   workoutLog:[],
   lastWeights:DEFAULT_LAST_WEIGHTS,
   allTimePRs:{},
-  lastNotes:{}
+  lastNotes:{},
+  // Special (non-tier) insignias this account has been granted server-side
+  // (Founder/Trainer/OG Member/Early Supporter) — always empty for guests
+  // and fresh installs; only populated by pullCloudDataToLocal(). Tiers are
+  // never stored here since they're always computed fresh from workoutLog.
+  unlockedSpecialInsignias:[],
+  equippedInsignia:null
 };
 
 
@@ -2311,8 +2351,8 @@ function loadDB() {
       db = { ...DEFAULT_DB, ...parsed };
       if (!db.exercises || !db.exercises.length) db.exercises = DEFAULT_EXERCISES;
       syncDefaultExercises(); // pulls in renames/new entries/video links added after this device's install — never touches notes, the one field users actually customize
-      if (!db.routines)    db.routines    = DEFAULT_ROUTINES;
-      if (!db.schedule)    db.schedule    = DEFAULT_SCHEDULE;
+      if (!db.routines)    db.routines    = [];
+      if (!db.schedule)    db.schedule    = [];
       if (!db.workoutLog)  db.workoutLog  = [];
       if (!db.lastWeights) db.lastWeights = DEFAULT_LAST_WEIGHTS;
       if (!db.lastNotes)   db.lastNotes   = {};
@@ -2708,6 +2748,7 @@ function stepVal(ei,si,t,delta){
 }
 
 function parseKg(v){ return parseFloat(String(v).replace(',','.').trim())||0; }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 // Time-tracked exercises (Plank-style holds, Cardio) reuse the reps field to
 // carry seconds instead of a rep count — weight stays 0 — so the whole
@@ -3184,7 +3225,7 @@ function sortedRoutines() {
 }
 function renderRoutines(){
   const el=document.getElementById('routines-list');
-  if(!db.routines.length){el.innerHTML='<div class="empty-state"><p>No workouts yet.<br>Tap + New to create one.</p></div>';return;}
+  if(!db.routines.length){el.innerHTML='<div class="empty-state"><p>No workouts yet.<br>Tap + New to build one, or Browse to add one of ours.</p></div>';return;}
   el.innerHTML=sortedRoutines().map(r=>`
     <div class="rtn-row">
       <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
@@ -3209,6 +3250,57 @@ function delRoutine(id){
       syncOfflineVideoCache(); // deleted routine may have been the last one referencing some cached videos
     }
   });
+}
+
+// ═══════════════════════════════════════════
+//  BROWSE WORKOUTS — copy one of the shared catalog routines (currently
+//  just Alan's own 6) into your own Workouts list under a name you pick.
+//  Downloading clones the exercise list only; the copy is a normal,
+//  independent routine from that point on — it updates with your own
+//  logged weights and never re-reads the catalog entry again, so you can
+//  re-download the same one later under a different name if you want the
+//  "clean" default back.
+// ═══════════════════════════════════════════
+function openBrowseRoutines(){
+  document.getElementById('modal-title').textContent='Browse Workouts';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-lbl" style="margin-bottom:10px">Shared workouts you can add to your own list</div>
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      ${DEFAULT_ROUTINES.map(r=>`
+        <div class="browse-row">
+          <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
+          <button class="browse-dl-btn" onclick="openDownloadRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14"/></svg>Add</button>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">Close</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function openDownloadRoutineModal(defId){
+  const def=DEFAULT_ROUTINES.find(r=>r.id===defId);
+  if(!def) return;
+  document.getElementById('modal-title').textContent='Add to My Workouts';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-grp">
+      <label class="form-lbl">Workout Name</label>
+      <input class="form-inp" id="dl-name-inp" value="${def.name.replace(/"/g,'&quot;')}" maxlength="60">
+    </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;">This adds your own copy — it'll track your sets and weights independently from here on.</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="openBrowseRoutines()">Cancel</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmDownloadRoutine('${defId}')">Add</button>`;
+  const inp=document.getElementById('dl-name-inp');
+  inp.focus(); inp.select();
+}
+
+function confirmDownloadRoutine(defId){
+  const def=DEFAULT_ROUTINES.find(r=>r.id===defId);
+  if(!def) return;
+  const name=document.getElementById('dl-name-inp').value.trim();
+  if(!name){ alert('Name your routine.'); return; }
+  db.routines.push({id:genId(), name, exercises:JSON.parse(JSON.stringify(def.exercises))});
+  saveDB(); closeModal(); renderRoutines();
+  syncOfflineVideoCache(); // the downloaded routine may reference exercises with cached videos
 }
 
 function openRoutineModal(editId){
@@ -3606,10 +3698,8 @@ let _myFollowCountsCache=null;
 async function renderProfileHeader(){
   const el=document.getElementById('profile-header');
   const workoutCount=getSessionDayCount();
-  const tier=getTier(workoutCount);
-  const tierIconHtml=tier
-    ? TIER_ICONS[tier.icon]
-    : '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
+  const equipped=getEquippedInsigniaDisplay();
+  const badgeHtml=buildInsigniaBadgeHtml(equipped, !!currentUser); // read-only for guests — nothing to equip against
 
   // Settings gear lives inline in the identity row (same row height as
   // the name/handle) rather than its own separate topbar — a dedicated
@@ -3631,7 +3721,7 @@ async function renderProfileHeader(){
       : `${used} of ${GUEST_SESSION_LIMIT} free workouts used`;
     el.innerHTML=`
       <div class="profile-id-row">
-        <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tier?tier.name:''}</div></div>
+        ${badgeHtml}
         <div style="flex:1;"><div class="profile-name">Guest session</div><div class="profile-handle">${usageLine}</div></div>
         ${gearBtnHtml}
       </div>
@@ -3651,7 +3741,7 @@ async function renderProfileHeader(){
   const paint=(counts)=>{
     el.innerHTML=`
       <div class="profile-id-row">
-        <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tier?tier.name:''}</div></div>
+        ${badgeHtml}
         <div style="flex:1;"><div class="profile-name">${fullName}${verifiedBadge}</div><div class="profile-handle">@${username}</div></div>
         ${gearBtnHtml}
       </div>
@@ -3933,7 +4023,7 @@ async function renderOtherProfile(){
   body.innerHTML = _otherProfileHtmlCache[uid] || '<div class="empty-state"><p>Loading…</p></div>';
 
   const [{data:profile}, followState, counts, pingUsed] = await Promise.all([
-    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private').eq('id', uid).maybeSingle(),
+    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia').eq('id', uid).maybeSingle(),
     getFollowState(uid),
     getFollowCounts(uid),
     hasPingedToday(),
@@ -3954,24 +4044,35 @@ async function renderOtherProfile(){
   const label = followButtonLabel(followState);
   const isPrimary = (label==='Follow' || label==='Follow back');
 
-  let tierIconHtml='<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
-  let workoutCount='—', tierName='';
+  let equippedInsignia=null, workoutCount='—';
   if(canView){
     try{
       const { data:cnt } = await supabaseClient.rpc('get_session_day_counts', { user_ids:[uid] });
       const dayCount = (cnt && cnt[0] && cnt[0].day_count) || 0;
       workoutCount = dayCount;
-      const tier=getTier(dayCount);
-      if(tier){ tierIconHtml=TIER_ICONS[tier.icon]; tierName=tier.name; }
+      // Trust whatever they've equipped without re-verifying eligibility —
+      // same trust boundary as `verified`/`subscription_tier` on this same
+      // view. Falls back to their highest tier if equipped_insignia is
+      // unset or references something that no longer resolves.
+      const eq=profile.equipped_insignia;
+      const eqTier = eq ? TIERS.find(t=>t.id===eq) : null;
+      const eqSpecial = eq ? INSIGNIA_CATALOG.find(s=>s.id===eq) : null;
+      if(eqTier) equippedInsignia={id:eqTier.id, icon:TIER_ICONS[eqTier.icon]||'', sizeMult:1};
+      else if(eqSpecial) equippedInsignia={id:eqSpecial.id, icon:eqSpecial.icon, sizeMult:eqSpecial.sizeMult};
+      else {
+        const tier=getTier(dayCount);
+        if(tier) equippedInsignia={id:tier.id, icon:TIER_ICONS[tier.icon]||'', sizeMult:1};
+      }
     }catch(e){}
   }
+  const badgeHtml=buildInsigniaBadgeHtml(equippedInsignia, false);
 
   const verifiedBadge = profile.verified ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
 
   body.innerHTML=`
     <div id="oprof-sticky" class="profile-sticky">
       <div class="profile-id-row">
-        <div class="profile-tier-col">${tierIconHtml}<div class="tier-name-lbl">${tierName}</div></div>
+        ${badgeHtml}
         <div style="flex:1;"><div class="profile-name">${escapeHtml(profile.full_name||'—')}${verifiedBadge}</div><div class="profile-handle">@${escapeHtml(profile.username||'—')}</div></div>
       </div>
       <div class="profile-divider"></div>
@@ -5388,13 +5489,13 @@ function applyAccentByName(name, save) {
 //  TIER SYSTEM
 // ═══════════════════════════════════════════
 const TIERS = [
-  {at:1000, name:'Legend',   icon:'crown',    msg:"1000 sessions. You're an absolute freak. We mean that with the utmost respect."},
-  {at:500,  name:'Elite',    icon:'skull',    msg:"500 sessions. At this point the bar is scared of you."},
-  {at:250,  name:'Veteran',  icon:'veteran',  msg:"250 sessions. Most people quit at 10. You're on 250."},
-  {at:100,  name:'Beast',    icon:'fire',     msg:"100 sessions. You're not trying anymore — this is just who you are."},
-  {at:50,   name:'Dedicated',icon:'gold',     msg:"50 sessions. Half a century of not skipping. That's dedication."},
-  {at:25,   name:'Regular',  icon:'silver',   msg:"25 sessions. You actually kept showing up. Respect."},
-  {at:10,   name:'Rookie',   icon:'bronze',   msg:"10 sessions done. Welcome to the iron game, Rookie."},
+  {id:'tier_legend',    at:1000, name:'Legend',   icon:'crown',    msg:"1000 sessions. You're an absolute freak. We mean that with the utmost respect."},
+  {id:'tier_elite',     at:500,  name:'Elite',    icon:'skull',    msg:"500 sessions. At this point the bar is scared of you."},
+  {id:'tier_veteran',   at:250,  name:'Veteran',  icon:'veteran',  msg:"250 sessions. Most people quit at 10. You're on 250."},
+  {id:'tier_beast',     at:100,  name:'Beast',    icon:'fire',     msg:"100 sessions. You're not trying anymore — this is just who you are."},
+  {id:'tier_dedicated', at:50,   name:'Dedicated',icon:'gold',     msg:"50 sessions. Half a century of not skipping. That's dedication."},
+  {id:'tier_regular',   at:25,   name:'Regular',  icon:'silver',   msg:"25 sessions. You actually kept showing up. Respect."},
+  {id:'tier_rookie',    at:10,   name:'Rookie',   icon:'bronze',   msg:"10 sessions done. Welcome to the iron game, Rookie."},
 ];
 
 const TIER_ICONS = {
@@ -5402,10 +5503,32 @@ const TIER_ICONS = {
   silver:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#aaaaaa" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#aaaaaa"/><line x1="15" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#aaaaaa"/></svg>',
   gold:    '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#d4a843" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#d4a843"/><line x1="15" y1="38" x2="22" y2="42" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#d4a843"/></svg>',
   fire:    '<svg width="22" height="22" viewBox="0 0 36 36" fill="none"><path d="M18 4C18 4 14 9 14 14C14 14 12 12 12 10C12 10 8 14 8 19C8 23.4 12.6 28 18 28C23.4 28 28 23.4 28 19C28 13 23 9 21 7C21 7 22 11 20 13C20 13 18 9 18 4Z" fill="#e8722a"/><path d="M18 16C18 16 16 14 16 12C16 12 19.5 14 19.5 18C21 16 22 13 21 11C21 11 25 14 25 19C25 21.8 21.8 24.5 18 24.5C14.2 24.5 11 21.8 11 19C11 17 13 15 13 15C13 17 16 18 18 16Z" fill="#f0c060" opacity=".8"/></svg>',
-  skull:  '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAHbUlEQVR42u1bW4hVZRT+1t5n1KbGRsVS0qaki1ZqSQ9aUYg1hSWWCEoR0Y0uFBVSPYnQiyI+FVHgQwQFJYa9FGVRPkRoIYrmdTRzvIaKk5ozzjl7fz3M+mHxt/eZvWfOnjlT88Nmn9n7v6y1/nX9/j3AcBtu/+smA7kYSdE1JWFtuktE+J8RAMkAQKCMRRnHhEpbVLQwpEDGQwCwTJMcAWACgMkAWgCU9FUFwBEA7QCOiUjFE6BkFd6gC4Bk6DF9PYAHAbQCuB3ARACjUoZfAnAYwDYA3wLYKCLH0uauq0ZSdLfc360kPyV5gf9uMckKybJeFZJRQr+/SK4n+bDVCLtOvTAfmt/3k/zJY8QyGTO9xdqnopdtP5N8NGnNwWa+pPfxJD82BDtGqjHcW4sTtGMdySl27XpgfjbJQx7jtW523tMk5w+qEAzzC0meN6pedCsbgSwaFCE4+yP5gFHPCgeuOV8Sk3ysPz5B+sB8oBnbFAC/AmgGEAMYaKcU670bwF0iso1kICJxnkn6FE40O1sLYAyAaBCYd7RTc4rPSTaadLsYAWgiEpN8AsBczeAG0xOHSsONAJbp7geFmICRbAnAb7poPEi7n1REXQAwDcAJTZ3jWmtAqKo/H8BNdcK828QYwGgAzyiNQREm4Kqyx43U66U5f/CUFlxRTQVAUkQkItkE4F6VelhnAgCAGwDcKiLMGhaDnAvM0HI2HmgwJUNzu35nHv8W5LAzJwAbg+uxzSoyD5gyBOC96/JsUl4BjB8COGez57SrtqxJjJPmhCr2Re1H8z4NAM0b423UEd04SdGAZpOt1kwAvfV36XCa560o0UEOgVPnkyprBv11xqWc9nUqQb0coWcBbFdMr1nN5VoFQEueoHrz5q5PJ4A/ABzXKwYwVj39RLO+FcIFE7prk6uY2v8DU5PHpgReTfLqhHGNJGeQXEay3ZSy1cpcKrjyMsmWJPyP5JUk3yJ5yUOOSHKjqVprDn6s8DA+knzNAyxLJEO/KiM5juSGKkJwzzaQHOuX4DpvycMfW1UIkQFK1tUcMzQCeEkX6dL7N/q8IWWnRIlvMIxsNeCnD3Ds1VTWzSlJ5a0+H6m/V+ocnXpflQclCnJ4YwA4YMpQAFilBMZJ1ZeIUERiESmTbNA+a9Rm6Tk9AfCJiHRr37KOZwoeUVahvw+gC0CDvv6ziETIEdFuMIAzALYpMVmSjliF1ZawttvlfdqnV+elwqSIHAWw22zK/iIFcEIZB4CjAM7libna7/KUSGKTmMz0q8COG3isreaZoGNQRM6ZxRpzVoTOnqdXIXC2rpU1fDkTadK/zxj6WEsNsF61zeTc09SxhTkEuTQhmwyV4IUkm3uWqx7GnKmQvALAVGP/f+fRyjyx0hG8V+8NAF7IgsORHCEiFcUS7zbJjk2dYwDjAKzROcNeAM6SMrkEgMtB2vNgAX0NhYtNLtBJcqYLWwljAjNunh6UWkw/6RiMJF8345NyCncuMYbkCTNuZZ4QmFcAocbfmR6xbSSvMX1cwiJm7GKSF70DUJJ8juRDmszE3rzLE9YvGYE2ktykfV1GuFRpLBWpAUsSzur2kpydMGYOyS9Sdvl702+td7rkBLSF5CMkR3nz3kJysxnjxr2TNwuUjMyLsfudBhUOzJ0AflAfMVKRmVleoiOm/wIAX+nvmwHs8Ko7WxQdQs8p1CktrlrRcyASGQfqiqdpItLel1OiLLv/asohaLUCp+JpAEkeIXmZqquz5x8T+kdV5o5SDk3fLTIV3mV2kwmwdKSZYsXE+TABuPxeRDq9ev/rhPgdGC1z80baJ432XYXgTGanVvTjKLxsnJ+QHKlXQHJuBm3qTcu+rHkp7FVgTgjfGe8b9aKqSYQuSJj/Ns9Msnw54r4zitSsmv1vlWqWCHkp6rMALgIYYdQ0yHEis4DkaJKvkFxOcgKAezLm8JE5mAm1MAsAPC0iHQByOb++fB8Q6inRIgBvamQQAFcBmJTDp5w0sNY59eojMo7v0NL8vBZQn4nI6gH7jC4FpGgi+baCJXEO283qS2I1ufdc4tUbTUULIXCIjZf1bc34yUzs/Y4z+I5fEtAm6Y/T63PK6NuZxl0a5NiHxf0DValiirFeJR+QUUcciEjZPO8z+lvTcKH293sCUaUU7CBKcZxByuYc1DVqdjRfxCenexJOiz4CsCnBy/uHKe7dDgAfAih7c+9DvTaTI8xXe+5Wu92jz6cnpLfr9fKLK/fpm6v23Fxzag1511IDnFoe9gqaLiW426SwLpV+HsCLCac759Wn7DZaQcUkUa8mQI0GBwFs1vwgRM+3RZFRcRoBNGtC1WEqxVj9SUXfBzrXLgAns6LGAy4AA5x2AZgH4EkAW8wOBl7x45gomz4Nph/Q8x3ifgBvALhP58ZA/ktNLdSiRe+TSG4nedbYeoueAJ02H0EfIHmHjpnsToCKalIQ06KqX0l4N053tgnATgVLp2rYOwmgwx+n/iAaUjtvM8Z+VqAy5DQgg3aIzSaNkDjkbHy4DbfhNtyGcvsHMB7gBlxphU0AAAAASUVORK5CYII=" width="22" height="22" style="vertical-align:middle;"/>',
+  skull:  '<svg width="22" height="22" viewBox="0 0 46 54" fill="none"><path d="M 21 33 L 22 32 L 23 32 L 24 33 L 24 34 L 25 35 L 25 36 L 26 37 L 26 40 L 25 41 L 21 41 L 19 39 L 19 38 L 20 37 L 20 35 L 21 34 Z M 29 22 L 37 22 L 39 24 L 39 25 L 40 26 L 40 31 L 36 35 L 31 35 L 30 34 L 29 34 L 27 32 L 27 31 L 26 30 L 26 29 L 25 28 L 25 26 Z M 8 23 L 9 22 L 16 22 L 20 26 L 20 29 L 19 30 L 19 31 L 16 34 L 15 34 L 14 35 L 9 35 L 6 32 L 6 31 L 5 30 L 5 26 L 6 25 L 6 24 L 7 23 Z M 17 2 L 16 3 L 14 3 L 13 4 L 12 4 L 11 5 L 10 5 L 5 10 L 5 11 L 4 12 L 4 13 L 3 14 L 3 17 L 2 18 L 2 23 L 3 24 L 3 31 L 4 32 L 4 34 L 3 35 L 3 37 L 4 38 L 4 39 L 6 41 L 10 41 L 11 42 L 11 45 L 12 46 L 12 49 L 13 49 L 14 50 L 15 50 L 15 47 L 16 46 L 17 46 L 18 47 L 18 51 L 21 51 L 21 48 L 22 47 L 23 47 L 24 48 L 24 51 L 27 51 L 27 47 L 28 46 L 29 46 L 30 47 L 30 50 L 31 50 L 32 49 L 33 49 L 33 46 L 34 45 L 34 43 L 36 41 L 39 41 L 42 38 L 42 37 L 43 36 L 42 35 L 42 34 L 41 33 L 42 32 L 42 26 L 43 25 L 43 17 L 42 16 L 42 14 L 41 13 L 41 12 L 40 11 L 40 10 L 35 5 L 34 5 L 33 4 L 32 4 L 31 3 L 29 3 L 28 2 Z" fill="#ececec" fill-rule="evenodd"/></svg>',
   veteran:  '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M16 2L17.6 7H22.5L18.7 9.8L20.3 14.8L16 12L11.7 14.8L13.3 9.8L9.5 7H14.4Z" fill="#d4a843"/><rect x="6" y="17" width="20" height="3" fill="#d4a843"/><rect x="6" y="22" width="20" height="3" fill="#d4a843" opacity=".6"/><rect x="6" y="27" width="20" height="3" fill="#d4a843" opacity=".3"/></svg>',
   crown:   '<svg width="22" height="22" viewBox="0 0 36 32" fill="none"><rect x="5" y="25" width="26" height="5" fill="#d4a843"/><path d="M5 25L5 11L11 19L18 7L25 19L31 11L31 25Z" fill="#d4a843" opacity=".9"/><circle cx="5" cy="11" r="2.5" fill="#d4a843"/><circle cx="18" cy="7" r="3" fill="#d4a843"/><circle cx="31" cy="11" r="2.5" fill="#d4a843"/></svg>',
 };
+
+// Non-tier insignias — unlike TIER_ICONS these have no baked-in fill color
+// or fixed width/height: they use fill="currentColor" so the badge circle
+// that hosts them controls both size and color (whatever accent the viewer
+// has chosen), same as the app's other currentColor icons (PING_ICON_SVG,
+// ICON_LAST/PR/NOTE below). Path data was hand-traced by Alan then run
+// through Douglas-Peucker simplification + svgo (94KB combined -> 14KB,
+// visually identical at render size) before being embedded here.
+const SPECIAL_ICONS = {
+  founder: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 573 500"><path fill="currentColor" fill-rule="evenodd" d="m297 492 1-1h4l1 1-2 3h-2l-2-2Zm-90-14 1-1 1 1-1 1Zm187-9 1-1 1 1-1 1Zm-8 0 1-1 3 4-3 2h-4l-1-2 4-2Zm-105-26 1-1 2 3-1 2-2-2Zm20-8 2-1 1 1-2 1Zm-21-1 1-1 2 3v4l-2 3-1-1Zm-1-2 1-1 1 1-1 2-1-1Zm172-3 1-1 1 1-1 1Zm-142 0 2-1 1 1-2 1Zm-31-3 1-1 1 1v5l-1 1-1-1Zm-2-4 1-1 1 1-1 1Zm116-8 2-1 1 1-2 1Zm-165 0-1 4 1 1 4-1Zm236-1 1-1 1 1-1 1Zm-172-2h3l2 3-2 2h-4l-2-2Zm-80 1 1-1 2 2-1 3-2-2Zm-32-1 1-1 2 1-2 2-1-1Zm182-3 2-1 2 2-2 1Zm12-4 1-1 1 1-1 1Zm101-2 1-1 3 2-2 2-2-2Zm-100-2 2-1 1 1-2 1Zm92-2-4 1-31 30-29 20-18 9-1 2-2-1-15 7-31 9 1-1 1 1-1 2h3l24-7-1-1 1-2 6 1 10-4 29-15 15-10 21-17 22-23Zm13-3 2-1 1 1-2 1Zm-215-1v5l1 1v5l3 13-17 16v2l23 3 11 22h1l11-22 17-2 4-2 3 1v-1l-15-15h-4v3l-4 3-1-1v-3l2-4 3-3h2l3-20 1-1h-2l-20 11-8-4 1 4-1 3-3-1-4-9-6-4Zm119-2 1-1 1 1-1 1Zm-296 0 1-1 1 1-1 1Zm382-1 1-1 1 1-1 1Zm-85 0 1-1 1 1-1 1Zm10-12 1-1 3 1-5 3-3-1 3-2Zm-40-3 3 16 5-3 2 3-3 3 2-1 2 3-2 3-2-1-2 3h-2l-17 16 24 3 2 2 6 13 3 1-1 3 2 4 11-22 3-1-2-1-4 2-3-3 2-2h4l5-2 3 3v2h3l-3-2 2-5 1-1 2 2 4-3 1 2-4 4-1 3 12-2-18-18 4-24-18 9-2 2h-3l-20-11Zm-181 0 4 25-17 16 4 2 19 2 4 6 5-5 3 4v2l-6 2v2l6 12 9-17v-2l3-4 13-1 1-4 3 2v-7l-11-11 4-24-18 9-1 1v5l-1 1-6-1-4 4-1 3-2-3v-4l4-7-14-8Zm266-10 2-1 1 1-2 1Zm-2-1 1-1 1 1-1 2-1-1Zm-3 0 1-1 1 1-1 2-1-1Zm67-3 1-1 1 1-1 2-1-1Zm-40 0 1-1 1 1-1 1Zm-310 0 1-1 1 1-1 1Zm-28 0 1-1 1 1-1 1Zm14-3 1 2-1 1-2-1Zm4-4 1-1 1 1-1 2-1-1Zm-28-1 2 2-2 2-2-2Zm11-1 1-1 2 1v2l-2 2-1-1Zm-7-1 2-1 1 1-2 1Zm321-3 1-1 1 1v2l-1 1-1-1Zm-19-3 1-1 3 1 4 3-4 3-4-5Zm1-9 2-1 1 1-2 1Zm-282-2 1-1 3 3 2 4v3h3l5 3-1 2-1-1-5 1-5-5v-4l-2-4Zm-11-6 2 1-1 3-4 1-1-2 2-1Zm292-1 1-1 1 1-1 1Zm1-1 1-1 1 1-1 1Zm-10-6v5l1 1 3 18-18 17 1 1 23 3 7 14 2 1v3l2 4h1l11-22 17-2 7-2-17-17v-5l1-1v-5l3-13h-2l-20 11-21-11Zm-292 0v5l1 1 3 18-18 18 24 3 6 12 2-2h2l2 2-3 4 2 6h1l11-22 24-3v-1l-17-17v-5l3-13v-2l-3-3-19 10-20-11Zm391-11-4 15-2 3-3 10-4 7v2l-12 22-17 23-1 2 2 2 2-2v-2l7-7 14-22 2-4v-3l2-1 11-24 6-19-1-2Zm9-6 1-1 2 1-1 2-2-1Zm-241 0 1-1 1 1-1 2-1-1Zm-47 0 1-1h4l2 3h159l1 1-9 15-9 11-19 17-14 9-15 7-11 3-1 2h-8l-7 2-12 1 1 3 26-4 15-5 18-9 17-12 15-15 13-18 4-8h18l2-2 2 2h86l1 2h2l2-2h5l1 1-7 23-7 15v2l-6 11 2 1-2 2-1-1-5 10-11 17-15 19-30 29-13 10-22 14-20 10-15 6-19 6-11 2-1 1 1 3-1 1h-3l-2-3h-5l-2 2-4-1-1 1h-7l-1 1-23 1 2 2-1 2-4-4h-15l-1-1-19-1-1-1-20-3-24-7-36-16-28-18-17-14-20-20-20-26-3 4-2-2-1-2 2-2h3l-8-12-9-17v-2l-8-17-6-21-1-1-2 3h-2l-2-2 2-4 4 1 1-2h4l1 1 6 21 7 15v2l17 31 13 18 13 15 19 18 18 14h2l4 4h2l1 2 10 6 20 10 5 2 2-2h2l3 2 1 3 14 5h3l16 5 16 2 1 1 30 2 1-3h3l2 3h6l1-1h13l1-1h8l1-1 11-1 4-1-1-2h-7l-1 1-14 1-1 1h-11l-1 1h-24l-1-1h-12l-1-1h-7l-1-1-16-2-16-5h-3l-22-8-24-12-16-10-23-18-21-21-10-13-5-3 1-1-1-3-11-15v-2l-2-2-15-32-6-18-1-4 1-2h9l1-2 2 2h81l2-2 5 2h8l6 11 12 16 2 2h4l1 1-2 2 7 7 19 14 2 1 1-1 1 2 14 7 15 5 1-1 8 3 14 1 1 1h13v-3h-13l-1-1-14-1-12-3-16-6-22-13-21-19-11-15-5-9 1-1h44l1-1 1 1h4l3-2Zm-182 0 1-1 1 1-1 1Zm466-2 1-1 1 1-1 1Zm-154 0 2-1 1 1-2 1Zm-88 0 1-1 1 1-1 1Zm-110 0 1-1 1 1-1 1Zm109-1 1-1 1 1-1 1Zm-108 0 1-1 1 1-1 1Zm-49 0 1-1 1 1-1 1Zm345-2 2 4-3 1-1-3Zm-87 1 1-1 1 1-1 1Zm-16 0 2-1 3 2-1 1-4-1Zm-152-18 1-1 3 1v2l-2 2-2-1Zm232-5 1 2-1 1-2-1Zm-131 1 1-1 1 1-1 1Zm1-2 1-1 1 1-1 1Zm181-2 2 1-1 2-2 1-1-2Zm-264 1 2-1 5 3-5 4h-6l-3-3 4-3Zm264-4 1 2-1 1-2-1Zm31-1 1-1 1 1-1 1Zm-367-1 2 1-1 2-3 3-1-1 1-3Zm118-2 1-1 1 1-1 1Zm220-2 1 2-2 2-2-1Zm-12 0v1l2-1ZM9 262l1-1 4 1-2 2-3-1Zm291-1 1-1 3 1-1 2-3-1Zm110-7 1-1 1 1-1 1Zm-398 0 1-1 2 2-4 3-2-2 2-2Zm470-1 1-1 1 1-1 2-1-1Zm-470-3 1-1 1 1-1 2-1-1Zm-1-1 1-1 1 1-1 1Zm140-1 2 2 2-1-1-1Zm42-7 1-1 1 1-1 1Zm238-4v4l-1 1 1 6-3 4h13v-15Zm56-5 2 2v2l-5 3-2-2 3-1v-2Zm4-7 1-1h21l2 1 4 5v6l-4 5 4 1 2 2v2l-3 1-1-2-5 1-1-1 1-3h-21l-1-1 1-2v-5l-1-1 1-4-1-1 1-1Zm-56-5 1-1 1 1-1 1Zm-203 0 2-1 1 1-2 1Zm286-3 2-1 1 1-2 1Zm-31 0 1-1 3 1-2 3-2-2Zm14-1 2-1 2 2-2 2-2-2Zm-66-2 1-1 1 1v2l-1 1-1-1Zm-6-1 2 1 1 3-3 1-2-3Zm57-1 1-1 1 1-1 1Zm-1-1 1-1 1 1-1 1Zm-70 0 1-1 1 1-1 1Zm80-1 3-1 3 4-1 2h-3l-1 2-1-1Zm-17-1-1 1v53h6l4-3 2 2-1 3h-3l-8 5v15l1 1h8l5-3v-20l-1-1 1-1-1-2 2-2h17l2 3 8 25 1 1h13l-10-30v-3l6-6 3-7v-13l-2-6-7-8-6-3h-5l-1-1Zm-71 0v58l1 1h8l1 1-1 1h-9v16l3-2 2 2h41l1-1 4 1v-15h-37l-1-1v-17l4-3-2-5v-3l2-2-4-4v-11l1-1h22l1-1 13 1v-15h-22l-1 1-2-1Zm-75 0v27l2 1 1 3-1 2-2-1v45h24l1-1 9-1 8-4 7-7 1-4 2-1 3-8v-4l1-1-1-20-6-13-9-8-2 2v5l-2 2h-3l-2-2-1-4-2 1-1 3 1 4 6 2 5 5 4 10v11l-1 1 3 1-3 1-3 7h2l1 2-1 1-4-1-2 2 2 2v8l-6 6-1-3h-5l-6-2 1-2 10 1v-2l-5-2 3-3-1 1h-13l-1-1v-5h-4l-5 2-2-1 4-3v-3l3-3 2 1-1 2 1 3h2v-38l1-1h7v-4l3-11Zm-74 0v19l3-1 3 3v6l2 2 1 4-1 3-2-1-5 2v5h4l1-1 2 2 1 8-1 1-4-1-2-2-1-4-2 6 1 1-1 1 1 1v23h12l1-1v-12l-1-1 1-8-3-2 1-1 2 1v-23l1-1 30 48h11v-77h-12l-1 1v44l-1 1-1-1-11-19 2 14 1 1v6l-1 1-3-11-1-10-2-2v-5l-12-20h-5v14l3 5-2 3-1-1-2-4v-17Zm-76 0v7l4 4-2 3 3 2v-3l2-1 3 3-5 5-2 8-3-2 1-3-1-4v35l2 6 5 8 7 6 10 4h9l8-3 10-9 2-4-1-4 3-2v-2h-2l-2-4 1-1h4v-49h-13v22l1 1-1 24 1 1-3 8-8 7h-9l-6-3-5-9v-51Zm-144 0v77h12l1-1v-24l-2-3v-13l1-1 4 3-3 3v4l3-1 2-4 2 1 1 3h15v-14l-1-1H59v3l-3 3-3-3v-2l-2-1v-13l1-1h37v-15H52l-1 15-1 1-3-1-2 2-1-1v-15l-1-1Zm95-1-8 2-9 6-5 8 2 2-5 5-1 11-1 1 1 3-1 4 4-3h4l3 1 2 3v3l-2 3-5-1-4 5v3l3 8 8 10 11 5 14-1 5-2 5-4 7-11 3-10v-9h-6l4 1 2 2v2l-5 4h-2l-2-2v-4h-4l-1 7-3 6-7 6h-9l-8-7-3-9v-9l-2-1-2-4 1-1 3 1 1-8 2-4 6-6 11-1 5 3 2 3 5-3v-4l1-1 4 4-3 4 4 4-1 1h-5l-1 5h4l1 1v5l1 1 7-1v-8l-2-8-6-11-7-6-6-3h-4l-1-1Zm242-13 1-1 1 1-1 1Zm-3-1 2-1 1 1-2 1Zm-3-1 2-1 1 1-2 1Zm-2-1 1-1 1 1-1 1Zm117-1 1-1 1 1-1 2-1-1Zm-12-1 2 2-2 2-3-1Zm-348-37 4-1 1 3-2 1Zm310-10 1-1 2 2v13l-2 5-3-2 2-6-2-2v-5l2-3Zm-282-2 1-1h8l1 1-4 4h-3l-3-2Zm339-4 1-1 2 2-1 1-2-1Zm-57-1 1-1 1 1-1 2-1-1Zm65-11 1-1 1 1-1 1Zm-220-3 1-1h11l1 1h8l1-1 2 2 10 1 17 5 19 9 17 12 18 18 8 11 5 10-1 1h-47l-1 1-2-1h-67l-2 5-1-1v-4H175l-1-1 4-8 11-15 15-15 9-7 9-5 1-2 12-5 1-2 1 1 2-2h4l7-3 13-3h5l1-1Zm-137-5 1 2-1 1-2-1Zm-4-6-8 17-6 6 2 2-1 1h-4l-2-2v-3l-15 2 18 18-1 1-3 23 21-11-1-2v-13l-1-1v-3l2-2 2 2 1 19 2 2 18 9-3-13v-5l-1-1v-6l17-17-24-4-8-16-1-1-1 2-3-1 1-3Zm69-1 1-1 1 1-1 1Zm225-2-10 20-3 3h-6l-1 1-16 2 13 13 7 1 2 2-3 4h-2l-3 22 22-12h3l1 3 18 9-2-8v-5l-1-1v-5l-1-1v-5l17-17-24-4-11-21Zm-293 0v1l1-1Zm233-1 1-1 1 1-1 2-1-1Zm20-2 1-1 1 1-1 2-1-1Zm-2-8 2 1-1 4-2 1-1-4Zm-198-3 1-1 2 1-6 5-2-1 4-4Zm190-3 1-1 1 1-1 1Zm-172 0 3-1 1 2-2 1Zm148-8h3l3 2-2 4 2 4-1 1-4-1-3-3v-5Zm-241 1-9 9-15 19-15 25 3 1 7-13 11-16 20-23Zm183-2 2 2-4 3-2-1 2-2Zm-95-1 6 2 1 3-4 2-5-5Zm68 0 1-1 1 1-1 1Zm-149-2-2 2 1 1 3-3Zm153-6 1-1 2 1-2 2-1-1Zm-76-2 1-1 1 1-1 2-1-1Zm250-3 1-1 2 1-1 2-2-1Zm-173-3 2 1v3l-2 2h-2l-1-1 1-3Zm28-5 2 6-1 1-3-5Zm-23 1 1-1 1 1-1 2-1-1Zm-141 0-16 14 1 2 4-2 6-6 6-4 3-3-1-1Zm277-5 1-1 1 1-1 1Zm-127-2 1-1 1 1-1 1Zm84-2-1 2 1 6-1 1-2-2-1 1-6 13-2 2-23 3 17 18-1 9 5-2 3 1-4 3h-4l-1 1-2 12 17-8 4-3h2l21 11-4-24 18-18-24-3-3-4-5 3-2-2 6-3v-1l-5-9v-2l-2-2v-2Zm-181 0-10 21-2 2-5 1v3l2 2-1 1h-5l-2-2 2-4-8 1-1 1h-6l18 18v6l-2 4-2 14 17-8 4-3h2l21 11-4-24 18-18-24-3-2-2-10-20Zm89-9 2-1 1 1-2 1Zm129-3 1-1 2 3 4 2-2 2-5-4Zm-128-5v2l-9 18-2 2-24 4 6 6 2-2 1 1-1 3 2 2h2l1 3 5 5-1 1-3 23 13-7v-6l-2-3 4-1 1-7 3-2 2-16 1-1 1 1v9l-2 7v8l-2 5h3l4 4 18 9-3-18-1-1v-6l17-17-6-1-1 2-3-3-14-2-5-10-3 1-2-2 3-3-4-8Zm-116-3 1-1 1 1-1 1Zm46-8 3-1 1 1-3 1Zm13-3 2-1 1 1-2 1Zm42-6 1-1 1 1-1 1Zm-4-2-3 2-1-1h-6l-1 1h-6l-1 1-15 2-6 2-2 3-2-1 1-1h-2l-19 6-17 8h-2l-15 8-23 15 1 2 4-1 17-12 21-11 29-11 18-4 2-2 4 1 13-3 27-1 1-1 24 1 1 1h8l8 2 7-1 4 3 18 4 20 7 10 5 3-1 2 2-1 1 11 5 22 14 20 16 20 20 13 16 10 15h3v-1l-5-8-25-31-18-17-29-21-33-17-26-9-21-4-1-1-12-1-1-1h-8l-1-1Zm11-6 1-1h15l1 1h15l1 1 11 1 1-1h4l2-2 2 2-1 2h4l3 2h4l12 4h3l18 7 4-1 1 3 15 6 21 12 11 8 2 1 1-1 6 7 13 10 18 18 11 13 8 12h4l1 1-1 5 7 10 10 19v2l6 12 3 11 2 3v3l4 12-1 1h-5l-1-1v-3l-5-16-3-3 1-1-1-4-2-1v-4l-2-5-12-23-2 1-2-1 14 26 8 21 3 13-1 1h-48l2 2 1-1 2 1-4 4h-2l-1-4-2-2h-55l-9-15-10-13-11-11-19-14-15-8-17-6-13-3h-4l-2 2-1-3h-11l-1-1-2 1-4-1-1 1h-13l-1 1h-5l-13 3-14 5-1 3-4-1-13 7-13 9-15 14-9 11-10 17-2 2h-4l-2 3-3-3H91l1 4-1 2h227l1-1 1 1h86l1-1 1 1h67l1-1 1 1h68l6 2 5 7v86l-2 4-5 4h-27l-2 2-1-2H417l-1 1-1-1h-31v2l-2 2-2-4H274l-1 1-1-1h-17l-2 3-1-3h-23l-1 1-3-1h-29l-4 5-2-3h-5l-2-2h-13l-1 1-2-1H58l-2 2h-2l-4-2H23l-2-1-6-7v-86l4-6 7-3h63l-1-2 1-4H62l-1-1 6-21 6-15 7-13-3-1-4 7v2l-8 17-7 24-1 1h-5l-1-1 7-23 6-15 7-13-1-2 3-2 2-5 12-19 21-26 28-26 21-15 15-8 1-3h5l11-6 31-11 16-4 17-2 2-2 1 1h6l1-1Zm-10-7-1 1h-9l-1 2-1-1-12 1-33 8-26 10-2 2h-2l-16 8-22 14-13 10-31 30-15 19-14 22-15 32-8 24-1 7-1 1H22l-3 1-8 7-2 4v91l2 5 5 5 4 2 3 1h15l1-1 6 2 3 13 9 25 13 26 10 16 11 15 13 15 21 20 18 14 26 16 26 12 8 2 6 3h3l7 3 12 3 10 1 6 2 16 1 1 1h19l1 1 4-1 29-1 1-1 17-2 4-2 1 1 3-1h-2l-2-2 1-3 5 1 2 3 5-1 2-2 1 1 4-1 29-11 23-12 20-13 21-17 18-18 17-21 13-20 12-23 10-26 4-17 1-1h21l3-1 4-2 5-5 3-8v-59h-5l-1-1 2-2 4-1v-6l-3-1 3-2-1-16-2-4-8-7-3-1h-21l-2-2-2-10-6-18-11-25-16-27-25-31-19-18-18-14-22-14-22-11-15-6-27-8-20-3-1-1-17-1-1-1Z"/></svg>',
+  trainer: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 142"><path fill="currentColor" fill-rule="evenodd" d="M230 60v21h5l4-4V64l-4-4ZM14 60l-4 4v13l4 4h5V60Zm68-9v39h1l1-3v-4l2-2h77l2 2v4l1 3h1V51l-2 3v4l-2 2H86l-2-2-1-6Zm127-28-7 6-1 3v77l1 3 7 6h8l2-1 3-2 3-6V32l-3-6-5-3ZM32 23l-5 3-3 5v79l3 5 5 3h8l2-1 5-5 1-3V32l-1-3-7-6Zm148-13-4 2-4 6v105l2 4 6 4h8l2-1 5-5 1-3V19l-1-3-7-6ZM61 10l-7 6-1 3v103l1 3 7 6h8l4-2 4-6V18l-3-5-5-3Z"/></svg>',
+  og: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116 167"><path fill="currentColor" fill-rule="evenodd" d="M31 71v48l12 7h2V72h-5l-1-1Zm31-9h29l4 3v15l-1 1-9 1-1-1v-9l-1-1-13 1v54h2l12-7v-17h-3l-4 2-1-1v-8l16-5 3 1v28l-1 2-5 5-19 11-8 4-3-2V66l1-2Zm-39 0h30l3 4v73l-3 2-8-4-19-11-6-7V65Zm-3-37 1-1 18 18 18-17 18 17 19-18 1 1v25l-1 1H21l-1-1Zm37-15L40 27l-4-3 3-1v-8H10v114l19 10 28 17 48-27V15H76v8l3 1-4 3-17-17Z"/></svg>',
+  rocket: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 482 480"><path fill="currentColor" fill-rule="evenodd" d="m137 416 1-1 1 1-1 1Zm-20-9 1-1 1 1-1 1Zm47-20-14 11-3 1-6 5-4 1-6 6 2 2h2l3 4 2-1 22 12 1-1 14 6h2l7-8 1 1-1-1 1-2 2-2 1 1-1-1 1-2 5-4-1-1 2-2 2 2-2-2 6-8 1-3-4-2-7-1-1-2-1 1-5-1-20-9Zm179-22 1-1 1 1-1 1ZM47 285l1-1 1 1-1 1Zm29-10-14 11-2 1-1-1 1 1-13 12 3 12 3 7 2 2 2 7 11 18 3-2 8-12 11-14 2-1v-5l-9-19-2-11-3-6Zm239-11 1 1-3 3-23 16-9 5-1-1 1 1-7 5-9 5-2-1 1 1-2 2-31 16v3l4 8 4 16-1 11-5 12-2 8-2 4-2 1 1 1-11 21-7 10-1 1-1-1 1 2-8 11-12 14-8 8-1-1 1 1-2 2-15 13h-2l-6 7 1-1 1 1 4-4 4-1 12-7 2 1-1-1 2-2 8-5 2 1-1-1 1-1 2 1-1-1 2-2 6-4 1 1 2-3 12-8 2-3 14-11 21-22 2 1-2-2 4-4 1 1-1-1 1-2 7-8 1 1-1-2 4-4 7-12 2-2 1 1-1-1 1-3 7-11 1-1 1 1-1-2 1-1 1 1-1-2 8-14v-2l7-14 7-20 2-3 1-6 2-3 5-17v-2l-3 1ZM79 228l1-1 1 1-1 1Zm276-11 1-1 1 1-1 1Zm28-28 1-1 1 1-1 1Zm25-12 1-1 1 1-1 1Zm-204-11-37 11-17 8h-2l-11 6-2-1 1-1-1 3-21 11-18 13-2 1-1-1 1 1-13 11-1-1-1 1 1 1-2 2-2 1-1-1 1 1-5 5-1-1 1 1-8 8-1-1 1 2-1 1-1-1 1 1-17 19-6 10-2 2-1-1 1 2-2 2-1-1 1 2-9 13-3 8-9 15-2 7-1 1-1-1 1 4h1l1-3 1 1-1-2 3-2-1-1 1-2 1-1 1 1-1-1 5-7 3-3 1 1-1-2 3-3 1 1-1-1 2-1v-2l4-4 1 1-1-1 6-7 5-5 2-1 1 1 1-1-1-1 3-3 1 1-1-1 5-5 15-11 2-1 1 1-1-1 1-1 8-5 4-1 2-2 11-5 22-6h21l16 6 1 3 11-22v-2l2-2v-2l4-7 1-1 1 1-1-2 3-4v-2l6-10 3-3v-2l13-21 2-2 1 1-1-2 3-5Zm219-6-10 12-2 4-1 1-2-1 1 2-2 3-4 4-1-1 1 1-5 7-2 1 2 6-1 1 2 2 1 11 2 6v7l1 1v29l-1 1v8l-1 1-2 14-8 24-2 2v2l-6 12-11 17-8 8-1 3-1 1-1-1 1 1-11 11-6 5-1-1-1 1 1 1-2 2h-2l-12 10-4 2-1-1-2 3-5 3-4 1-2 2-9 2-6 4-9 3-4-1 1 1-4 2-16 3-4 3-3 5-8 8-1-1 1 1-11 11-17 13h33l1-1h8l1-1 22-3 20-6 6-3h3l2-2 15-6 14-8 11-8 1 1-1-1 1-1 2 1-1-1 3-3 10-7 2-3 2-1 1 1-1-1 6-6 1 1 2-4 3-2 4-6 1-1 1 1-1-1 10-12 1-3 9-12 14-28 8-24 4-23 1-1v-7l1-1v-38l-1-1v-9l-1-1v-5l-1-1v-4l-1-1-4-21-8-19Zm-80-46-1 1h-5l-8 5-4 6-1 8-1 1 1 1v5l5 8 5 4 8 1 1 1 12-3 4-4 1 1-1-2 1-1 1 1-1-1 4-9-1-10-3-5-7-6-7-2Zm89-1 1-1 1 1-1 1Zm-33-5 1-1 1 1-1 1Zm-62 0 1-1h12l1 2 1-1 5 2 10 9 4 9v12l-2 2 1 1-4 8-5 5-2-1 1 1-2 2-10 4h-9l-4-2h-3l-5-4 1-1-2 1-7-9-3-9v-7l1-4 2-1-1-2 2-2h2l-2-2 6-7 9-5Zm26-64-20 11-3 3-3 1-3 3-13 8-20 16h-2l-5 6-5 3-9 9-3 1-1 2-1-1 1 1-3 3-1-1 1 1-17 17-9 11-3 3-1-1 1 1-1 2-6 6-1-1 1 1-1 2-5 6-1-1 1 1-1 2-5 5-1 3-10 13-5 9-1 1-1-1 1 1-4 7-5 6v2l-1 1-1-1 1 2-2 2-1-1 1 2-4 5-2 5-3 3 1 1-3 3-3 8-1 1-1-1 1 2-10 19-12 30-1 1h-5l-3 2h-3l-13 6-5 1-3 3-7 3-1 2h-2l-16 17-1-1 1 2-7 7 1 1-2 1-2 4-2 2-1-1-1 4-2 1v2l-5 5-2 4-1 1-1-1 1 2-4 4-18 29-3 1 1 3-3 3-3 5v2l-4 4v2l-4 7-5 6v2l-3 4-2 6-3 3-1 5-1 1-2-1 1 2-2 5-4 5v2l-5 9v3l2 1 3-3 12-6 5-4 8-3 7-5h3l23-14 8-3 2-3 6-2 4-4h2l14-9 4-1 1-2 2-1 1 1 5-5 2-1 1 1 6-6 6-3 4-4 4-1 1-2 10-6 2-3 1 1 6-7h2l2-3 1 1-1-2 5-5 5-8 3-7v-3l2-2v-4l2-3v-5l2-3v-5l1-1 13-5 25-13 2 1-1-1 1-1 4-2 2 1-1-1 5-3 3 1-2-1 1-1 14-8 2 1-1-1 7-5 2-1 2 1-1-1 7-5 5-2 14-10 1 1-1-1 1-1 18-13 1 1 3-4 14-11 1 1-1-1 1-1 14-11 9-9 2 1 1-1-1-1 7-7 1 1-1-1 6-6 1 1-1-1 7-7 1 1-1-1 4-4 2 2-1 1 1-1-2-2 3-3 1 1 1-1-1-1 2-3 4-4 1 1-1-1 2-2 1 1-1-1 12-15 2-2 1 1-1-1 8-11 2-2 1 1-1-1 1-2 3-3 6-10 2-2 1 1-1-2 5-7 3-7h-13l-15-4-1-1 1-1-2 1-1-1 1-1-2 1-3-2-1-2 2-1-3 2-2-1 1-1-2 1-7-5-5-5 1-1-1 1-4-3-8-11-6-14-1-8-1-1 1-16Zm-131-6-1 1h-16l-5 2-1-1-5 2h-5l-10 3h-4l-3 2h-4l-2 2-7 1-5 3h-2l-2 2h-3l-6 4h-2l-17 9-13 10-3 1-7 7-5 3-1 2-4 2-3 5-4 2-5 5 1 1-4 3-9 12-1 3-7 8v2l-5 7-5 12-1 1-1-1 1 2-2 2-6 18-2 3v4l-2 2v5l-4 12v8l-2 6v24l-1 1 1 1v14l1 2h1l9-12 5-4 7-9 5-3-1-1 1-1 7-5 3-4 5-3v-8l2-3 2-11 5-9 1-7 4-6 4-10 6-8 2-5 2-1 10-14 3-3 2 1-1-2 7-7 2-1 1 1-1-1 4-4 3-1 5-6 4-1 4-4 2 1-1-1 4-3h2l2-3 5-1 10-6 13-4 3-2 16-4h6l6-2h41l3 2h7l11 3 7-4 7-7h2l3-4 3-1 12-9 6-2 1-2-2-2-4-1-3-3-3 1-1-1 1-1h-6l-3-2-11-2-4-2h-5l-4-2h-8l-5-2h-13l-1-1-2 1-1-1Zm231-28-8 3-14 2-4 2-12 2-10 4h-4l-14 6h-3l-2 2h-3l-5 3-6 1 1 1-1 1h-4l-4 3-1 8 1 1v10l2 4v4l2 5 11 17 7 7 9 5 2 3 8 2 1 1-1 1 2 1 2-1 3 1 1 3 1-1 1 1-1-1 1-1 2 2h8l2 2 7-2 3-5 2-7 7-11-1-2 4-8 12-39v-5l2-4v-5l2-5V10l-7 1Z"/></svg>',
+  skull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 54"><path fill="currentColor" fill-rule="evenodd" d="M 21 33 L 22 32 L 23 32 L 24 33 L 24 34 L 25 35 L 25 36 L 26 37 L 26 40 L 25 41 L 21 41 L 19 39 L 19 38 L 20 37 L 20 35 L 21 34 Z M 29 22 L 37 22 L 39 24 L 39 25 L 40 26 L 40 31 L 36 35 L 31 35 L 30 34 L 29 34 L 27 32 L 27 31 L 26 30 L 26 29 L 25 28 L 25 26 Z M 8 23 L 9 22 L 16 22 L 20 26 L 20 29 L 19 30 L 19 31 L 16 34 L 15 34 L 14 35 L 9 35 L 6 32 L 6 31 L 5 30 L 5 26 L 6 25 L 6 24 L 7 23 Z M 17 2 L 16 3 L 14 3 L 13 4 L 12 4 L 11 5 L 10 5 L 5 10 L 5 11 L 4 12 L 4 13 L 3 14 L 3 17 L 2 18 L 2 23 L 3 24 L 3 31 L 4 32 L 4 34 L 3 35 L 3 37 L 4 38 L 4 39 L 6 41 L 10 41 L 11 42 L 11 45 L 12 46 L 12 49 L 13 49 L 14 50 L 15 50 L 15 47 L 16 46 L 17 46 L 18 47 L 18 51 L 21 51 L 21 48 L 22 47 L 23 47 L 24 48 L 24 51 L 27 51 L 27 47 L 28 46 L 29 46 L 30 47 L 30 50 L 31 50 L 32 49 L 33 49 L 33 46 L 34 45 L 34 43 L 36 41 L 39 41 L 42 38 L 42 37 L 43 36 L 42 35 L 42 34 L 41 33 L 42 32 L 42 26 L 43 25 L 43 17 L 42 16 L 42 14 L 41 13 L 41 12 L 40 11 L 40 10 L 35 5 L 34 5 L 33 4 L 32 4 L 31 3 L 29 3 L 28 2 Z"/></svg>',
+};
+
+const INSIGNIA_CATALOG = [
+  {id:'founder',         name:'Founder',         icon:SPECIAL_ICONS.founder, sizeMult:1.5},
+  {id:'trainer',         name:'Trainer',         icon:SPECIAL_ICONS.trainer, sizeMult:1.2},
+  {id:'og_member',       name:'OG Member',       icon:SPECIAL_ICONS.og,      sizeMult:1.3},
+  {id:'early_supporter', name:'Early Supporter', icon:SPECIAL_ICONS.rocket,  sizeMult:1},
+];
 
 // Small inline icons used as prefixes inside text lines (e.g. "Last: 60kg"),
 // replacing the old emoji/dingbat prefixes (↩ ⚡ 📝) per the 2026-07-14
@@ -5475,6 +5598,102 @@ function showTierModal(tier) {
 
 function closeTierModal() {
   document.getElementById('tier-modal').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════
+//  INSIGNIAS — unlock-and-equip
+// ═══════════════════════════════════════════
+// Tiers are still fully computed client-side from session count (same as
+// before) rather than synced as individual unlock rows — deterministic, so
+// there's nothing to keep in sync. Special badges (Founder/Trainer/OG
+// Member/Early Supporter) are granted server-side (db-side backfill/trigger,
+// see the insignias migration) and only ever arrive via cloud pull into
+// db.unlockedSpecialInsignias; a local-only/guest install can never have one,
+// which is correct since those all require a real account.
+
+// Every tier the given count has already crossed, highest first — the old
+// getTier() only ever returned the single highest, which is all "auto-show
+// your current tier" needed; equip/unlock needs the full list.
+function getUnlockedTiers(count) {
+  return TIERS.filter(t => count >= t.at);
+}
+
+function getUnlockedInsignias() {
+  const tiers = getUnlockedTiers(getSessionDayCount())
+    .map(t => ({id:t.id, name:t.name, icon:TIER_ICONS[t.icon]||'', sizeMult:1, isTier:true}));
+  const specials = INSIGNIA_CATALOG.filter(s => (db.unlockedSpecialInsignias||[]).includes(s.id))
+    .map(s => ({id:s.id, name:s.name, icon:s.icon, sizeMult:s.sizeMult, isTier:false}));
+  return [...specials, ...tiers];
+}
+
+// What should actually be shown right now: the explicitly equipped choice
+// if it's still valid and unlocked, otherwise fall back to the highest
+// unlocked tier — i.e. exactly today's pre-insignias behavior.
+function getEquippedInsigniaDisplay() {
+  const unlocked = getUnlockedInsignias();
+  if (db.equippedInsignia) {
+    const found = unlocked.find(i => i.id === db.equippedInsignia);
+    if (found) return found;
+  }
+  const highestTier = getTier(getSessionDayCount());
+  if (!highestTier) return null;
+  return {id:highestTier.id, name:highestTier.name, icon:TIER_ICONS[highestTier.icon]||'', sizeMult:1, isTier:true};
+}
+
+// Renders the circular badge that fills the "profile photo" slot. `insignia`
+// is whatever getEquippedInsigniaDisplay() (or the equivalent other-user
+// lookup) returned, or null for "nothing unlocked yet". sizeMult scales how
+// much of the circle the icon fills (Founder/Trainer/OG each got an
+// explicit boost — see INSIGNIA_CATALOG); tiers and the empty state always
+// render at the 1x baseline.
+function buildInsigniaBadgeHtml(insignia, clickable){
+  const baseInnerPct = 0.59; // baseline: ~46px icon inside the 78px circle
+  const mult = (insignia && insignia.sizeMult) || 1;
+  const innerPct = Math.min(0.92, baseInnerPct * mult);
+  const padding = Math.round(78 * (1 - innerPct) / 2);
+  const icon = insignia ? insignia.icon : '<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
+  const plusHtml = clickable ? `<div class="insignia-badge-plus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>` : '';
+  return `<div class="insignia-badge-wrap" ${clickable?'onclick="openInsigniaPicker()"':''}>
+    <div class="insignia-badge" style="padding:${padding}px;">${icon}</div>
+    ${plusHtml}
+  </div>`;
+}
+
+function equipInsignia(id) {
+  db.equippedInsignia = id;
+  saveDB();
+  closeModal();
+  renderProfileHeader();
+  if (currentUser) {
+    supabaseClient.from('profiles').update({equipped_insignia:id}).eq('id', currentUser.id).then(()=>{});
+  }
+}
+
+function openInsigniaPicker() {
+  if (!currentUser) return; // guests have nothing to equip against
+  const unlocked = getUnlockedInsignias();
+  const equipped = getEquippedInsigniaDisplay();
+  document.getElementById('modal-title').textContent = 'Choose Your Insignia';
+  const lockedTiers = TIERS.filter(t => !unlocked.some(u => u.id === t.id))
+    .map(t => ({id:t.id, name:t.name, icon:TIER_ICONS[t.icon]||'', req:t.at+' sessions'}));
+  const lockedSpecials = INSIGNIA_CATALOG.filter(s => !unlocked.some(u => u.id === s.id))
+    .map(s => ({id:s.id, name:s.name, icon:s.icon, req:'Not yet'}));
+  document.getElementById('modal-body').innerHTML = `
+    <div class="insignia-grid">
+      ${unlocked.map(ins => `
+        <div class="insignia-pick ${equipped && equipped.id===ins.id ? 'selected' : ''}" onclick="equipInsignia('${ins.id}')">
+          <div class="insignia-pick-ic">${ins.icon}</div>
+          <div class="insignia-pick-lbl">${ins.name}</div>
+        </div>`).join('')}
+      ${[...lockedSpecials, ...lockedTiers].map(ins => `
+        <div class="insignia-pick locked">
+          <div class="insignia-pick-ic">${ins.icon}</div>
+          <div class="insignia-pick-lbl">${ins.name}</div>
+          <div class="insignia-pick-req">${ins.req}</div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('modal-footer').innerHTML = `<button class="btn-ghost" onclick="closeModal()">Close</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
 }
 
 
@@ -6332,13 +6551,15 @@ async function pullCloudDataToLocal(){
   if(!currentUser) return;
   const uid = currentUser.id;
 
-  const [settingsRes, notesRes, routinesRes, lwRes, prsRes, logsRes] = await Promise.all([
+  const [settingsRes, notesRes, routinesRes, lwRes, prsRes, logsRes, insigniaRes, profileRes] = await Promise.all([
     supabaseClient.from('user_settings').select('*').eq('user_id', uid).maybeSingle(),
     supabaseClient.from('user_exercise_notes').select('*').eq('user_id', uid),
     supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', uid),
     supabaseClient.from('last_weights').select('*').eq('user_id', uid),
     supabaseClient.from('all_time_prs').select('*').eq('user_id', uid),
     supabaseClient.from('workout_logs').select('id, client_id, routine_id, routine_name, performed_at, duration_seconds, note, workout_log_exercises(id, exercise_id, exercise_name, position, workout_log_sets(set_index, weight, reps))').eq('user_id', uid).order('performed_at', {ascending:true}),
+    supabaseClient.from('user_insignias').select('insignia_id').eq('user_id', uid),
+    supabaseClient.from('profiles').select('equipped_insignia').eq('id', uid).maybeSingle(),
   ]);
 
   // Start from the canonical exercise catalogue, then layer this user's
@@ -6385,6 +6606,14 @@ async function pullCloudDataToLocal(){
       })),
     _cloudSynced: true,
   }));
+
+  // Special insignias are server-granted (backfill/trigger) — tiers stay
+  // purely computed from workoutLog, so only non-tier ids matter here.
+  const specialIds = new Set(INSIGNIA_CATALOG.map(s=>s.id));
+  db.unlockedSpecialInsignias = (insigniaRes.data||[])
+    .map(row=>row.insignia_id)
+    .filter(id=>specialIds.has(id));
+  db.equippedInsignia = (profileRes.data && profileRes.data.equipped_insignia) || null;
 
   db.exercises = exercises;
   db.routines = routines;
