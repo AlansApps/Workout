@@ -199,6 +199,16 @@ body.light-mode .float-nav-pill{background:rgba(0,0,0,.06);}
 .pr-badge.show{display:block;opacity:1;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
+/* ── TIME-TRACKED SET ROW — Plank holds, Cardio (see .set-row above) ── */
+.set-row.time-row{grid-template-columns:22px 1fr 38px;}
+.target-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:#1e1e1e;border:1px solid #383838;border-radius:var(--r);height:36px;margin-top:14px;font-family:var(--hd);font-size:14px;font-weight:700;color:var(--text);}
+.target-chip .u{font-size:7px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:600;}
+.go-btn{display:flex;align-items:center;justify-content:center;height:36px;margin-top:14px;background:color-mix(in srgb,var(--ok) 12%,transparent);border:1.5px solid color-mix(in srgb,var(--ok) 45%,transparent);color:var(--ok);border-radius:var(--r);font-size:12px;font-weight:800;letter-spacing:1px;cursor:pointer;font-family:var(--body);transition:all .15s;}
+.go-btn:hover{background:var(--ok);color:var(--void);}
+.active-result-chip{display:flex;align-items:center;justify-content:center;gap:6px;background:color-mix(in srgb,var(--ok) 10%,#1e1e1e);border:1px solid color-mix(in srgb,var(--ok) 35%,#383838);border-radius:var(--r);height:36px;margin-top:14px;font-family:var(--body);font-size:14px;font-weight:700;color:var(--text);position:relative;}
+.active-result-chip .pr-badge{position:static;}
+body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f0f0;border-color:#ccc;}
+
 /* ── REST SKIP/GO BUTTON ── */
 .rest-skip-btn {
   width: 100%;
@@ -382,6 +392,7 @@ select.form-inp option{background:var(--panel);}
 .ex-builder{border:1px solid var(--line);margin-bottom:9px;background:var(--surface);}
 .eb-hd{padding:8px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);}
 .eb-sets-head{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:4px;padding:5px 11px;border-bottom:1px solid rgba(255,255,255,.04);}
+.eb-sets-head.time-head,.eb-set-row.time-row{grid-template-columns:26px 1fr 28px;}
 .eb-sets-head span{font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-weight:600;text-align:center;}
 .eb-set-row{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:4px;padding:4px 11px;border-bottom:1px solid rgba(255,255,255,.03);align-items:center;}
 .eb-set-row:last-of-type{border-bottom:none;}
@@ -1148,6 +1159,27 @@ body.ob-lock{overflow:hidden;touch-action:none;}
 
 #rest-mini-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);}
 
+/* ══ ACTIVE CLOCK OVERLAY — counts up, green/--ok, "you're working" not
+   "you're waiting". Simpler show/hide than #rest-overlay's Spotify-style
+   drag (no swipe gesture, just a Minimize button) since this only needs to
+   stay out of the way during a held plank or a cardio session, not survive
+   frequent open/close cycles the way the rest timer does. ══ */
+#active-overlay{position:fixed;inset:0;z-index:100;display:none;}
+#active-overlay.active{display:block;}
+#active-full{position:fixed;inset:0;background:var(--overlay-bg-heavy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+#active-overlay.minimized #active-full{display:none;}
+.active-close-btn{position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);right:16px;background:none;border:1px solid var(--line2);color:var(--muted);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.active-close-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+.active-lbl{font-size:9px;letter-spacing:3px;color:var(--ok);text-align:center;font-weight:600;text-transform:uppercase;}
+.active-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--ok);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px rgba(74,158,106,.4),0 0 60px rgba(74,158,106,.15);}
+.active-target{font-size:9px;color:var(--muted);letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;min-height:11px;}
+.active-min-btn{background:none;border:1px solid var(--line2);color:var(--dim);padding:8px 16px;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.2px;cursor:pointer;border-radius:999px;margin-top:8px;}
+.active-done-btn{width:100%;max-width:320px;margin-top:10px;padding:20px;background:var(--ok);border:1px solid var(--ok);border-radius:28px;color:var(--void);font-family:var(--body);font-size:16px;font-weight:700;letter-spacing:.3px;cursor:pointer;}
+#active-mini{display:none;position:fixed;top:0;left:0;right:0;z-index:101;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;align-items:center;justify-content:center;gap:10px;background:var(--overlay-bg-heavy);border-bottom:1px solid var(--line2);cursor:pointer;}
+#active-overlay.minimized #active-mini{display:flex;}
+.active-mini-time{font-family:var(--hd);font-size:20px;font-weight:900;color:var(--ok);}
+.active-mini-lbl{font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-weight:700;}
+
 /* ══════════════════════════════════════════════════════════════
    AUTH — sign in / create account / guest gate / conflict resolution
    Reuses existing tokens (form-inp, btn-cta, btn-ghost, pg-title, etc.)
@@ -1907,6 +1939,25 @@ body.light-mode .auth-choice-title{color:#111;}
   </div>
 </div>
 
+<!-- ══ ACTIVE CLOCK OVERLAY — time-tracked exercises (Plank holds, Cardio) ══
+     Deliberately its own overlay rather than a re-skin of #rest-overlay:
+     it counts UP not down, and green/"Active" rather than gold/"Rest" so it
+     reads as "you're working" instead of "you're waiting". -->
+<div id="active-overlay">
+  <div id="active-full">
+    <button class="active-close-btn" onclick="activeCancel()" title="Cancel"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="active-lbl" id="active-ex-name">Active</div>
+    <div id="active-time" class="active-time">0:00</div>
+    <div class="active-target" id="active-target-lbl"></div>
+    <button class="active-min-btn" onclick="activeMinimizeToggle()">Minimize</button>
+    <button class="active-done-btn" id="active-done-btn" onclick="activeDone()">Done</button>
+  </div>
+  <div id="active-mini" onclick="activeMinimizeToggle()">
+    <div id="active-mini-time" class="active-mini-time">0:00</div>
+    <div class="active-mini-lbl">Active</div>
+  </div>
+</div>
+
 <!-- ══ MODAL ══ -->
 <div id="modal-overlay">
   <div class="modal">
@@ -1988,29 +2039,29 @@ body.light-mode .auth-choice-title{color:#111;}
 // ═══════════════════════════════════════════
 const DEFAULT_EXERCISES=[
   {id:"e01",name:"Barbell Squat",muscle:"Legs",notes:"90º depth",video:"0043-qXTaZnJ"},
-  {id:"e61",name:"Bulgarian Split Squats",muscle:"Legs",notes:""},
-  {id:"e81",name:"Split Squats",muscle:"Legs",notes:"",video:"2368-9E25EOx"},
-  {id:"e62",name:"Hack Squats",muscle:"Legs",notes:""},
-  {id:"e78",name:"Barbell Hack Squats",muscle:"Legs",notes:"",video:"0046-5VCj6iH"},
+  {id:"e61",name:"Bulgarian Split Squat",muscle:"Legs",notes:""},
+  {id:"e81",name:"Split Squat",muscle:"Legs",notes:"",video:"2368-9E25EOx"},
+  {id:"e62",name:"Hack Squat",muscle:"Legs",notes:""},
+  {id:"e78",name:"Barbell Hack Squat",muscle:"Legs",notes:"",video:"0046-5VCj6iH"},
   {id:"e06",name:"Leg Press",muscle:"Legs",notes:"",video:"0739-10Z2DXU"},
-  {id:"e02",name:"Romanian Deadlifts",muscle:"Legs",notes:"Chest: OUT · Stance: SHOULDER · Hands: OUTSIDE",video:"0085-wQ2c4XD"},
-  {id:"e36",name:"Deadlifts",muscle:"Legs",notes:"",video:"0032-ila4NZS"},
-  {id:"e03",name:"Hip Thrusts",muscle:"Legs",notes:""},
-  {id:"e82",name:"Resistance Band Hip Thrusts on Knees",muscle:"Legs",notes:"",video:"3236-Pjbc0Kt"},
-  {id:"e04",name:"Leg Extensions",muscle:"Legs",notes:"Respaldo: 1 · Rodilla: IN · Pies: HIGH",video:"0585-my33uHU"},
-  {id:"e35",name:"Lying Leg Curls",muscle:"Legs",notes:"",video:"0586-17lJ1kr"},
-  {id:"e77",name:"Sitting Leg Curls",muscle:"Legs",notes:"",video:"0599-Zg3XY7P"},
-  {id:"e07",name:"Leg Curls (Unilateral)",muscle:"Legs",notes:"",video:"0795-C5jncD2"},
-  {id:"e08",name:"Adductors",muscle:"Legs",notes:""},
+  {id:"e02",name:"Romanian Deadlift",muscle:"Legs",notes:"Chest: OUT · Stance: SHOULDER · Hands: OUTSIDE",video:"0085-wQ2c4XD"},
+  {id:"e36",name:"Deadlift",muscle:"Legs",notes:"",video:"0032-ila4NZS"},
+  {id:"e03",name:"Hip Thrust",muscle:"Legs",notes:""},
+  {id:"e82",name:"Resistance Band Hip Thrust on Knees",muscle:"Legs",notes:"",video:"3236-Pjbc0Kt"},
+  {id:"e04",name:"Leg Extension",muscle:"Legs",notes:"Respaldo: 1 · Rodilla: IN · Pies: HIGH",video:"0585-my33uHU"},
+  {id:"e35",name:"Lying Leg Curl",muscle:"Legs",notes:"",video:"0586-17lJ1kr"},
+  {id:"e77",name:"Sitting Leg Curl",muscle:"Legs",notes:"",video:"0599-Zg3XY7P"},
+  {id:"e07",name:"Leg Curl (Unilateral)",muscle:"Legs",notes:"",video:"0795-C5jncD2"},
+  {id:"e08",name:"Seated Hip Adduction",muscle:"Legs",notes:""},
   {id:"e32",name:"Seated Hip Abduction (Glutes)",muscle:"Legs",notes:"",video:"0597-CHpahtl"},
-  {id:"e09",name:"Glute Kickbacks",muscle:"Legs",notes:""},
-  {id:"e63",name:"Walking Lunges",muscle:"Legs",notes:"",video:"1460-IZVHb27"},
-  {id:"e64",name:"Lunges",muscle:"Legs",notes:""},
+  {id:"e09",name:"Cable Glute Kickback",muscle:"Legs",notes:""},
+  {id:"e63",name:"Walking Lunge",muscle:"Legs",notes:"",video:"1460-IZVHb27"},
+  {id:"e64",name:"Lunge",muscle:"Legs",notes:""},
   {id:"e83",name:"Dumbbell Lunge",muscle:"Legs",notes:"",video:"0336-RRWFUcw"},
-  {id:"e37",name:"Calf Raises",muscle:"Legs",notes:"",video:"1373-bJYHBIN"},
+  {id:"e37",name:"Calf Raise",muscle:"Legs",notes:"",video:"1373-bJYHBIN"},
   {id:"e38",name:"Dumbbell Calf Raise (Unilateral)",muscle:"Legs",notes:"",video:"0409-1kB3Wmk"},
-  {id:"e05",name:"Haka Calf Raises",muscle:"Legs",notes:"Hombros: 7"},
-  {id:"e39",name:"Haka Calf Raises (Unilateral)",muscle:"Legs",notes:"Hombros: 7"},
+  {id:"e05",name:"Haka Calf Raise",muscle:"Legs",notes:"Hombros: 7"},
+  {id:"e39",name:"Haka Calf Raise (Unilateral)",muscle:"Legs",notes:"Hombros: 7"},
   {id:"e91",name:"Dumbbell Goblet Squat",muscle:"Legs",notes:"",video:"1760-yn8yg1r"},
   {id:"e92",name:"Barbell Front Squat",muscle:"Legs",notes:"",video:"0042-zG0zs85"},
   {id:"e93",name:"Barbell Sumo Deadlift",muscle:"Legs",notes:"",video:"0117-KgI0tqW"},
@@ -2023,72 +2074,79 @@ const DEFAULT_EXERCISES=[
   {id:"e11",name:"Barbell Incline Bench Press",muscle:"Chest",notes:"30º · Nip height",video:"0047-3TZduzM"},
   {id:"e41",name:"Dumbbell Incline Bench Press",muscle:"Chest",notes:"",video:"0314-ns0SIbU"},
   {id:"e65",name:"Barbell Decline Bench Press",muscle:"Chest",notes:"",video:"0033-GrO65fd"},
-  {id:"e13",name:"Chest Fly Machine",muscle:"Chest",notes:"Position: 5 · Seat: Low"},
+  {id:"e13",name:"Machine Chest Fly",muscle:"Chest",notes:"Position: 5 · Seat: Low"},
   {id:"e60",name:"Dumbbell Chest Fly",muscle:"Chest",notes:"",video:"0308-yz9nUhF"},
   {id:"e14",name:"Cable Seated Chest Press",muscle:"Chest",notes:"Position: 20",video:"2144-nIR4Rwl"},
-  {id:"e66",name:"Cable Crossover",muscle:"Chest",notes:""},
-  {id:"e84",name:"Cable Upper Chest Crossovers",muscle:"Chest",notes:"",video:"1270-j7XMAyn"},
-  {id:"e42",name:"Push-Ups",muscle:"Chest",notes:"",video:"0662-I4hDWkc"},
+  {id:"e66",name:"Cable Chest Crossover",muscle:"Chest",notes:""},
+  {id:"e84",name:"Cable Upper Chest Crossover",muscle:"Chest",notes:"",video:"1270-j7XMAyn"},
+  {id:"e42",name:"Push-Up",muscle:"Chest",notes:"",video:"0662-I4hDWkc"},
   {id:"e98",name:"Weighted Svend Press",muscle:"Chest",notes:"",video:"0856-I1OBLnn"},
-  {id:"e24",name:"Pull-Ups",muscle:"Back",notes:"Weighted",video:"0652-lBDjFxJ"},
-  {id:"e20",name:"Cable Pulldowns",muscle:"Back",notes:"Position: 2",video:"0198-RVwzP10"},
-  {id:"e23",name:"Barbell Bent Over Rows",muscle:"Back",notes:"Elbows 45º OUT",video:"0027-eZyBC3j"},
-  {id:"e21",name:"Chest Supported Rows",muscle:"Back",notes:"Position: 4 · Seat: UP"},
-  {id:"e25",name:"Chest Supported Rows (Unilateral)",muscle:"Back",notes:""},
-  {id:"e67",name:"Cable Seated Rows",muscle:"Back",notes:"",video:"0861-fUBheHs"},
-  {id:"e26",name:"Low Cable Rows (Unilateral)",muscle:"Back",notes:""},
+  {id:"e24",name:"Pull-Up",muscle:"Back",notes:"Weighted",video:"0652-lBDjFxJ"},
+  {id:"e20",name:"Cable Pulldown",muscle:"Back",notes:"Position: 2",video:"0198-RVwzP10"},
+  {id:"e23",name:"Barbell Bent Over Row",muscle:"Back",notes:"Elbows 45º OUT",video:"0027-eZyBC3j"},
+  {id:"e21",name:"Chest Supported Row",muscle:"Back",notes:"Position: 4 · Seat: UP"},
+  {id:"e25",name:"Chest Supported Row (Unilateral)",muscle:"Back",notes:""},
+  {id:"e67",name:"Cable Seated Row",muscle:"Back",notes:"",video:"0861-fUBheHs"},
+  {id:"e26",name:"Low Cable Row (Unilateral)",muscle:"Back",notes:""},
   {id:"e85",name:"Cable Low Seated Row",muscle:"Back",notes:"",video:"0180-hvV79Si"},
-  {id:"e43",name:"Dumbbell Row (Unilateral)",muscle:"Back",notes:""},
+  {id:"e43",name:"Dumbbell Bent Over Row (Unilateral)",muscle:"Back",notes:""},
   {id:"e86",name:"Dumbbell Bent Over Row",muscle:"Back",notes:"",video:"0293-BJ0Hz5L"},
-  {id:"e68",name:"T-Bar Rows",muscle:"Back",notes:"",video:"0606-aaXr7ld"},
+  {id:"e68",name:"T-Bar Row",muscle:"Back",notes:"",video:"0606-aaXr7ld"},
   {id:"e22",name:"One-Arm Cable Pullover",muscle:"Back",notes:"Rest: 60''"},
-  {id:"e31",name:"Dumbbell Shrugs",muscle:"Back",notes:"Rest: 30''"},
-  {id:"e79",name:"Barbell Shrugs",muscle:"Back",notes:"",video:"0095-dG7tG5y"},
-  {id:"e69",name:"Hyperextensions",muscle:"Back",notes:"",video:"0489-zhMwOwE"},
+  {id:"e31",name:"Dumbbell Shrug",muscle:"Back",notes:"Rest: 30''"},
+  {id:"e79",name:"Barbell Shrug",muscle:"Back",notes:"",video:"0095-dG7tG5y"},
+  {id:"e69",name:"Hyperextension",muscle:"Back",notes:"",video:"0489-zhMwOwE"},
   {id:"e99",name:"Cable Straight Arm Pulldown",muscle:"Back",notes:"",video:"0238-x69MAlq"},
   {id:"e16",name:"Dumbbell Shoulder Press",muscle:"Shoulders",notes:"67.5º",video:"0405-znQUdHY"},
-  {id:"e75",name:"Military Shoulder Press",muscle:"Shoulders",notes:""},
+  {id:"e75",name:"Standing Military Press",muscle:"Shoulders",notes:""},
   {id:"e87",name:"Smith Standing Military Press",muscle:"Shoulders",notes:"",video:"0774-jjUPrze"},
   {id:"e100",name:"Dumbbell Arnold Press",muscle:"Shoulders",notes:"",video:"2137-Xy4jlWA"},
   {id:"e76",name:"Machine Shoulder Press",muscle:"Shoulders",notes:""},
-  {id:"e12",name:"Dumbbell Lateral Raises",muscle:"Shoulders",notes:"",video:"0334-DsgkuIt"},
-  {id:"e71",name:"Dumbbell Front Raises",muscle:"Shoulders",notes:"",video:"0310-3eGE2JC"},
-  {id:"e72",name:"Barbell Upright Rows",muscle:"Shoulders",notes:"",video:"0120-UDlhcO8"},
+  {id:"e12",name:"Dumbbell Lateral Raise",muscle:"Shoulders",notes:"",video:"0334-DsgkuIt"},
+  {id:"e71",name:"Dumbbell Front Raise",muscle:"Shoulders",notes:"",video:"0310-3eGE2JC"},
+  {id:"e72",name:"Barbell Upright Row",muscle:"Shoulders",notes:"",video:"0120-UDlhcO8"},
   {id:"e70",name:"Dumbbell Reverse Fly",muscle:"Shoulders",notes:"",video:"0383-EAs3xL9"},
-  {id:"e15",name:"Face Pulls",muscle:"Shoulders",notes:"Position: 13 · Elbows: UP · Elbows: OUT"},
+  {id:"e15",name:"Cable Face Pull",muscle:"Shoulders",notes:"Position: 13 · Elbows: UP · Elbows: OUT"},
   {id:"e18",name:"Cable Overhead Triceps Extension",muscle:"Triceps",notes:"Position: 11",video:"0194-2IxROQ1"},
   {id:"e34",name:"Cable Overhead Triceps Extension (Unilateral)",muscle:"Triceps",notes:"Position: 11",video:"1727-i11JWU7"},
   {id:"e17",name:"Cable Triceps Pushdown (V-Bar)",muscle:"Triceps",notes:"Position: 1",video:"0241-gAwDzB3"},
-  {id:"e33",name:"Cable Tricep Pushdowns (Unilateral)",muscle:"Triceps",notes:"",video:"1723-qRZ5S1N"},
+  {id:"e33",name:"Cable Triceps Pushdown (Unilateral)",muscle:"Triceps",notes:"",video:"1723-qRZ5S1N"},
   {id:"e19",name:"Triceps Dip",muscle:"Triceps",notes:"Bodyweight",video:"0814-X6C6i5Y"},
-  {id:"e48",name:"Skull Crushers",muscle:"Triceps",notes:"",video:"0060-h8LFzo9"},
-  {id:"e49",name:"Tricep Kickbacks",muscle:"Triceps",notes:"",video:"0333-W6PxUkg"},
-  {id:"e50",name:"Diamond Push-Ups",muscle:"Triceps",notes:"",video:"0283-soIB2rj"},
+  {id:"e48",name:"Skull Crusher",muscle:"Triceps",notes:"",video:"0060-h8LFzo9"},
+  {id:"e49",name:"Dumbbell Triceps Kickback",muscle:"Triceps",notes:"",video:"0333-W6PxUkg"},
+  {id:"e50",name:"Diamond Push-Up",muscle:"Triceps",notes:"",video:"0283-soIB2rj"},
   {id:"e29",name:"Dumbbell Biceps Curl",muscle:"Biceps",notes:"Drop set",video:"0294-NbVPDMW"},
-  {id:"e73",name:"Barbell Curls",muscle:"Biceps",notes:"",video:"0031-25GPyDY"},
-  {id:"e30",name:"Cable Curls",muscle:"Biceps",notes:"Position: 11 · Chest: OUT · Elbows: FIXED",video:"0868-G08RZcQ"},
-  {id:"e45",name:"Dumbbell Hammer Curls",muscle:"Biceps",notes:"",video:"0313-slDvUAU"},
-  {id:"e46",name:"Dumbbell Incline Curls",muscle:"Biceps",notes:"",video:"0318-ae9UoXQ"},
-  {id:"e27",name:"Preacher Curls",muscle:"Biceps",notes:""},
+  {id:"e73",name:"Barbell Biceps Curl",muscle:"Biceps",notes:"",video:"0031-25GPyDY"},
+  {id:"e30",name:"Cable Biceps Curl",muscle:"Biceps",notes:"Position: 11 · Chest: OUT · Elbows: FIXED",video:"0868-G08RZcQ"},
+  {id:"e45",name:"Dumbbell Hammer Curl",muscle:"Biceps",notes:"",video:"0313-slDvUAU"},
+  {id:"e46",name:"Dumbbell Incline Curl",muscle:"Biceps",notes:"",video:"0318-ae9UoXQ"},
+  {id:"e27",name:"EZ-Bar Preacher Curl",muscle:"Biceps",notes:""},
   {id:"e80",name:"Dumbbell Preacher Curl",muscle:"Biceps",notes:"",video:"0372-jivWf8n"},
-  {id:"e28",name:"Declined Dumbbell Curls",muscle:"Biceps",notes:"37.5º"},
-  {id:"e47",name:"Dumbbell Concentration Curls",muscle:"Biceps",notes:"",video:"0297-gvsWLQw"},
+  {id:"e28",name:"Declined Dumbbell Curl",muscle:"Biceps",notes:"37.5º"},
+  {id:"e47",name:"Dumbbell Concentration Curl",muscle:"Biceps",notes:"",video:"0297-gvsWLQw"},
   {id:"e101",name:"EZ Barbell Spider Curl",muscle:"Biceps",notes:"",video:"0454-Ye5Qxb0"},
   {id:"e102",name:"Dumbbell Zottman Curl",muscle:"Biceps",notes:"",video:"0439-kXaIn5A"},
-  {id:"e51",name:"Plank",muscle:"Core",notes:""},
-  {id:"e88",name:"Front Plank With Twist",muscle:"Core",notes:"",video:"0464-CosupLu"},
-  {id:"e52",name:"Crunches",muscle:"Core",notes:"",video:"0274-TFqbd8t"},
-  {id:"e56",name:"Russian Twists",muscle:"Core",notes:"",video:"0687-XVDdcoj"},
-  {id:"e53",name:"Leg Raises",muscle:"Core",notes:""},
+  {id:"e51",name:"Plank",muscle:"Core",notes:"",trackingType:"time"},
+  {id:"e88",name:"Front Plank with Twist",muscle:"Core",notes:"",video:"0464-CosupLu",trackingType:"time"},
+  {id:"e52",name:"Crunch",muscle:"Core",notes:"",video:"0274-TFqbd8t"},
+  {id:"e56",name:"Russian Twist",muscle:"Core",notes:"",video:"0687-XVDdcoj"},
+  {id:"e53",name:"Leg Raise",muscle:"Core",notes:""},
   {id:"e89",name:"Seated Leg Raise",muscle:"Core",notes:"",video:"0689-Hgs6Nl1"},
-  {id:"e57",name:"Hanging Leg Raises",muscle:"Core",notes:"",video:"0472-I3tsCnC"},
-  {id:"e54",name:"Cable Crunches",muscle:"Core",notes:"",video:"0212-8xUv4J7"},
+  {id:"e57",name:"Hanging Leg Raise",muscle:"Core",notes:"",video:"0472-I3tsCnC"},
+  {id:"e54",name:"Cable Crunch",muscle:"Core",notes:"",video:"0212-8xUv4J7"},
   {id:"e55",name:"Wheel Rollout",muscle:"Core",notes:"",video:"0857-NAgVB3t"},
-  {id:"e58",name:"Superman Plank",muscle:"Core",notes:""},
-  {id:"e74",name:"Side Plank",muscle:"Core",notes:""},
-  {id:"e90",name:"Bodyweight Incline Side Plank",muscle:"Core",notes:"",video:"3544-5VXmnV5"},
+  {id:"e58",name:"Superman Plank",muscle:"Core",notes:"",trackingType:"time"},
+  {id:"e74",name:"Side Plank",muscle:"Core",notes:"",trackingType:"time"},
+  {id:"e90",name:"Bodyweight Incline Side Plank",muscle:"Core",notes:"",video:"3544-5VXmnV5",trackingType:"time"},
   {id:"e103",name:"Dead Bug",muscle:"Core",notes:"",video:"0276-iny3m5y"},
-  {id:"e104",name:"Mountain Climber",muscle:"Core",notes:"",video:"0630-RJgzwny"}
+  {id:"e104",name:"Mountain Climber",muscle:"Core",notes:"",video:"0630-RJgzwny"},
+  {id:"e105",name:"Running (Treadmill)",muscle:"Cardio",notes:"",trackingType:"time"},
+  {id:"e106",name:"Cycling (Stationary Bike)",muscle:"Cardio",notes:"",trackingType:"time"},
+  {id:"e107",name:"Stair Climber",muscle:"Cardio",notes:"",trackingType:"time"},
+  {id:"e108",name:"Elliptical",muscle:"Cardio",notes:"",trackingType:"time"},
+  {id:"e109",name:"Rowing Machine",muscle:"Cardio",notes:"",trackingType:"time"},
+  {id:"e110",name:"Jump Rope",muscle:"Cardio",notes:"",trackingType:"time"},
+  {id:"e111",name:"Incline Walk (Treadmill)",muscle:"Cardio",notes:"",trackingType:"time"}
 ];
 
 
@@ -2240,6 +2298,7 @@ function syncDefaultExercises(){
       existing.name=def.name;
       existing.muscle=def.muscle;
       if(def.video) existing.video=def.video; else delete existing.video;
+      if(def.trackingType) existing.trackingType=def.trackingType; else delete existing.trackingType;
     }
   });
 }
@@ -2436,7 +2495,7 @@ function restWakeLockOff() {
 }
 // Re-acquire wake lock if page becomes visible again (iOS releases it on background)
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && restRem > 0 && restEndTime > 0) {
+  if (document.visibilityState === 'visible' && ((restRem > 0 && restEndTime > 0) || _activeRunning)) {
     restWakeLockOn();
   }
 });
@@ -2490,6 +2549,25 @@ function renderWoScreen(){
   const body=document.getElementById('wo-body'); body.innerHTML='';
 
   function makeSetRow(ei,s,ex){
+    if(isTimeTrackedEx(ex.id)){
+      const targetSec=ex.reps||0;
+      const done=ex.tickedSets.includes(s);
+      if(done){
+        const actualSec=ex.actualReps[s]||0;
+        const pr=db.allTimePRs[ex.id];
+        const isPR=pr&&typeof pr.reps==='number'&&actualSec>pr.reps;
+        return `<div class="set-row time-row" id="sr-${ei}-${s}">
+          <span class="set-n">${s+1}</span>
+          <div class="active-result-chip">${fmtDuration(actualSec)}<span class="pr-badge${isPR?' show':''}">PR</span></div>
+          <button class="set-tick ticked" id="t-${ei}-${s}" onclick="undoTimedSet(${ei},${s})"><span class="tick-check">&#10003;</span></button>
+        </div>`;
+      }
+      return `<div class="set-row time-row" id="sr-${ei}-${s}">
+        <span class="set-n">${s+1}</span>
+        <div class="target-chip">${targetSec>0?fmtDuration(targetSec):'—'}<span class="u">target</span></div>
+        <button class="go-btn" onclick="openActiveClock(${ei},${s},${targetSec},'${escapeHtml(ex.name).replace(/'/g,"\\'")}')">GO</button>
+      </div>`;
+    }
     return `<div class="set-row" id="sr-${ei}-${s}">
       <span class="set-n">${s+1}</span>
       <div class="set-field-wrap">
@@ -2631,6 +2709,28 @@ function stepVal(ei,si,t,delta){
 
 function parseKg(v){ return parseFloat(String(v).replace(',','.').trim())||0; }
 
+// Time-tracked exercises (Plank-style holds, Cardio) reuse the reps field to
+// carry seconds instead of a rep count — weight stays 0 — so the whole
+// existing sets/rest/sync/PR pipeline works unchanged for them. These two
+// helpers are the only new plumbing that requires: seconds <-> "M:SS".
+function fmtDuration(sec){
+  sec=Math.max(0,Math.round(sec||0));
+  return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+}
+function parseDuration(v){
+  v=String(v).trim();
+  if(!v) return 0;
+  if(v.includes(':')){
+    const [m,s]=v.split(':');
+    return (parseInt(m)||0)*60+(parseInt(s)||0);
+  }
+  return parseInt(v)||0;
+}
+function isTimeTrackedEx(exId){
+  const def=db.exercises.find(e=>e.id===exId);
+  return !!(def && def.trackingType==='time');
+}
+
 function checkPR(ei,si){
   const ex=session.exercises[ei];
   const w=ex.actualWeight[si];
@@ -2645,6 +2745,28 @@ function checkPR(ei,si){
   else if(lw && typeof lw.weight==='number') best=lw.weight;
   // Only show badge if we have a known previous best AND current weight strictly beats it
   badge.classList.toggle('show', best!==null && w>best);
+}
+
+// Called by the Active Clock's Done button — the time-tracked counterpart
+// to tickSet(). No DOM inputs to read here (the row shows a target chip,
+// not editable fields), so the clock hands us the elapsed seconds directly.
+function completeTimedSet(ei,si,seconds){
+  const ex=session.exercises[ei];
+  ex.actualWeight[si]=0;
+  ex.actualReps[si]=seconds;
+  if(!ex.tickedSets.includes(si)){
+    ex.tickedSets.push(si);
+    const lastSetEx=si===ex.sets-1, lastEx=ei===session.exercises.length-1;
+    if(!(lastSetEx&&lastEx)) startRest(ex.rest,ei,si);
+  }
+  updProgress(); saveSession();
+  renderWoScreen();
+}
+function undoTimedSet(ei,si){
+  const ex=session.exercises[ei];
+  ex.tickedSets=ex.tickedSets.filter(s=>s!==si);
+  updProgress(); saveSession();
+  renderWoScreen();
 }
 
 let restInt=null, restRem=0, restEndTime=0;
@@ -2819,6 +2941,51 @@ function addRestTime(s){
   updRestDisp();
 }
 
+// ── ACTIVE CLOCK — counts UP, for time-tracked exercises (Plank holds, Cardio) ──
+let activeInt=null, activeElapsed=0, activeTargetSec=0, activeEi=-1, activeSi=-1, _activeMinimized=false, _activeRunning=false;
+
+function openActiveClock(ei,si,targetSec,exName){
+  if(_restMinimized && restRem>0) return; // don't stack over an active rest countdown
+  activeEi=ei; activeSi=si; activeTargetSec=targetSec||0; activeElapsed=0; _activeMinimized=false; _activeRunning=true;
+  document.getElementById('active-ex-name').textContent=exName||'Active';
+  document.getElementById('active-target-lbl').textContent=activeTargetSec>0?('Target '+fmtDuration(activeTargetSec)):'';
+  const ov=document.getElementById('active-overlay');
+  ov.classList.add('active'); ov.classList.remove('minimized');
+  updActiveDisp();
+  clearInterval(activeInt);
+  activeInt=setInterval(activeTick,1000);
+  restWakeLockOn(); // same screen-wake-lock helper the rest timer uses
+  if(window.Notification && Notification.permission==='default') Notification.requestPermission();
+}
+function activeTick(){
+  activeElapsed++;
+  updActiveDisp();
+  if(activeTargetSec>0 && activeElapsed===activeTargetSec) beep(); // marks the goal, keeps counting — a plank held past target is a better set, not an error
+}
+function updActiveDisp(){
+  const t=fmtDuration(activeElapsed);
+  const el=document.getElementById('active-time'); if(el) el.textContent=t;
+  const mt=document.getElementById('active-mini-time'); if(mt) mt.textContent=t;
+}
+function activeMinimizeToggle(){
+  _activeMinimized=!_activeMinimized;
+  document.getElementById('active-overlay').classList.toggle('minimized',_activeMinimized);
+}
+function activeDone(){
+  clearInterval(activeInt);
+  _activeRunning=false;
+  restWakeLockOff();
+  const ei=activeEi, si=activeSi, sec=activeElapsed;
+  document.getElementById('active-overlay').classList.remove('active','minimized');
+  completeTimedSet(ei,si,sec);
+}
+function activeCancel(){
+  clearInterval(activeInt);
+  _activeRunning=false;
+  restWakeLockOff();
+  document.getElementById('active-overlay').classList.remove('active','minimized');
+}
+
 function beep(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
@@ -2895,6 +3062,21 @@ function finishWorkout(){
     const repsArr=savedSets.map(s=>s.reps);
     const lastW=weights[weights.length-1];
     const lastR=repsArr[repsArr.length-1];
+
+    if(isTimeTrackedEx(ex.id)){
+      // repsArr holds seconds here, weight is always 0 — "PR" is longest hold.
+      const allSameR=repsArr.every(r=>r===repsArr[0]);
+      const history=allSameR
+        ? fmtDuration(repsArr[0])+' × '+repsArr.length
+        : savedSets.map((s,i)=>(i+1)+': '+fmtDuration(s.reps)).join(' / ');
+      db.lastWeights[key]={sets:savedSets,weight:0,reps:lastR,history};
+      const maxR=Math.max(...repsArr);
+      if(maxR>0&&(!db.allTimePRs[ex.id]||maxR>(db.allTimePRs[ex.id].reps||0))){
+        db.allTimePRs[ex.id]={weight:0,reps:maxR,date:Date.now()};
+      }
+      return;
+    }
+
     const maxW=Math.max(...weights);
     const allSameW=weights.every(w=>w===weights[0]);
     const displayW=lastW===0?'BW':lastW+'kg';
@@ -3077,7 +3259,7 @@ function openRoutineModal(editId){
   function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 
   function buildExSelect(exId, onchangeStr, idStr){
-    const muscles=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core'];
+    const muscles=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core','Cardio'];
     let h='';
     muscles.forEach(m=>{
       h+=`<optgroup label="${m}">`;
@@ -3090,7 +3272,13 @@ function openRoutineModal(editId){
   }
 
   function buildExBlock(re, i){
-    const setRowsHtml=re.setRows.map((sr,si)=>`
+    const isTimed=isTimeTrackedEx(re.id);
+    const setRowsHtml=re.setRows.map((sr,si)=>isTimed?`
+      <div class="eb-set-row time-row" id="ebr-${i}-${si}">
+        <span class="eb-set-num">${si+1}</span>
+        <input class="eb-set-inp" type="text" inputmode="numeric" placeholder="mm:ss" value="${sr.reps?fmtDuration(sr.reps):''}" onchange="mItems[${i}].setRows[${si}].reps=parseDuration(this.value); mItems[${i}].setRows[${si}].kg=0;">
+        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>`:`
       <div class="eb-set-row" id="ebr-${i}-${si}">
         <span class="eb-set-num">${si+1}</span>
         <input class="eb-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].setRows[${si}].kg=parseKg(this.value)">
@@ -3100,14 +3288,14 @@ function openRoutineModal(editId){
     return `
       <div class="ex-builder" id="exb-${i}">
         <div class="eb-hd">
-          ${buildExSelect(re.id, `mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value); refreshExerciseVideoIco(${i}, this.value);`, `eid-${i}`)}
+          ${buildExSelect(re.id, `const _oldId=mItems[${i}].id; mItems[${i}].id=this.value; const ri=document.getElementById('ebrest-${i}'); if(ri&&!ri._userEdited) ri.value=getDefaultRest(this.value); refreshExerciseVideoIco(${i}, this.value); onExBuilderExerciseChange(${i},_oldId);`, `eid-${i}`)}
           ${buildExerciseVideoIcoHtml(re.id, `exvid-row-${i}`)}
           <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
           <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
           <button class="btn-ico del" onclick="rmItem(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
-        <div class="eb-sets-head">
-          <span>Set</span><span>KG</span><span>Reps</span><span></span>
+        <div class="eb-sets-head ${isTimed?'time-head':''}">
+          ${isTimed?'<span>Set</span><span>Target duration</span><span></span>':'<span>Set</span><span>KG</span><span>Reps</span><span></span>'}
         </div>
         ${setRowsHtml}
         <button class="eb-add-set" onclick="addSet(${i})">
@@ -3214,6 +3402,18 @@ function openRoutineModal(editId){
     if(items[i].setRows.length<=1){alert('At least one set required.');return;}
     items[i].setRows.splice(si,1); rdr();
   };
+  // Swapping the exercise dropdown mid-build normally keeps set values as-is
+  // (a 20kg×8 config carries over fine between two reps-based exercises).
+  // But "8" means something completely different as reps vs. as seconds, so
+  // only reset setRows when the swap actually crosses the reps/time line.
+  window.onExBuilderExerciseChange=function(i,oldId){
+    const wasTimed=isTimeTrackedEx(oldId);
+    const isTimed=isTimeTrackedEx(items[i].id);
+    if(isTimed!==wasTimed){
+      items[i].setRows=isTimed?[{kg:0,reps:60}]:[{kg:0,reps:10},{kg:0,reps:10},{kg:0,reps:10}];
+      rdr();
+    }
+  };
   window.addSSEx=function(i){
     const ss=items[i];
     const newId=(db.exercises[ss.exercises.length]||db.exercises[0]).id;
@@ -3314,7 +3514,8 @@ function buildLogListHtml(entries){
     const dur=Math.floor(entry.duration/60)+'min';
     const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.weight*s.reps),0),0);
     const det=entry.exercises.map(ex=>{
-      const ss=ex.sets.map((s,i)=>`${i+1}: ${s.weight===0?'BW':s.weight+'kg'}×${s.reps}`).join('  ·  ');
+      const timed=isTimeTrackedEx(ex.id);
+      const ss=ex.sets.map((s,i)=>timed?`${i+1}: ${fmtDuration(s.reps)}`:`${i+1}: ${s.weight===0?'BW':s.weight+'kg'}×${s.reps}`).join('  ·  ');
       return`<div class="log-ex"><div class="log-ex-n">${escapeHtml(ex.name)}</div><div class="log-sets">${ss||'—'}</div></div>`;
     }).join('');
     const noteHtml=entry.note?`<div class="log-note">"${escapeHtml(entry.note)}"</div>`:'';
@@ -4304,7 +4505,7 @@ function renderExercisesDB(){
   const el=document.getElementById('exercises-list');
   const groups={};
   db.exercises.forEach(e=>{if(!groups[e.muscle])groups[e.muscle]=[];groups[e.muscle].push(e);});
-  const order=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core'];
+  const order=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core','Cardio'];
   el.innerHTML=order.filter(m=>groups[m]).map(muscle=>`
     <div class="muscle-group">
       <div class="mg-header" onclick="toggleEl(this)">
@@ -4314,8 +4515,9 @@ function renderExercisesDB(){
         ${groups[muscle].map(e=>{
           const pr=db.allTimePRs[e.id];
           const lw=db.lastWeights[e.id];
-          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${pr.weight}kg</div>`:'';
-          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} Last: ${lw.history||lw.weight+'kg'}</div>`:'';
+          const timed=e.trackingType==='time';
+          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${timed?fmtDuration(pr.reps)+' held':pr.weight+'kg'}</div>`:'';
+          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} Last: ${lw.history||(timed?fmtDuration(lw.reps):lw.weight+'kg')}</div>`:'';
           return `<div class="ex-db-row" onclick="openExDetail('${e.id}')">
             <div class="ex-db-row-inner">
               <div class="ex-db-info">
@@ -4486,6 +4688,7 @@ function renderExDetail(exId){
   if(!ex) return;
   const lw=db.lastWeights[exId]||{};
   const pr=db.allTimePRs[exId];
+  const timed=ex.trackingType==='time';
 
   // Build session history for this exercise
   const history=db.workoutLog
@@ -4494,7 +4697,7 @@ function renderExDetail(exId){
     .map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
       const date=new Date(log.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-      const sets=exLog.sets.map((s,i)=>(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+' x'+s.reps).join(' / ');
+      const sets=exLog.sets.map((s,i)=>timed?(i+1)+': '+fmtDuration(s.reps):(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+' x'+s.reps).join(' / ');
       return `<div class="history-entry">
         <span class="history-date">${date}</span>
         <span class="history-val">${sets||'—'}</span>
@@ -4519,17 +4722,35 @@ function renderExDetail(exId){
       </div>
     </div>
 
-    <!-- LAST WEIGHT / REPS — editable -->
+    <!-- LAST WEIGHT/REPS, or LAST DURATION for time-tracked exercises — editable -->
     <div class="ex-section">
       <div class="ex-section-hd">
-        <span class="ex-section-title">Starting Weight</span>
+        <span class="ex-section-title">${timed?'Starting Duration':'Starting Weight'}</span>
         <span class="save-flash" id="weight-flash">Saved</span>
       </div>
       <div class="ex-section-body">
         <div style="font-size:10px;color:#666;letter-spacing:1px;margin-bottom:10px;">
           This is what will pre-fill next time you do this exercise.
         </div>
-        ${(lw.sets&&lw.sets.length>0)?
+        ${timed ? ((lw.sets&&lw.sets.length>0)?
+          lw.sets.map((s,i)=>`
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <span style="font-size:9px;color:#666;letter-spacing:1px;width:36px;">Set ${i+1}</span>
+              <div style="flex:1;">
+                <div class="ex-weight-label">DURATION</div>
+                <input class="ex-edit-field" type="text" inputmode="numeric"
+                  value="${s.reps?fmtDuration(s.reps):''}" placeholder="mm:ss"
+                  onchange="saveExSetWeight('${exId}',${i},'r',this.value)">
+              </div>
+            </div>`).join('')
+          :`
+            <div>
+              <div class="ex-weight-label">DURATION</div>
+              <input class="ex-edit-field" type="text" inputmode="numeric"
+                value="${lw.reps?fmtDuration(lw.reps):''}" placeholder="mm:ss"
+                onchange="saveExWeight('${exId}','r',this.value)">
+            </div>`
+        ) : ((lw.sets&&lw.sets.length>0)?
           lw.sets.map((s,i)=>`
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
               <span style="font-size:9px;color:#666;letter-spacing:1px;width:36px;">Set ${i+1}</span>
@@ -4561,8 +4782,8 @@ function renderExDetail(exId){
                   onchange="saveExWeight('${exId}','r',this.value)">
               </div>
             </div>`
-        }
-        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${pr.weight}kg &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
+        )}
+        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${timed?fmtDuration(pr.reps)+' held':pr.weight+'kg'} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
       </div>
     </div>
 
@@ -4591,9 +4812,10 @@ function saveExNotes(exId, val){
 function saveExWeight(exId, type, val){
   if(!db.lastWeights[exId]) db.lastWeights[exId]={sets:[],weight:0,reps:0,history:''};
   const lw=db.lastWeights[exId];
+  const timed=isTimeTrackedEx(exId);
   if(type==='w') lw.weight=parseKg(val);
-  if(type==='r') lw.reps=parseInt(val)||0;
-  lw.history=(lw.weight===0?'BW':lw.weight+'kg')+' · '+lw.reps;
+  if(type==='r') lw.reps=timed?parseDuration(val):(parseInt(val)||0);
+  lw.history=timed?fmtDuration(lw.reps):((lw.weight===0?'BW':lw.weight+'kg')+' · '+lw.reps);
   saveDB();
   const fl=document.getElementById('weight-flash');
   if(fl){fl.classList.add('show');clearTimeout(fl._t);fl._t=setTimeout(()=>fl.classList.remove('show'),1500);}
@@ -4602,18 +4824,28 @@ function saveExWeight(exId, type, val){
 function saveExSetWeight(exId, setIdx, type, val){
   if(!db.lastWeights[exId]) db.lastWeights[exId]={sets:[],weight:0,reps:0,history:''};
   const lw=db.lastWeights[exId];
+  const timed=isTimeTrackedEx(exId);
   if(!lw.sets) lw.sets=[];
   if(!lw.sets[setIdx]) lw.sets[setIdx]={weight:0,reps:0};
   if(type==='w') lw.sets[setIdx].weight=parseKg(val);
-  if(type==='r') lw.sets[setIdx].reps=parseInt(val)||0;
-  // rebuild summary
-  const allSameW=lw.sets.every(s=>s.weight===lw.sets[0].weight);
-  const displayW=lw.sets[0].weight===0?'BW':lw.sets[0].weight+'kg';
-  lw.weight=lw.sets[lw.sets.length-1].weight;
-  lw.reps=lw.sets[lw.sets.length-1].reps;
-  lw.history=allSameW
-    ? displayW+' · '+lw.sets.map(s=>s.reps).join('/')
-    : lw.sets.map((s,i)=>(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+'×'+s.reps).join(' / ');
+  if(type==='r') lw.sets[setIdx].reps=timed?parseDuration(val):(parseInt(val)||0);
+  if(timed){
+    lw.weight=0;
+    lw.reps=lw.sets[lw.sets.length-1].reps;
+    const allSameR=lw.sets.every(s=>s.reps===lw.sets[0].reps);
+    lw.history=allSameR
+      ? fmtDuration(lw.sets[0].reps)+' × '+lw.sets.length
+      : lw.sets.map((s,i)=>(i+1)+': '+fmtDuration(s.reps)).join(' / ');
+  } else {
+    // rebuild summary
+    const allSameW=lw.sets.every(s=>s.weight===lw.sets[0].weight);
+    const displayW=lw.sets[0].weight===0?'BW':lw.sets[0].weight+'kg';
+    lw.weight=lw.sets[lw.sets.length-1].weight;
+    lw.reps=lw.sets[lw.sets.length-1].reps;
+    lw.history=allSameW
+      ? displayW+' · '+lw.sets.map(s=>s.reps).join('/')
+      : lw.sets.map((s,i)=>(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+'×'+s.reps).join(' / ');
+  }
   saveDB();
   const fl=document.getElementById('weight-flash');
   if(fl){fl.classList.add('show');clearTimeout(fl._t);fl._t=setTimeout(()=>fl.classList.remove('show'),1500);}
@@ -4789,27 +5021,30 @@ function drawExChart(){
   const ex=db.exercises.find(e=>e.id===exId);
   if(!ex) return;
 
+  const timed=ex.trackingType==='time';
   const cutoff=getDateCutoff(exRange);
-  // Gather all sessions with this exercise in range
+  // Gather all sessions with this exercise in range. For time-tracked
+  // exercises the "weight" axis becomes "longest hold that session" —
+  // exLog.sets[].reps already holds seconds for these (see fmtDuration).
   const sessions=db.workoutLog
     .filter(log=>log.date>=cutoff && log.exercises.some(e=>e.id===exId))
     .map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
-      const maxW=exLog.sets.length ? Math.max(...exLog.sets.map(s=>s.weight)) : 0;
-      const sets=exLog.sets.map(s=>(s.weight===0?'BW':s.weight+'kg')+'x'+s.reps).join(' / ');
+      const maxW=exLog.sets.length ? Math.max(...exLog.sets.map(s=>timed?s.reps:s.weight)) : 0;
+      const sets=timed?exLog.sets.map(s=>fmtDuration(s.reps)).join(' / '):exLog.sets.map(s=>(s.weight===0?'BW':s.weight+'kg')+'x'+s.reps).join(' / ');
       return {date:log.date, w:maxW, sets, label:fmtDate(log.date,exRange)};
     });
 
   document.getElementById('ex-chart-title').textContent=ex.name;
   const pr=db.allTimePRs[exId];
-  document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+pr.weight+'kg':'';
+  document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+(timed?fmtDuration(pr.reps):pr.weight+'kg'):'';
 
   if(sessions.length<2){
     document.getElementById('ex-svg').innerHTML='<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family="Rajdhani" dy=".3em">Not enough data for this range</text>';
     document.getElementById('ex-svg').setAttribute('viewBox','0 0 400 80');
     document.getElementById('ex-svg').style.height='80px';
     document.getElementById('ex-stat-gain').textContent='—';
-    document.getElementById('ex-stat-pr').textContent=pr?pr.weight+'kg':'—';
+    document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):pr.weight+'kg'):'—';
     document.getElementById('ex-stat-sess').textContent=sessions.length;
     return;
   }
@@ -4835,7 +5070,7 @@ function drawExChart(){
     const val=minW+(span*i/3);
     const y=PT+(1-i/3)*cH;
     html+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#1a1a1a" stroke-width="1"/>`;
-    html+=`<text x="${PL-3}" y="${y+3}" fill="#444" font-size="9" text-anchor="end" font-family="Rajdhani">${Math.round(val)}</text>`;
+    html+=`<text x="${PL-3}" y="${y+3}" fill="#444" font-size="9" text-anchor="end" font-family="Rajdhani">${timed?fmtDuration(val):Math.round(val)}</text>`;
   }
 
   // Area + line
@@ -4847,7 +5082,7 @@ function drawExChart(){
   // Points
   sessions.forEach((s,i)=>{
     const x=xS(i),y=yS(s.w);
-    const isPR=pr&&s.w>=pr.weight;
+    const isPR=pr&&s.w>=(timed?pr.reps:pr.weight);
     html+=`<circle cx="${x}" cy="${y}" r="${isPR?6:4}" fill="${isPR?accent:'#111'}" stroke="${accent}" stroke-width="2" class="ex-dot" data-i="${i}" style="cursor:pointer;"/>`;
     if(isPR) html+=`<text x="${x}" y="${y-9}" fill="${accent}" font-size="9" text-anchor="middle" font-family="Rajdhani" font-weight="700">PR</text>`;
   });
@@ -4869,7 +5104,7 @@ function drawExChart(){
     const handler=e=>{
       const s=sessions[parseInt(el.dataset.i)];
       const tt=document.getElementById('ex-tooltip');
-      tt.innerHTML=`<div class="prog-tt-date">${s.label}</div><div class="prog-tt-val">${s.w===0?'BW':s.w+' kg'}</div><div class="prog-tt-sets">${s.sets}</div>`;
+      tt.innerHTML=`<div class="prog-tt-date">${s.label}</div><div class="prog-tt-val">${timed?fmtDuration(s.w):(s.w===0?'BW':s.w+' kg')}</div><div class="prog-tt-sets">${s.sets}</div>`;
       const wrap=document.getElementById('ex-chart-wrap');
       const br=wrap.getBoundingClientRect(), er=el.getBoundingClientRect();
       let left=er.left-br.left+8, top=er.top-br.top-68;
@@ -4885,8 +5120,8 @@ function drawExChart(){
 
   // Stats
   const gain=sessions[sessions.length-1].w-sessions[0].w;
-  document.getElementById('ex-stat-gain').textContent=(gain>0?'+':'')+gain+'kg';
-  document.getElementById('ex-stat-pr').textContent=pr?pr.weight+'kg':'—';
+  document.getElementById('ex-stat-gain').textContent=timed?(gain>0?'+':'')+fmtDuration(Math.abs(gain)):(gain>0?'+':'')+gain+'kg';
+  document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):pr.weight+'kg'):'—';
   document.getElementById('ex-stat-sess').textContent=sessions.length;
 }
 
@@ -6081,7 +6316,8 @@ async function pushLocalDataToCloud(){
   const prs = db.allTimePRs || {};
   const prRows = Object.keys(prs).map(exId=>({
     user_id: uid, exercise_id: exId,
-    weight: prs[exId].weight,
+    weight: prs[exId].weight || 0,
+    reps: typeof prs[exId].reps === 'number' ? prs[exId].reps : null, // time-tracked exercises' PR (longest hold, in seconds); null for reps-based exercises
     achieved_at: new Date(prs[exId].date || Date.now()).toISOString(),
   }));
   if(prRows.length) await supabaseClient.from('all_time_prs').upsert(prRows);
@@ -6131,7 +6367,7 @@ async function pullCloudDataToLocal(){
 
   const allTimePRs = {};
   (prsRes.data||[]).forEach(row=>{
-    allTimePRs[row.exercise_id] = { weight: row.weight, date: new Date(row.achieved_at).getTime() };
+    allTimePRs[row.exercise_id] = { weight: row.weight, reps: row.reps, date: new Date(row.achieved_at).getTime() };
   });
 
   const workoutLog = (logsRes.data||[]).map(row=>({
