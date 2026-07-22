@@ -500,27 +500,34 @@ select.form-inp option{background:var(--panel);}
 /* ── Insignia badge — takes the "profile photo" slot; this app has no
    avatar photos, so the equipped tier/special badge fills that circle
    directly instead, per Alan's explicit call. ── */
+.insignia-badge-col{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;}
 .insignia-badge-wrap{position:relative;width:78px;height:78px;flex-shrink:0;}
 .insignia-badge-wrap[onclick]{cursor:pointer;}
 .insignia-badge{width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--lift),var(--void));border:2px solid var(--gold3);display:flex;align-items:center;justify-content:center;box-sizing:border-box;color:var(--gold);}
 .insignia-badge svg{width:100%;height:100%;}
 .insignia-badge-plus{position:absolute;bottom:-1px;right:-1px;width:25px;height:25px;border-radius:50%;background:var(--gold3);border:3px solid var(--void);display:flex;align-items:center;justify-content:center;}
 .insignia-badge-plus svg{width:12px;height:12px;stroke:var(--void);stroke-width:3;stroke-linecap:round;fill:none;}
+.insignia-badge-lbl{font-family:var(--hd);font-size:8px;font-weight:700;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;text-align:center;}
 
 /* ── Insignia picker popup grid ── */
-.insignia-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.insignia-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 10px;}
 .insignia-pick{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;position:relative;}
 .insignia-pick-ic{width:44px;height:44px;border-radius:50%;background:var(--void);border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--gold);box-sizing:border-box;padding:9px;}
 .insignia-pick-ic svg{width:100%;height:100%;}
 .insignia-pick.selected .insignia-pick-ic{border-color:var(--gold3);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold3) 30%,transparent);}
 .insignia-pick-lbl{font-size:9px;color:var(--dim);font-weight:600;text-align:center;line-height:1.3;}
 .insignia-pick.locked{cursor:default;}
-.insignia-pick.locked .insignia-pick-ic{opacity:.3;filter:grayscale(1);}
+/* contrast(0) collapses ANY source color (bronze/gold/near-white skull/etc.)
+   to the exact same flat mid-gray, so every locked icon reads as one
+   consistent "off" tone instead of each fading toward its own hue. */
+.insignia-pick.locked .insignia-pick-ic svg{filter:contrast(0) brightness(.85);}
 .insignia-pick-req{font-size:7.5px;color:var(--dim);opacity:.7;}
 .profile-name{font-family:var(--hd);font-size:23px;font-weight:700;letter-spacing:1px;color:var(--bright);}
 .profile-handle{font-size:13px;color:var(--dim);margin-top:3px;}
 .profile-divider{height:1px;background:var(--line);margin:0 18px;}
 .profile-stats{padding:16px 18px;font-size:14px;color:var(--soft);}
+.profile-stat-link{cursor:pointer;}
+.profile-stat-link:hover{text-decoration:underline;}
 .profile-guest-card{margin:0 18px 16px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:14px;font-size:12px;color:var(--soft);line-height:1.5;}
 .profile-tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:8px;}
 .profile-tab{flex:1;text-align:center;padding:14px 0;font-size:12px;font-weight:600;color:var(--dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--body);}
@@ -1553,6 +1560,17 @@ body.light-mode .auth-choice-title{color:#111;}
       <img id="exercise-video-img" src="" alt="" style="width:100%;display:block;">
     </div>
     <button onclick="closeExerciseVideo()" style="margin-top:16px;background:none;border:none;color:var(--muted);font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;padding:0;">Close</button>
+  </div>
+</div>
+
+<!-- ══ INSIGNIA PICKER ══ (same overlay pattern as exercise-video-overlay
+     above — centered gold-bordered card over a dim backdrop — per Alan's
+     explicit ask to match that treatment rather than the generic modal). -->
+<div id="insignia-picker-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:20px;width:100%;max-width:360px;text-align:center;">
+    <div style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:2px;color:var(--text);text-transform:uppercase;margin-bottom:16px;">Choose Your Insignia</div>
+    <div class="insignia-grid" id="insignia-picker-grid"></div>
+    <button onclick="closeInsigniaPicker()" style="margin-top:18px;background:none;border:none;color:var(--muted);font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;padding:0;">Close</button>
   </div>
 </div>
 
@@ -3748,8 +3766,8 @@ async function renderProfileHeader(){
       <div class="profile-divider"></div>
       <div class="profile-stats">
         <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
-        <span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers &nbsp;·&nbsp;
-        <span style="color:var(--text);font-weight:600;">${counts.following}</span> Following
+        <span class="profile-stat-link" onclick="openFollowListPopup('${currentUser.id}','followers')"><span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers</span> &nbsp;·&nbsp;
+        <span class="profile-stat-link" onclick="openFollowListPopup('${currentUser.id}','following')"><span style="color:var(--text);font-weight:600;">${counts.following}</span> Following</span>
       </div>
     `;
   };
@@ -3765,6 +3783,11 @@ async function renderProfileHeader(){
     _myFollowCountsCache=await getFollowCounts(currentUser.id);
     paint(_myFollowCountsCache);
   }
+
+  // Same SWR idea as the follow counts above: the badge already on screen
+  // came from whatever was last synced, refresh it in the background in
+  // case a special insignia was granted server-side since then.
+  refreshMyInsignias().catch(()=>{});
 }
 
 // Profile's Program tab — the full rotation, one routine per row (not
@@ -4057,11 +4080,11 @@ async function renderOtherProfile(){
       const eq=profile.equipped_insignia;
       const eqTier = eq ? TIERS.find(t=>t.id===eq) : null;
       const eqSpecial = eq ? INSIGNIA_CATALOG.find(s=>s.id===eq) : null;
-      if(eqTier) equippedInsignia={id:eqTier.id, icon:TIER_ICONS[eqTier.icon]||'', sizeMult:1};
-      else if(eqSpecial) equippedInsignia={id:eqSpecial.id, icon:eqSpecial.icon, sizeMult:eqSpecial.sizeMult};
+      if(eqTier) equippedInsignia={id:eqTier.id, name:eqTier.name, icon:TIER_ICONS[eqTier.icon]||'', sizeMult:1};
+      else if(eqSpecial) equippedInsignia={id:eqSpecial.id, name:eqSpecial.name, icon:eqSpecial.icon, sizeMult:eqSpecial.sizeMult};
       else {
         const tier=getTier(dayCount);
-        if(tier) equippedInsignia={id:tier.id, icon:TIER_ICONS[tier.icon]||'', sizeMult:1};
+        if(tier) equippedInsignia={id:tier.id, name:tier.name, icon:TIER_ICONS[tier.icon]||'', sizeMult:1};
       }
     }catch(e){}
   }
@@ -4078,8 +4101,8 @@ async function renderOtherProfile(){
       <div class="profile-divider"></div>
       <div class="profile-stats">
         <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
-        <span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers &nbsp;·&nbsp;
-        <span style="color:var(--text);font-weight:600;">${counts.following}</span> Following
+        <span class="profile-stat-link" onclick="openFollowListPopup('${uid}','followers')"><span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers</span> &nbsp;·&nbsp;
+        <span class="profile-stat-link" onclick="openFollowListPopup('${uid}','following')"><span style="color:var(--text);font-weight:600;">${counts.following}</span> Following</span>
       </div>
       <div class="oprof-followbtn-row">
         <button class="oprof-followbtn ${isPrimary?'primary':'secondary'}" id="oprof-follow-btn" onclick="onOtherProfileFollowClick()">${label}</button>
@@ -4295,6 +4318,52 @@ async function getTierIconsForUsers(userIds){
 }
 function buildListRowTierHtml(tierIconHtml){
   return `<div class="list-row-tier">${tierIconHtml||untieredIconHtml()}</div>`;
+}
+
+// Followers/Following list popup — reuses the same person-row look as
+// Search/Interactions (buildListRowTierHtml + search-result-* classes) so
+// it reads as the same kind of list, just without the follow button since
+// this is a read-only "who" list, not an action list.
+//
+// `follows` FKs to auth.users, not public.profiles, so PostgREST can't
+// embed profiles directly on this table — two queries (ids, then a batch
+// profile lookup) instead, same shape as getTierIconsForUsers below.
+async function fetchFollowList(userId, kind){
+  const col = kind==='followers' ? 'following_id' : 'follower_id';
+  const otherCol = kind==='followers' ? 'follower_id' : 'following_id';
+  const { data:followRows } = await supabaseClient.from('follows')
+    .select(otherCol+', created_at')
+    .eq(col, userId).eq('status','accepted')
+    .order('created_at', {ascending:false});
+  const ids = (followRows||[]).map(r=>r[otherCol]);
+  if(!ids.length) return [];
+  const { data:profiles } = await supabaseClient.from('public_profiles')
+    .select('id, username, full_name, verified').in('id', ids);
+  const byId={}; (profiles||[]).forEach(p=>{ byId[p.id]=p; });
+  return ids.map(id=>byId[id]).filter(Boolean); // preserves most-recent-first order; drops any profile that's since been deleted
+}
+
+function buildFollowListRowHtml(p, tierIconHtml){
+  const verifiedBadge = p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
+  return `<div class="search-result-row" onclick="closeModal();openOtherProfile('${p.id}','search')">
+    ${buildListRowTierHtml(tierIconHtml)}
+    <div class="search-result-id">
+      <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
+      <div class="search-result-handle">@${escapeHtml(p.username||'—')}</div>
+    </div>
+  </div>`;
+}
+
+async function openFollowListPopup(userId, kind){
+  document.getElementById('modal-title').textContent = kind==='followers' ? 'Followers' : 'Following';
+  document.getElementById('modal-body').innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
+  document.getElementById('modal-footer').innerHTML = `<button class="btn-ghost" onclick="closeModal()">Close</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+  const list = await fetchFollowList(userId, kind);
+  const tierMap = await getTierIconsForUsers(list.map(p=>p.id));
+  document.getElementById('modal-body').innerHTML = list.length
+    ? `<div class="list-scroll" style="max-height:55vh;padding:0;">${list.map(p=>buildFollowListRowHtml(p, tierMap[p.id])).join('')}</div>`
+    : `<div class="empty-state"><p>${kind==='followers' ? 'No followers yet.' : 'Not following anyone yet.'}</p></div>`;
 }
 
 function buildSearchResultRowHtml(p, state, tierIconHtml){
@@ -5503,7 +5572,12 @@ const TIER_ICONS = {
   silver:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#aaaaaa" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#aaaaaa"/><line x1="15" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#aaaaaa"/></svg>',
   gold:    '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#d4a843" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#d4a843"/><line x1="15" y1="38" x2="22" y2="42" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#d4a843"/></svg>',
   fire:    '<svg width="22" height="22" viewBox="0 0 36 36" fill="none"><path d="M18 4C18 4 14 9 14 14C14 14 12 12 12 10C12 10 8 14 8 19C8 23.4 12.6 28 18 28C23.4 28 28 23.4 28 19C28 13 23 9 21 7C21 7 22 11 20 13C20 13 18 9 18 4Z" fill="#e8722a"/><path d="M18 16C18 16 16 14 16 12C16 12 19.5 14 19.5 18C21 16 22 13 21 11C21 11 25 14 25 19C25 21.8 21.8 24.5 18 24.5C14.2 24.5 11 21.8 11 19C11 17 13 15 13 15C13 17 16 18 18 16Z" fill="#f0c060" opacity=".8"/></svg>',
-  skull:  '<svg width="22" height="22" viewBox="0 0 46 54" fill="none"><path d="M 21 33 L 22 32 L 23 32 L 24 33 L 24 34 L 25 35 L 25 36 L 26 37 L 26 40 L 25 41 L 21 41 L 19 39 L 19 38 L 20 37 L 20 35 L 21 34 Z M 29 22 L 37 22 L 39 24 L 39 25 L 40 26 L 40 31 L 36 35 L 31 35 L 30 34 L 29 34 L 27 32 L 27 31 L 26 30 L 26 29 L 25 28 L 25 26 Z M 8 23 L 9 22 L 16 22 L 20 26 L 20 29 L 19 30 L 19 31 L 16 34 L 15 34 L 14 35 L 9 35 L 6 32 L 6 31 L 5 30 L 5 26 L 6 25 L 6 24 L 7 23 Z M 17 2 L 16 3 L 14 3 L 13 4 L 12 4 L 11 5 L 10 5 L 5 10 L 5 11 L 4 12 L 4 13 L 3 14 L 3 17 L 2 18 L 2 23 L 3 24 L 3 31 L 4 32 L 4 34 L 3 35 L 3 37 L 4 38 L 4 39 L 6 41 L 10 41 L 11 42 L 11 45 L 12 46 L 12 49 L 13 49 L 14 50 L 15 50 L 15 47 L 16 46 L 17 46 L 18 47 L 18 51 L 21 51 L 21 48 L 22 47 L 23 47 L 24 48 L 24 51 L 27 51 L 27 47 L 28 46 L 29 46 L 30 47 L 30 50 L 31 50 L 32 49 L 33 49 L 33 46 L 34 45 L 34 43 L 36 41 L 39 41 L 42 38 L 42 37 L 43 36 L 42 35 L 42 34 L 41 33 L 42 32 L 42 26 L 43 25 L 43 17 L 42 16 L 42 14 L 41 13 L 41 12 L 40 11 L 40 10 L 35 5 L 34 5 L 33 4 L 32 4 L 31 3 L 29 3 L 28 2 Z" fill="#ececec" fill-rule="evenodd"/></svg>',
+  // Theme-aware on purpose (unlike the other tier icons, which keep their
+  // fixed medal-material color regardless of theme) — black in light mode,
+  // white in dark mode, per Alan's explicit call. currentColor + an inline
+  // color so it works correctly wherever it's dropped in (badge, picker,
+  // streak widget) without depending on a wrapper class being present.
+  skull:  '<svg width="22" height="22" viewBox="0 0 46 54" fill="none" style="color:var(--text);"><path d="M 21 33 L 22 32 L 23 32 L 24 33 L 24 34 L 25 35 L 25 36 L 26 37 L 26 40 L 25 41 L 21 41 L 19 39 L 19 38 L 20 37 L 20 35 L 21 34 Z M 29 22 L 37 22 L 39 24 L 39 25 L 40 26 L 40 31 L 36 35 L 31 35 L 30 34 L 29 34 L 27 32 L 27 31 L 26 30 L 26 29 L 25 28 L 25 26 Z M 8 23 L 9 22 L 16 22 L 20 26 L 20 29 L 19 30 L 19 31 L 16 34 L 15 34 L 14 35 L 9 35 L 6 32 L 6 31 L 5 30 L 5 26 L 6 25 L 6 24 L 7 23 Z M 17 2 L 16 3 L 14 3 L 13 4 L 12 4 L 11 5 L 10 5 L 5 10 L 5 11 L 4 12 L 4 13 L 3 14 L 3 17 L 2 18 L 2 23 L 3 24 L 3 31 L 4 32 L 4 34 L 3 35 L 3 37 L 4 38 L 4 39 L 6 41 L 10 41 L 11 42 L 11 45 L 12 46 L 12 49 L 13 49 L 14 50 L 15 50 L 15 47 L 16 46 L 17 46 L 18 47 L 18 51 L 21 51 L 21 48 L 22 47 L 23 47 L 24 48 L 24 51 L 27 51 L 27 47 L 28 46 L 29 46 L 30 47 L 30 50 L 31 50 L 32 49 L 33 49 L 33 46 L 34 45 L 34 43 L 36 41 L 39 41 L 42 38 L 42 37 L 43 36 L 42 35 L 42 34 L 41 33 L 42 32 L 42 26 L 43 25 L 43 17 L 42 16 L 42 14 L 41 13 L 41 12 L 40 11 L 40 10 L 35 5 L 34 5 L 33 4 L 32 4 L 31 3 L 29 3 L 28 2 Z" fill="currentColor" fill-rule="evenodd"/></svg>',
   veteran:  '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M16 2L17.6 7H22.5L18.7 9.8L20.3 14.8L16 12L11.7 14.8L13.3 9.8L9.5 7H14.4Z" fill="#d4a843"/><rect x="6" y="17" width="20" height="3" fill="#d4a843"/><rect x="6" y="22" width="20" height="3" fill="#d4a843" opacity=".6"/><rect x="6" y="27" width="20" height="3" fill="#d4a843" opacity=".3"/></svg>',
   crown:   '<svg width="22" height="22" viewBox="0 0 36 32" fill="none"><rect x="5" y="25" width="26" height="5" fill="#d4a843"/><path d="M5 25L5 11L11 19L18 7L25 19L31 11L31 25Z" fill="#d4a843" opacity=".9"/><circle cx="5" cy="11" r="2.5" fill="#d4a843"/><circle cx="18" cy="7" r="3" fill="#d4a843"/><circle cx="31" cy="11" r="2.5" fill="#d4a843"/></svg>',
 };
@@ -5520,7 +5594,6 @@ const SPECIAL_ICONS = {
   trainer: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 142"><path fill="currentColor" fill-rule="evenodd" d="M230 60v21h5l4-4V64l-4-4ZM14 60l-4 4v13l4 4h5V60Zm68-9v39h1l1-3v-4l2-2h77l2 2v4l1 3h1V51l-2 3v4l-2 2H86l-2-2-1-6Zm127-28-7 6-1 3v77l1 3 7 6h8l2-1 3-2 3-6V32l-3-6-5-3ZM32 23l-5 3-3 5v79l3 5 5 3h8l2-1 5-5 1-3V32l-1-3-7-6Zm148-13-4 2-4 6v105l2 4 6 4h8l2-1 5-5 1-3V19l-1-3-7-6ZM61 10l-7 6-1 3v103l1 3 7 6h8l4-2 4-6V18l-3-5-5-3Z"/></svg>',
   og: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116 167"><path fill="currentColor" fill-rule="evenodd" d="M31 71v48l12 7h2V72h-5l-1-1Zm31-9h29l4 3v15l-1 1-9 1-1-1v-9l-1-1-13 1v54h2l12-7v-17h-3l-4 2-1-1v-8l16-5 3 1v28l-1 2-5 5-19 11-8 4-3-2V66l1-2Zm-39 0h30l3 4v73l-3 2-8-4-19-11-6-7V65Zm-3-37 1-1 18 18 18-17 18 17 19-18 1 1v25l-1 1H21l-1-1Zm37-15L40 27l-4-3 3-1v-8H10v114l19 10 28 17 48-27V15H76v8l3 1-4 3-17-17Z"/></svg>',
   rocket: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 482 480"><path fill="currentColor" fill-rule="evenodd" d="m137 416 1-1 1 1-1 1Zm-20-9 1-1 1 1-1 1Zm47-20-14 11-3 1-6 5-4 1-6 6 2 2h2l3 4 2-1 22 12 1-1 14 6h2l7-8 1 1-1-1 1-2 2-2 1 1-1-1 1-2 5-4-1-1 2-2 2 2-2-2 6-8 1-3-4-2-7-1-1-2-1 1-5-1-20-9Zm179-22 1-1 1 1-1 1ZM47 285l1-1 1 1-1 1Zm29-10-14 11-2 1-1-1 1 1-13 12 3 12 3 7 2 2 2 7 11 18 3-2 8-12 11-14 2-1v-5l-9-19-2-11-3-6Zm239-11 1 1-3 3-23 16-9 5-1-1 1 1-7 5-9 5-2-1 1 1-2 2-31 16v3l4 8 4 16-1 11-5 12-2 8-2 4-2 1 1 1-11 21-7 10-1 1-1-1 1 2-8 11-12 14-8 8-1-1 1 1-2 2-15 13h-2l-6 7 1-1 1 1 4-4 4-1 12-7 2 1-1-1 2-2 8-5 2 1-1-1 1-1 2 1-1-1 2-2 6-4 1 1 2-3 12-8 2-3 14-11 21-22 2 1-2-2 4-4 1 1-1-1 1-2 7-8 1 1-1-2 4-4 7-12 2-2 1 1-1-1 1-3 7-11 1-1 1 1-1-2 1-1 1 1-1-2 8-14v-2l7-14 7-20 2-3 1-6 2-3 5-17v-2l-3 1ZM79 228l1-1 1 1-1 1Zm276-11 1-1 1 1-1 1Zm28-28 1-1 1 1-1 1Zm25-12 1-1 1 1-1 1Zm-204-11-37 11-17 8h-2l-11 6-2-1 1-1-1 3-21 11-18 13-2 1-1-1 1 1-13 11-1-1-1 1 1 1-2 2-2 1-1-1 1 1-5 5-1-1 1 1-8 8-1-1 1 2-1 1-1-1 1 1-17 19-6 10-2 2-1-1 1 2-2 2-1-1 1 2-9 13-3 8-9 15-2 7-1 1-1-1 1 4h1l1-3 1 1-1-2 3-2-1-1 1-2 1-1 1 1-1-1 5-7 3-3 1 1-1-2 3-3 1 1-1-1 2-1v-2l4-4 1 1-1-1 6-7 5-5 2-1 1 1 1-1-1-1 3-3 1 1-1-1 5-5 15-11 2-1 1 1-1-1 1-1 8-5 4-1 2-2 11-5 22-6h21l16 6 1 3 11-22v-2l2-2v-2l4-7 1-1 1 1-1-2 3-4v-2l6-10 3-3v-2l13-21 2-2 1 1-1-2 3-5Zm219-6-10 12-2 4-1 1-2-1 1 2-2 3-4 4-1-1 1 1-5 7-2 1 2 6-1 1 2 2 1 11 2 6v7l1 1v29l-1 1v8l-1 1-2 14-8 24-2 2v2l-6 12-11 17-8 8-1 3-1 1-1-1 1 1-11 11-6 5-1-1-1 1 1 1-2 2h-2l-12 10-4 2-1-1-2 3-5 3-4 1-2 2-9 2-6 4-9 3-4-1 1 1-4 2-16 3-4 3-3 5-8 8-1-1 1 1-11 11-17 13h33l1-1h8l1-1 22-3 20-6 6-3h3l2-2 15-6 14-8 11-8 1 1-1-1 1-1 2 1-1-1 3-3 10-7 2-3 2-1 1 1-1-1 6-6 1 1 2-4 3-2 4-6 1-1 1 1-1-1 10-12 1-3 9-12 14-28 8-24 4-23 1-1v-7l1-1v-38l-1-1v-9l-1-1v-5l-1-1v-4l-1-1-4-21-8-19Zm-80-46-1 1h-5l-8 5-4 6-1 8-1 1 1 1v5l5 8 5 4 8 1 1 1 12-3 4-4 1 1-1-2 1-1 1 1-1-1 4-9-1-10-3-5-7-6-7-2Zm89-1 1-1 1 1-1 1Zm-33-5 1-1 1 1-1 1Zm-62 0 1-1h12l1 2 1-1 5 2 10 9 4 9v12l-2 2 1 1-4 8-5 5-2-1 1 1-2 2-10 4h-9l-4-2h-3l-5-4 1-1-2 1-7-9-3-9v-7l1-4 2-1-1-2 2-2h2l-2-2 6-7 9-5Zm26-64-20 11-3 3-3 1-3 3-13 8-20 16h-2l-5 6-5 3-9 9-3 1-1 2-1-1 1 1-3 3-1-1 1 1-17 17-9 11-3 3-1-1 1 1-1 2-6 6-1-1 1 1-1 2-5 6-1-1 1 1-1 2-5 5-1 3-10 13-5 9-1 1-1-1 1 1-4 7-5 6v2l-1 1-1-1 1 2-2 2-1-1 1 2-4 5-2 5-3 3 1 1-3 3-3 8-1 1-1-1 1 2-10 19-12 30-1 1h-5l-3 2h-3l-13 6-5 1-3 3-7 3-1 2h-2l-16 17-1-1 1 2-7 7 1 1-2 1-2 4-2 2-1-1-1 4-2 1v2l-5 5-2 4-1 1-1-1 1 2-4 4-18 29-3 1 1 3-3 3-3 5v2l-4 4v2l-4 7-5 6v2l-3 4-2 6-3 3-1 5-1 1-2-1 1 2-2 5-4 5v2l-5 9v3l2 1 3-3 12-6 5-4 8-3 7-5h3l23-14 8-3 2-3 6-2 4-4h2l14-9 4-1 1-2 2-1 1 1 5-5 2-1 1 1 6-6 6-3 4-4 4-1 1-2 10-6 2-3 1 1 6-7h2l2-3 1 1-1-2 5-5 5-8 3-7v-3l2-2v-4l2-3v-5l2-3v-5l1-1 13-5 25-13 2 1-1-1 1-1 4-2 2 1-1-1 5-3 3 1-2-1 1-1 14-8 2 1-1-1 7-5 2-1 2 1-1-1 7-5 5-2 14-10 1 1-1-1 1-1 18-13 1 1 3-4 14-11 1 1-1-1 1-1 14-11 9-9 2 1 1-1-1-1 7-7 1 1-1-1 6-6 1 1-1-1 7-7 1 1-1-1 4-4 2 2-1 1 1-1-2-2 3-3 1 1 1-1-1-1 2-3 4-4 1 1-1-1 2-2 1 1-1-1 12-15 2-2 1 1-1-1 8-11 2-2 1 1-1-1 1-2 3-3 6-10 2-2 1 1-1-2 5-7 3-7h-13l-15-4-1-1 1-1-2 1-1-1 1-1-2 1-3-2-1-2 2-1-3 2-2-1 1-1-2 1-7-5-5-5 1-1-1 1-4-3-8-11-6-14-1-8-1-1 1-16Zm-131-6-1 1h-16l-5 2-1-1-5 2h-5l-10 3h-4l-3 2h-4l-2 2-7 1-5 3h-2l-2 2h-3l-6 4h-2l-17 9-13 10-3 1-7 7-5 3-1 2-4 2-3 5-4 2-5 5 1 1-4 3-9 12-1 3-7 8v2l-5 7-5 12-1 1-1-1 1 2-2 2-6 18-2 3v4l-2 2v5l-4 12v8l-2 6v24l-1 1 1 1v14l1 2h1l9-12 5-4 7-9 5-3-1-1 1-1 7-5 3-4 5-3v-8l2-3 2-11 5-9 1-7 4-6 4-10 6-8 2-5 2-1 10-14 3-3 2 1-1-2 7-7 2-1 1 1-1-1 4-4 3-1 5-6 4-1 4-4 2 1-1-1 4-3h2l2-3 5-1 10-6 13-4 3-2 16-4h6l6-2h41l3 2h7l11 3 7-4 7-7h2l3-4 3-1 12-9 6-2 1-2-2-2-4-1-3-3-3 1-1-1 1-1h-6l-3-2-11-2-4-2h-5l-4-2h-8l-5-2h-13l-1-1-2 1-1-1Zm231-28-8 3-14 2-4 2-12 2-10 4h-4l-14 6h-3l-2 2h-3l-5 3-6 1 1 1-1 1h-4l-4 3-1 8 1 1v10l2 4v4l2 5 11 17 7 7 9 5 2 3 8 2 1 1-1 1 2 1 2-1 3 1 1 3 1-1 1 1-1-1 1-1 2 2h8l2 2 7-2 3-5 2-7 7-11-1-2 4-8 12-39v-5l2-4v-5l2-5V10l-7 1Z"/></svg>',
-  skull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 54"><path fill="currentColor" fill-rule="evenodd" d="M 21 33 L 22 32 L 23 32 L 24 33 L 24 34 L 25 35 L 25 36 L 26 37 L 26 40 L 25 41 L 21 41 L 19 39 L 19 38 L 20 37 L 20 35 L 21 34 Z M 29 22 L 37 22 L 39 24 L 39 25 L 40 26 L 40 31 L 36 35 L 31 35 L 30 34 L 29 34 L 27 32 L 27 31 L 26 30 L 26 29 L 25 28 L 25 26 Z M 8 23 L 9 22 L 16 22 L 20 26 L 20 29 L 19 30 L 19 31 L 16 34 L 15 34 L 14 35 L 9 35 L 6 32 L 6 31 L 5 30 L 5 26 L 6 25 L 6 24 L 7 23 Z M 17 2 L 16 3 L 14 3 L 13 4 L 12 4 L 11 5 L 10 5 L 5 10 L 5 11 L 4 12 L 4 13 L 3 14 L 3 17 L 2 18 L 2 23 L 3 24 L 3 31 L 4 32 L 4 34 L 3 35 L 3 37 L 4 38 L 4 39 L 6 41 L 10 41 L 11 42 L 11 45 L 12 46 L 12 49 L 13 49 L 14 50 L 15 50 L 15 47 L 16 46 L 17 46 L 18 47 L 18 51 L 21 51 L 21 48 L 22 47 L 23 47 L 24 48 L 24 51 L 27 51 L 27 47 L 28 46 L 29 46 L 30 47 L 30 50 L 31 50 L 32 49 L 33 49 L 33 46 L 34 45 L 34 43 L 36 41 L 39 41 L 42 38 L 42 37 L 43 36 L 42 35 L 42 34 L 41 33 L 42 32 L 42 26 L 43 25 L 43 17 L 42 16 L 42 14 L 41 13 L 41 12 L 40 11 L 40 10 L 35 5 L 34 5 L 33 4 L 32 4 L 31 3 L 29 3 L 28 2 Z"/></svg>',
 };
 
 const INSIGNIA_CATALOG = [
@@ -5611,6 +5684,36 @@ function closeTierModal() {
 // db.unlockedSpecialInsignias; a local-only/guest install can never have one,
 // which is correct since those all require a real account.
 
+// Special insignias break this app's usual "device pushes, cloud only ever
+// mirrors what this device already knows" assumption — they can appear on
+// the account from server-side events (signup-order backfill, an admin
+// grant) this device never initiated. scheduleBackgroundSync() only ever
+// pushes, and a returning device's boot path skips straight past
+// pullCloudDataToLocal() once already reconciled (see bootstrapAuthGate),
+// so without this, a newly-granted badge would never reach an existing
+// logged-in user's device. Deliberately narrow (just these two columns,
+// not a full cloud pull) so it's cheap enough to call on every boot and
+// every profile visit.
+async function refreshMyInsignias(){
+  if(!currentUser) return;
+  try{
+    const [{data:insigniaRows}, {data:profileRow}] = await Promise.all([
+      supabaseClient.from('user_insignias').select('insignia_id').eq('user_id', currentUser.id),
+      supabaseClient.from('profiles').select('equipped_insignia').eq('id', currentUser.id).maybeSingle(),
+    ]);
+    const specialIds = new Set(INSIGNIA_CATALOG.map(s=>s.id));
+    const freshSpecials = (insigniaRows||[]).map(r=>r.insignia_id).filter(id=>specialIds.has(id));
+    const freshEquipped = (profileRow && profileRow.equipped_insignia) || null;
+    const changed = JSON.stringify(freshSpecials)!==JSON.stringify(db.unlockedSpecialInsignias||[])
+      || freshEquipped!==(db.equippedInsignia||null);
+    if(!changed) return;
+    db.unlockedSpecialInsignias = freshSpecials;
+    db.equippedInsignia = freshEquipped;
+    saveDB();
+    if(document.getElementById('profile-header')) renderProfileHeader();
+  }catch(e){ /* offline or transient — next boot/profile visit retries */ }
+}
+
 // Every tier the given count has already crossed, highest first — the old
 // getTier() only ever returned the single highest, which is all "auto-show
 // your current tier" needed; equip/unlock needs the full list.
@@ -5624,6 +5727,24 @@ function getUnlockedInsignias() {
   const specials = INSIGNIA_CATALOG.filter(s => (db.unlockedSpecialInsignias||[]).includes(s.id))
     .map(s => ({id:s.id, name:s.name, icon:s.icon, sizeMult:s.sizeMult, isTier:false}));
   return [...specials, ...tiers];
+}
+
+// Canonical display order for the picker, per Alan's explicit spec: tiers
+// first (ascending by session requirement — the ladder reads low to high),
+// then Trainer, then OG Member, then Early Supporter, then Founder last.
+// Returns every insignia (locked and unlocked) in that one fixed order.
+function getAllInsigniasInOrder() {
+  const unlockedIds = new Set(getUnlockedInsignias().map(i => i.id));
+  const tierRows = [...TIERS].sort((a, b) => a.at - b.at).map(t => ({
+    id: t.id, name: t.name, icon: TIER_ICONS[t.icon] || '', sizeMult: 1,
+    unlocked: unlockedIds.has(t.id), req: t.at + ' sessions',
+  }));
+  const specialOrder = ['trainer', 'og_member', 'early_supporter', 'founder'];
+  const specialRows = specialOrder.map(id => {
+    const s = INSIGNIA_CATALOG.find(x => x.id === id);
+    return {id: s.id, name: s.name, icon: s.icon, sizeMult: s.sizeMult, unlocked: unlockedIds.has(s.id), req: 'Not yet'};
+  });
+  return [...tierRows, ...specialRows];
 }
 
 // What should actually be shown right now: the explicitly equipped choice
@@ -5653,16 +5774,20 @@ function buildInsigniaBadgeHtml(insignia, clickable){
   const padding = Math.round(78 * (1 - innerPct) / 2);
   const icon = insignia ? insignia.icon : '<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
   const plusHtml = clickable ? `<div class="insignia-badge-plus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>` : '';
-  return `<div class="insignia-badge-wrap" ${clickable?'onclick="openInsigniaPicker()"':''}>
-    <div class="insignia-badge" style="padding:${padding}px;">${icon}</div>
-    ${plusHtml}
+  const nameHtml = insignia ? `<div class="insignia-badge-lbl">${insignia.name}</div>` : '';
+  return `<div class="insignia-badge-col">
+    <div class="insignia-badge-wrap" ${clickable?'onclick="openInsigniaPicker()"':''}>
+      <div class="insignia-badge" style="padding:${padding}px;">${icon}</div>
+      ${plusHtml}
+    </div>
+    ${nameHtml}
   </div>`;
 }
 
 function equipInsignia(id) {
   db.equippedInsignia = id;
   saveDB();
-  closeModal();
+  closeInsigniaPicker();
   renderProfileHeader();
   if (currentUser) {
     supabaseClient.from('profiles').update({equipped_insignia:id}).eq('id', currentUser.id).then(()=>{});
@@ -5671,29 +5796,19 @@ function equipInsignia(id) {
 
 function openInsigniaPicker() {
   if (!currentUser) return; // guests have nothing to equip against
-  const unlocked = getUnlockedInsignias();
   const equipped = getEquippedInsigniaDisplay();
-  document.getElementById('modal-title').textContent = 'Choose Your Insignia';
-  const lockedTiers = TIERS.filter(t => !unlocked.some(u => u.id === t.id))
-    .map(t => ({id:t.id, name:t.name, icon:TIER_ICONS[t.icon]||'', req:t.at+' sessions'}));
-  const lockedSpecials = INSIGNIA_CATALOG.filter(s => !unlocked.some(u => u.id === s.id))
-    .map(s => ({id:s.id, name:s.name, icon:s.icon, req:'Not yet'}));
-  document.getElementById('modal-body').innerHTML = `
-    <div class="insignia-grid">
-      ${unlocked.map(ins => `
-        <div class="insignia-pick ${equipped && equipped.id===ins.id ? 'selected' : ''}" onclick="equipInsignia('${ins.id}')">
-          <div class="insignia-pick-ic">${ins.icon}</div>
-          <div class="insignia-pick-lbl">${ins.name}</div>
-        </div>`).join('')}
-      ${[...lockedSpecials, ...lockedTiers].map(ins => `
-        <div class="insignia-pick locked">
-          <div class="insignia-pick-ic">${ins.icon}</div>
-          <div class="insignia-pick-lbl">${ins.name}</div>
-          <div class="insignia-pick-req">${ins.req}</div>
-        </div>`).join('')}
-    </div>`;
-  document.getElementById('modal-footer').innerHTML = `<button class="btn-ghost" onclick="closeModal()">Close</button>`;
-  document.getElementById('modal-overlay').classList.add('active');
+  const all = getAllInsigniasInOrder();
+  document.getElementById('insignia-picker-grid').innerHTML = all.map(ins => `
+    <div class="insignia-pick ${ins.unlocked ? '' : 'locked'} ${equipped && equipped.id===ins.id ? 'selected' : ''}" ${ins.unlocked ? `onclick="equipInsignia('${ins.id}')"` : ''}>
+      <div class="insignia-pick-ic">${ins.icon}</div>
+      <div class="insignia-pick-lbl">${ins.name}</div>
+      ${ins.unlocked ? '' : `<div class="insignia-pick-req">${ins.req}</div>`}
+    </div>`).join('');
+  document.getElementById('insignia-picker-overlay').style.display = 'flex';
+}
+
+function closeInsigniaPicker() {
+  document.getElementById('insignia-picker-overlay').style.display = 'none';
 }
 
 
@@ -6048,9 +6163,12 @@ async function bootstrapAuthGate(){
     currentUser = session.user;
     if(getLinkedUserId() === session.user.id){
       // Already reconciled on this device before — open the app directly.
-      // scheduleBackgroundSync() keeps things current from here on.
+      // scheduleBackgroundSync() keeps things current from here on for
+      // anything this device itself changes, but it never pulls — so
+      // server-granted insignias need their own explicit refresh here.
       showScreen('home');
       if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+      refreshMyInsignias().catch(()=>{});
       return;
     }
     try{
