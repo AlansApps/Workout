@@ -538,6 +538,47 @@ select.form-inp option{background:var(--panel);}
 .profile-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 .profile-tab-content{padding:14px 16px;}
 
+/* PRs tab — a dense one-row-per-exercise ledger, grouped by muscle group.
+   Reuses .mg-name for the group labels so it reads as the same visual
+   language as the Exercises DB screen. Uses --pr (an existing accent
+   already reserved for the live in-workout PR toast) instead of --gold so
+   an estimated 1RM never gets confused with the gold "Verified" account
+   badge shown just above it in the header. */
+.pr-list{padding:14px 16px 24px;}
+.pr-mg-hd{padding:14px 2px 6px;}
+.pr-mg-hd:first-child{padding-top:2px;}
+.pr-col-headers{display:flex;align-items:center;gap:12px;padding:0 2px 6px;}
+.pr-col-headers .pr-main{flex:1;}
+.pr-col-lbl{font-family:var(--hd);font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+.pr-col-headers .pr-col-1rm{width:56px;text-align:right;}
+.pr-col-headers .pr-col-tick-spacer{width:16px;}
+.pr-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line);}
+.pr-row:last-child{border-bottom:none;}
+.pr-main{flex:1;min-width:0;}
+.pr-ex-name{font-size:14px;font-weight:600;color:var(--bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pr-ex-set{font-size:11px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums;}
+.pr-1rm-col{text-align:right;flex-shrink:0;display:flex;align-items:center;gap:7px;}
+.pr-1rm{font-family:var(--hd);font-weight:700;font-size:17px;color:var(--pr);font-variant-numeric:tabular-nums;}
+.pr-1rm-unit{font-size:9px;color:var(--pr);opacity:.65;font-weight:600;margin-left:2px;}
+.pr-row.unset .pr-1rm{color:var(--line2);}
+.pr-row.unset .pr-1rm-unit{color:var(--line2);}
+.pr-row.unset .pr-ex-set{font-style:italic;color:var(--line2);}
+/* Deliberately purple + a plain checkmark, not gold — gold+check already
+   means "verified account" elsewhere on this same profile screen (see
+   .profile-name's verified badge). Hit area is oversized past the visible
+   dot (::before, inset -7px) since this needs to work as a mobile tap
+   target, not just a hover affordance. */
+.pr-tick{width:16px;height:16px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;position:relative;}
+.pr-tick::before{content:'';position:absolute;inset:-7px;}
+.pr-tick svg{width:9px;height:9px;color:#0a0616;}
+.pr-tick .pr-tip{position:absolute;bottom:calc(100% + 6px);right:-4px;background:var(--lift);border:1px solid var(--line2);color:var(--text);font-family:var(--body);font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;letter-spacing:.3px;z-index:5;}
+.pr-tick .pr-tip::after{content:'';position:absolute;top:100%;right:8px;border:4px solid transparent;border-top-color:var(--line2);}
+.pr-tick:hover .pr-tip,.pr-tick.tapped .pr-tip{opacity:1;}
+.pr-formula-strip{margin-top:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;gap:9px;}
+.pr-formula-strip svg{width:14px;height:14px;color:var(--pr);flex-shrink:0;}
+.pr-formula-strip span{font-size:10.5px;color:var(--dim);line-height:1.5;}
+body.light-mode .pr-1rm,body.light-mode .pr-1rm-unit,body.light-mode .pr-formula-strip svg{color:var(--pr-ink);}
+
 /* Program tab — one routine per row, tap to expand (Option A) */
 .prof-rtn-item{margin-bottom:8px;}
 .prof-rtn-row{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;}
@@ -668,6 +709,7 @@ body.light-mode{
   --text:#111111;
   --bright:#000000;
   --gold-ink:color-mix(in srgb, var(--gold) 55%, black);
+  --pr-ink:color-mix(in srgb, var(--pr) 60%, black);
 }
 /* Deliberate light-mode recolors (gold3 instead of the default text
    token, for emphasis) — NOT the same thing as the block this replaced:
@@ -2198,6 +2240,18 @@ const DEFAULT_EXERCISES=[
   {id:"e111",name:"Incline Walk (Treadmill)",muscle:"Cardio",notes:"",trackingType:"time"}
 ];
 
+// Which lifts get a PR/1RM row on the profile's PRs tab, and in what order.
+// Hand-picked per muscle group (Alan's call, 2026-07-23) rather than every
+// exercise: isolation/accessory work, machines, and time-tracked exercises
+// don't have a meaningful 1RM, so Triceps/Biceps/Core/Cardio are excluded
+// entirely. Deadlift stays filed under Legs to match DEFAULT_EXERCISES'
+// own muscle grouping, even though most lifters would call it a Back lift.
+const PR_TRACKED_EXERCISES=[
+  {muscle:"Legs",      ids:["e01","e36","e02"]}, // Barbell Squat, Deadlift, Romanian Deadlift
+  {muscle:"Chest",     ids:["e10"]},              // Barbell Bench Press
+  {muscle:"Back",      ids:["e24","e23"]},        // Pull-Up (Weighted), Barbell Bent Over Row
+  {muscle:"Shoulders", ids:["e75","e16"]},        // Standing Military Press, Dumbbell Shoulder Press
+];
 
 // Source data for the Browse Workouts catalog only (openBrowseRoutines()) —
 // no longer auto-seeded into new installs. Renaming/editing these entries
@@ -2382,10 +2436,35 @@ function loadDB() {
       if (!db.lastWeights) db.lastWeights = DEFAULT_LAST_WEIGHTS;
       if (!db.lastNotes)   db.lastNotes   = {};
       if (!db.allTimePRs)  db.allTimePRs  = {};
+      migratePRsToV2();
       return;
     }
   } catch(e) {}
   db = JSON.parse(JSON.stringify(DEFAULT_DB));
+}
+
+// Correction for workout history predating the 1RM-based PR redefinition:
+// pre-existing allTimePRs rows for weight-based exercises only ever stored
+// a raw max weight (no reps), so checkPR() and finishWorkout() couldn't
+// calculate a real 1RM to compare against yet. Rescans full session
+// history via bestSetForExercise() — the same function that drives the
+// profile PRs tab — so the record catches up to whichever logged set
+// actually has the highest calculated 1RM. Deliberately not a "run once"
+// migration: it also needs to re-apply after pullCloudDataToLocal()
+// overwrites allTimePRs/workoutLog with a (possibly still-legacy) cloud
+// copy, and re-deriving from full history is cheap and fully idempotent,
+// so just calling it again is simpler than tracking staleness. Time-tracked
+// exercises are untouched — their allTimePRs entry was always reps(=
+// seconds)-based, nothing to fix there.
+function migratePRsToV2(){
+  if(!db.workoutLog || !db.workoutLog.length) return;
+  const exIds=new Set();
+  db.workoutLog.forEach(sess=>sess.exercises.forEach(e=>{ if(!isTimeTrackedEx(e.id)) exIds.add(e.id); }));
+  exIds.forEach(exId=>{
+    const best=bestSetForExercise(db.workoutLog,exId);
+    if(best) db.allTimePRs[exId]={weight:best.weight,reps:best.reps,date:best.date};
+  });
+  saveDB();
 }
 
 // Builds the full local-data snapshot used both by the manual "Export
@@ -2797,20 +2876,92 @@ function isTimeTrackedEx(exId){
   return !!(def && def.trackingType==='time');
 }
 
+// ── 1RM estimation ──
+// Epley: 1RM = weight × (1 + reps/30). Chosen over Brzycki/Lombardi/etc.
+// because this app's catalog leans heavily on higher-rep accessory work
+// (12-20 rep sets), and Brzycki's denominator (1.0278 − 0.0278×reps)
+// approaches zero as reps climb, blowing up to ~2x actual weight by 20
+// reps — Epley stays sane across the app's full rep range instead.
+// A literal 1-rep set IS the 1RM directly (no formula — Epley alone would
+// actually estimate ABOVE the weight just lifted at reps=1, factor 1.033,
+// which would look like a bug: "I estimate you can lift more than what you
+// just lifted for a single"). Above PR_MAX_REPS_FOR_ESTIMATE the formula's
+// error margin is too wide to trust, so those sets don't get an estimate
+// at all and can't win the "best set" comparison below.
+const PR_MAX_REPS_FOR_ESTIMATE=12;
+function calc1RM(weight,reps){
+  if(!weight||weight<=0||!reps||reps<1) return 0;
+  if(reps===1) return weight;
+  if(reps>PR_MAX_REPS_FOR_ESTIMATE) return 0;
+  return Math.round(weight*(1+reps/30)*2)/2; // nearest 0.5kg
+}
+
+// The "PR set" for a weight-based exercise is whichever logged set has the
+// highest calculated 1RM — not necessarily the heaviest weight ever moved
+// (e.g. 100kg×8 legitimately outranks 120kg×1). Scans full session history
+// rather than trusting db.allTimePRs, so it's correct for both legacy data
+// (recorded before this existed, when only raw max weight was tracked) and
+// for other users' profiles, where `sessions` comes from fetchUserWorkoutLog
+// instead of the local db.workoutLog — same shape, so one function serves
+// both call sites.
+function bestSetForExercise(sessions,exId){
+  let best=null; // {weight, reps, oneRM, date}
+  let bestSingleWeight=0; // heaviest ever done for exactly 1 rep, for the "hit" tick
+  sessions.forEach(sess=>{
+    const exLog=sess.exercises.find(e=>e.id===exId);
+    if(!exLog) return;
+    exLog.sets.forEach(s=>{
+      if(s.reps===1 && s.weight>bestSingleWeight) bestSingleWeight=s.weight;
+      const oneRM=calc1RM(s.weight,s.reps);
+      if(oneRM>0 && (!best || oneRM>best.oneRM)){
+        best={weight:s.weight, reps:s.reps, oneRM, date:sess.date};
+      }
+    });
+  });
+  if(!best) return null;
+  return {...best, verified: bestSingleWeight>0 && bestSingleWeight>=best.oneRM};
+}
+
+// Weight-based allTimePRs entries now hold whichever set has the highest
+// calculated 1RM, not literally the heaviest weight ever moved — so the
+// weight alone can look like a regression if reps aren't shown alongside
+// it (e.g. "100kg" reads as weaker than a previous "120kg" unless you know
+// the 100kg set was ×8). Every display of a weight-based PR includes reps
+// for this reason; falls back to weight-only for the rare pre-migration
+// edge case where reps isn't a number yet.
+function fmtPRWeight(pr){
+  return pr.weight+'kg'+(typeof pr.reps==='number'&&pr.reps>0?'×'+pr.reps:'');
+}
+
+// A "new PR" during a live workout now means "this set's calculated 1RM
+// beats the best calculated 1RM we know of" — not just "heaviest weight
+// ever", so a hard 100kg×8 (higher e1RM) correctly out-PRs an easier
+// 120kg×1 on record, and vice versa. Sets past PR_MAX_REPS_FOR_ESTIMATE
+// never light the badge, since there's no 1RM estimate to compare with.
 function checkPR(ei,si){
   const ex=session.exercises[ei];
   const w=ex.actualWeight[si];
+  const r=ex.actualReps[si];
   const badge=document.getElementById('pr-'+ei+'-'+si);
   if(!badge) return;
-  // Best known weight: use allTimePRs if available, else max from lastWeights sets
+  const curOneRM=calc1RM(w,r);
+  if(!curOneRM){ badge.classList.remove('show'); return; }
+  // Best known 1RM: prefer allTimePRs (the cached record), else derive one
+  // from lastWeights' set-by-set history. Legacy allTimePRs rows recorded
+  // before this feature existed only ever stored a raw weight with no reps
+  // — treat those conservatively as if they were a single rep (oneRM ==
+  // weight) rather than guessing, so an old entry can't be beaten too easily.
   const cur=db.allTimePRs[ex.id];
   const lw=db.lastWeights[ex.id];
-  let best=null;
-  if(cur && typeof cur.weight==='number') best=cur.weight;
-  else if(lw && lw.sets && lw.sets.length) best=Math.max(...lw.sets.map(s=>s.weight||0));
-  else if(lw && typeof lw.weight==='number') best=lw.weight;
-  // Only show badge if we have a known previous best AND current weight strictly beats it
-  badge.classList.toggle('show', best!==null && w>best);
+  let bestOneRM=0;
+  if(cur && typeof cur.weight==='number'){
+    bestOneRM = typeof cur.reps==='number' ? calc1RM(cur.weight,cur.reps) || cur.weight : cur.weight;
+  } else if(lw && lw.sets && lw.sets.length){
+    bestOneRM=Math.max(...lw.sets.map(s=>calc1RM(s.weight,s.reps)||s.weight||0));
+  } else if(lw && typeof lw.weight==='number'){
+    bestOneRM=lw.weight;
+  }
+  badge.classList.toggle('show', curOneRM>bestOneRM);
 }
 
 // Called by the Active Clock's Done button — the time-tracked counterpart
@@ -3143,15 +3294,24 @@ function finishWorkout(){
       return;
     }
 
-    const maxW=Math.max(...weights);
     const allSameW=weights.every(w=>w===weights[0]);
     const displayW=lastW===0?'BW':lastW+'kg';
     const history=allSameW
       ? displayW+' · '+repsArr.join('/')
       : savedSets.map((s,i)=>(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+'×'+s.reps).join(' / ');
     db.lastWeights[key]={sets:savedSets,weight:lastW,reps:lastR,history};
-    if(maxW>0&&(!db.allTimePRs[ex.id]||maxW>db.allTimePRs[ex.id].weight)){
-      db.allTimePRs[ex.id]={weight:maxW,date:Date.now()};
+    // PR = the set from THIS session with the highest calculated 1RM, kept
+    // only if it beats the existing record's 1RM (see checkPR() for why a
+    // legacy weight-only record is treated as if reps were 1).
+    const cur=db.allTimePRs[ex.id];
+    const curBestOneRM = cur ? (typeof cur.reps==='number' ? calc1RM(cur.weight,cur.reps)||cur.weight : cur.weight) : 0;
+    let sessionBest=null;
+    savedSets.forEach(s=>{
+      const oneRM=calc1RM(s.weight,s.reps);
+      if(oneRM>0 && (!sessionBest || oneRM>sessionBest.oneRM)) sessionBest={weight:s.weight,reps:s.reps,oneRM};
+    });
+    if(sessionBest && sessionBest.oneRM>curBestOneRM){
+      db.allTimePRs[ex.id]={weight:sessionBest.weight,reps:sessionBest.reps,date:Date.now()};
     }
   });
 
@@ -3664,22 +3824,30 @@ async function renderProfile(){
     <div id="profile-sticky" class="profile-sticky">
       <div id="profile-header"></div>
       <div class="profile-tabs">
-        <button class="profile-tab active" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
+        <button class="profile-tab active" id="ptab-prs" onclick="switchProfileTab('prs')">PRs</button>
+        <button class="profile-tab" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
         <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
       </div>
     </div>
-    <div id="profile-tab-program" class="profile-tab-content"></div>
+    <div id="profile-tab-prs" class="profile-tab-content" style="padding:0;"></div>
+    <div id="profile-tab-program" class="profile-tab-content" style="display:none;"></div>
     <div id="profile-tab-log" class="profile-tab-content" style="display:none;padding:0;">
       <div id="profile-log-list" class="list-scroll"></div>
     </div>
   `;
   await renderProfileHeader();
+  renderProfilePRsTab();
   renderProfileProgramTab();
   renderLog();
 }
 
+function renderProfilePRsTab(){
+  const el=document.getElementById('profile-tab-prs');
+  if(el) el.innerHTML=buildPRsTabHtml(db.workoutLog);
+}
+
 function switchProfileTab(tab){
-  ['program','log'].forEach(t=>{
+  ['prs','program','log'].forEach(t=>{
     document.getElementById('profile-tab-'+t).style.display=(t===tab?'block':'none');
     document.getElementById('ptab-'+t).classList.toggle('active',t===tab);
   });
@@ -3976,7 +4144,7 @@ async function fetchUserWorkoutLog(userId){
   try{
     const { data } = await supabaseClient
       .from('workout_logs')
-      .select('routine_name, performed_at, duration_seconds, note, workout_log_exercises(exercise_name, position, workout_log_sets(set_index, weight, reps))')
+      .select('routine_name, performed_at, duration_seconds, note, workout_log_exercises(exercise_id, exercise_name, position, workout_log_sets(set_index, weight, reps))')
       .eq('user_id', userId)
       .order('performed_at', {ascending:false});
     return (data||[]).map(row=>({
@@ -3987,7 +4155,7 @@ async function fetchUserWorkoutLog(userId){
       exercises: (row.workout_log_exercises||[])
         .sort((a,b)=>a.position-b.position)
         .map(re=>({
-          name: re.exercise_name,
+          id: re.exercise_id, name: re.exercise_name,
           sets: (re.workout_log_sets||[]).sort((a,b)=>a.set_index-b.set_index).map(s=>({weight:s.weight, reps:s.reps})),
         })),
     }));
@@ -4131,17 +4299,20 @@ async function renderOtherProfile(){
         <button class="oprof-ping-btn ${pingUsed?'used':''}" id="oprof-ping-btn" onclick="openPingPicker('${uid}')" aria-label="Ping">${PING_ICON_SVG}</button>
       </div>
       <div class="profile-tabs">
-        <button class="profile-tab active" id="optab-program" onclick="switchOtherProfileTab('program')">Program</button>
+        <button class="profile-tab active" id="optab-prs" onclick="switchOtherProfileTab('prs')">PRs</button>
+        <button class="profile-tab" id="optab-program" onclick="switchOtherProfileTab('program')">Program</button>
         <button class="profile-tab" id="optab-log" onclick="switchOtherProfileTab('log')">Log</button>
       </div>
     </div>
-    <div id="oprof-tab-program" class="profile-tab-content"></div>
+    <div id="oprof-tab-prs" class="profile-tab-content" style="padding:0;"></div>
+    <div id="oprof-tab-program" class="profile-tab-content" style="display:none;"></div>
     <div id="oprof-tab-log" class="profile-tab-content" style="display:none;padding:0;">
       <div id="oprof-log-list" class="list-scroll"></div>
     </div>
   `;
 
   if(!canView){
+    document.getElementById('oprof-tab-prs').innerHTML=buildPrivateLockHtml();
     document.getElementById('oprof-tab-program').innerHTML=buildPrivateLockHtml();
     document.getElementById('oprof-log-list').innerHTML=buildPrivateLockHtml();
     _otherProfileHtmlCache[uid]=body.innerHTML;
@@ -4153,6 +4324,7 @@ async function renderOtherProfile(){
     fetchUserWorkoutLog(uid),
   ]);
   if(_otherProfileUserId!==uid) return; // navigated away again while these were in flight
+  document.getElementById('oprof-tab-prs').innerHTML=buildPRsTabHtml(logEntries);
   document.getElementById('oprof-tab-program').innerHTML=buildProgramRotationHtml(programData.schedule, programData.schedulePos, programData.routines);
   document.getElementById('oprof-log-list').innerHTML=buildLogListHtml(logEntries);
   _otherProfileHtmlCache[uid]=body.innerHTML;
@@ -4167,7 +4339,7 @@ function buildPrivateLockHtml(){
 }
 
 function switchOtherProfileTab(tab){
-  ['program','log'].forEach(t=>{
+  ['prs','program','log'].forEach(t=>{
     document.getElementById('oprof-tab-'+t).style.display=(t===tab?'block':'none');
     document.getElementById('optab-'+t).classList.toggle('active',t===tab);
   });
@@ -4750,7 +4922,7 @@ function renderExercisesDB(){
           const pr=db.allTimePRs[e.id];
           const lw=db.lastWeights[e.id];
           const timed=e.trackingType==='time';
-          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${timed?fmtDuration(pr.reps)+' held':pr.weight+'kg'}</div>`:'';
+          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr)}</div>`:'';
           const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} Last: ${lw.history||(timed?fmtDuration(lw.reps):lw.weight+'kg')}</div>`:'';
           return `<div class="ex-db-row" onclick="openExDetail('${e.id}')">
             <div class="ex-db-row-inner">
@@ -5017,7 +5189,7 @@ function renderExDetail(exId){
               </div>
             </div>`
         )}
-        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${timed?fmtDuration(pr.reps)+' held':pr.weight+'kg'} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
+        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
       </div>
     </div>
 
@@ -5271,7 +5443,7 @@ function drawExChart(){
 
   document.getElementById('ex-chart-title').textContent=ex.name;
   const pr=db.allTimePRs[exId];
-  document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+(timed?fmtDuration(pr.reps):pr.weight+'kg'):'';
+  document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+(timed?fmtDuration(pr.reps):fmtPRWeight(pr)):'';
 
   if(sessions.length<2){
     document.getElementById('ex-svg').innerHTML='<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family="Rajdhani" dy=".3em">Not enough data for this range</text>';
@@ -5674,6 +5846,63 @@ const INSIGNIA_CATALOG = [
 const ICON_LAST = '<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 10L4 15l5 5"/><path d="M4 15h11a5 5 0 0 0 0-10H9"/></svg>';
 const ICON_PR = '<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 const ICON_NOTE = '<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg>';
+const ICON_1RM_FORMULA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
+// The "hit" tick on the PRs tab — deliberately just a checkmark, no circle
+// styling baked into the icon itself (that comes from .pr-tick), so it
+// can't be mistaken for the unrelated gold account-verification checkmark
+// used elsewhere on this same profile screen.
+const ICON_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+// ═══════════════════════════════════════════
+//  PRs TAB — shared between own profile and other-profile views. `sessions`
+//  is either the local db.workoutLog (own profile) or the array returned by
+//  fetchUserWorkoutLog() (other profiles) — same shape (exercises[].id,
+//  exercises[].sets[].weight/reps), so one builder serves both.
+// ═══════════════════════════════════════════
+function buildPRsTabHtml(sessions){
+  const groupsHtml = PR_TRACKED_EXERCISES.map(group => {
+    const rowsHtml = group.ids.map(exId => {
+      const def = db.exercises.find(e=>e.id===exId);
+      if(!def) return ''; // catalog changed underneath a stale id — skip rather than show a blank row
+      const best = bestSetForExercise(sessions, exId);
+      if(!best){
+        return `<div class="pr-row unset">
+          <div class="pr-main">
+            <div class="pr-ex-name">${escapeHtml(def.name)}</div>
+            <div class="pr-ex-set">Not logged yet</div>
+          </div>
+          <div class="pr-1rm-col"><div><div class="pr-1rm">—</div></div></div>
+        </div>`;
+      }
+      const setLabel = (best.weight===0?'BW':best.weight+'kg')+' × '+best.reps;
+      const tickHtml = best.verified
+        ? `<div class="pr-tick" onclick="this.classList.toggle('tapped')">${ICON_TICK}<div class="pr-tip">Hit — real set logged at this weight</div></div>`
+        : '';
+      return `<div class="pr-row">
+        <div class="pr-main">
+          <div class="pr-ex-name">${escapeHtml(def.name)}</div>
+          <div class="pr-ex-set">${setLabel}</div>
+        </div>
+        <div class="pr-1rm-col">
+          <div class="pr-1rm">${best.oneRM}<span class="pr-1rm-unit">KG</span></div>
+          ${tickHtml}
+        </div>
+      </div>`;
+    }).join('');
+    if(!rowsHtml) return '';
+    return `<div class="pr-mg-hd"><span class="mg-name">${escapeHtml(group.muscle)}</span></div>${rowsHtml}`;
+  }).join('');
+
+  return `<div class="pr-list">
+    <div class="pr-col-headers">
+      <span class="pr-main pr-col-lbl">PR SET</span>
+      <span class="pr-col-1rm pr-col-lbl">EST 1RM</span>
+      <span class="pr-col-tick-spacer"></span>
+    </div>
+    ${groupsHtml}
+    <div class="pr-formula-strip">${ICON_1RM_FORMULA}<span>Estimated from your best set. A real single-rep set at or above this number earns the <b style="color:var(--pr);font-weight:600;">tick</b>.</span></div>
+  </div>`;
+}
 
 // "Sessions"/tier progress count distinct calendar DAYS with at least one
 // saved workout, not the raw number of logged entries — otherwise someone
@@ -6802,6 +7031,7 @@ async function pullCloudDataToLocal(){
   db.lastWeights = lastWeights;
   db.allTimePRs = allTimePRs;
   db.workoutLog = workoutLog;
+  migratePRsToV2(); // corrects any legacy (weight-only, no reps) PR rows the cloud just brought in
 
   const s = settingsRes.data;
   if(s){
