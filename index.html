@@ -512,7 +512,7 @@ select.form-inp option{background:var(--panel);}
 /* ── Insignia picker popup grid ── */
 .insignia-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 10px;}
 .insignia-pick{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;position:relative;}
-.insignia-pick-ic{width:44px;height:44px;border-radius:50%;background:var(--void);border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--gold);box-sizing:border-box;padding:9px;}
+.insignia-pick-ic{position:relative;width:44px;height:44px;border-radius:50%;background:var(--void);border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--gold);box-sizing:border-box;padding:9px;}
 .insignia-pick-ic svg{width:100%;height:100%;}
 .insignia-pick.selected .insignia-pick-ic{border-color:var(--gold3);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold3) 30%,transparent);}
 .insignia-pick-lbl{font-size:9px;color:var(--dim);font-weight:600;text-align:center;line-height:1.3;}
@@ -521,6 +521,10 @@ select.form-inp option{background:var(--panel);}
    to the exact same flat mid-gray, so every locked icon reads as one
    consistent "off" tone instead of each fading toward its own hue. */
 .insignia-pick.locked .insignia-pick-ic svg{filter:contrast(0) brightness(.85);}
+/* One diagonal line, bottom-left to top-right — a padlock reads as "special
+   item," a plain strike reads as "off/unavailable," which is the read we
+   actually want here. */
+.insignia-pick.locked .insignia-pick-ic::after{content:'';position:absolute;left:9%;right:9%;top:50%;height:1.5px;background:var(--dim);transform:translateY(-50%) rotate(-45deg);}
 .insignia-pick-req{font-size:7.5px;color:var(--dim);opacity:.7;}
 .profile-name{font-family:var(--hd);font-size:23px;font-weight:700;letter-spacing:1px;color:var(--bright);}
 .profile-handle{font-size:13px;color:var(--dim);margin-top:3px;}
@@ -2265,7 +2269,10 @@ const DEFAULT_DB={
   // and fresh installs; only populated by pullCloudDataToLocal(). Tiers are
   // never stored here since they're always computed fresh from workoutLog.
   unlockedSpecialInsignias:[],
-  equippedInsignia:null
+  equippedInsignia:null,
+  // Local-only (not cloud-synced) — when the Interactions bell dot last
+  // got cleared by actually viewing that tab, see refreshPendingBadge().
+  lastInteractionsSeenAt:null
 };
 
 
@@ -3990,22 +3997,37 @@ async function fetchUserWorkoutLog(userId){
 // ═══════════════════════════════════════════
 //  OTHER USER'S PROFILE — a drill-down screen (back arrow, not a nav
 //  destination). closeOtherProfile() returns to whichever screen opened
-//  it (search results, the Interactions feed, or Requests), tracked in
-//  _otherProfileReturnTo rather than a fixed 'search' so the back arrow
-//  always feels correct regardless of entry point.
+//  it (search results, the Interactions feed, Requests, another profile's
+//  followers/following popup, or that same popup on your own profile) —
+//  a real stack, not a single remembered slot, so a chain like
+//  "profile -> their followers -> someone else's profile -> back" lands
+//  you back on the followers popup instead of skipping past it.
 // ═══════════════════════════════════════════
 let _otherProfileUserId=null;
-let _otherProfileReturnTo='search';
 let _otherProfileIsPrivate=false;
+let _profileNavStack=[];
 
-function openOtherProfile(userId, returnTo){
+// returnToOtherProfileUserId/reopenPopup are only ever passed by
+// openProfileFromFollowList() — every pre-existing call site (search
+// results, Interactions, Requests, Ping) still just passes (userId,
+// returnTo) and gets the exact same behavior as before.
+function openOtherProfile(userId, returnTo, returnToOtherProfileUserId, reopenPopup){
   if(!currentUser || userId===currentUser.id) return; // no drill-down into your own profile
+  _profileNavStack.push({
+    screen: returnTo||'search',
+    otherProfileUserId: returnToOtherProfileUserId||null,
+    popup: reopenPopup||null,
+  });
   _otherProfileUserId=userId;
-  _otherProfileReturnTo=returnTo||'search';
   showScreen('other-profile');
 }
 function closeOtherProfile(){
-  showScreen(_otherProfileReturnTo||'search');
+  const prev=_profileNavStack.pop() || {screen:'search', otherProfileUserId:null, popup:null};
+  if(prev.screen==='other-profile' && prev.otherProfileUserId){
+    _otherProfileUserId=prev.otherProfileUserId; // restore WHICH other profile was underneath, not just the screen name
+  }
+  showScreen(prev.screen);
+  if(prev.popup) openFollowListPopup(prev.popup.ownerUserId, prev.popup.kind);
 }
 
 // Swipe left-to-right anywhere on someone else's profile = same as tapping
@@ -4164,20 +4186,36 @@ function onOtherProfileFollowClick(){
 let _searchMode='search';
 let _searchDebounce=null;
 let _pendingRequestCount=0;
+// True when something's landed in the Interactions feed (a new accepted
+// follower, a ping) since the user last actually looked at that tab. This
+// is separate from _pendingRequestCount: a public account's follows go
+// straight to 'accepted' with no pending state at all, so without this the
+// bell would never light up for "someone just followed you" — only ever
+// for private-account follow *requests* awaiting an accept/decline.
+let _hasUnseenInteractions=false;
 
 async function refreshPendingBadge(){
-  if(!currentUser){ _pendingRequestCount=0; return; }
+  if(!currentUser){ _pendingRequestCount=0; _hasUnseenInteractions=false; return; }
   try{
-    const { count } = await supabaseClient.from('follows').select('follower_id', {count:'exact', head:true}).eq('following_id', currentUser.id).eq('status', 'pending');
+    const [{count}, {data:latestFollow}, {data:latestPing}] = await Promise.all([
+      supabaseClient.from('follows').select('follower_id', {count:'exact', head:true}).eq('following_id', currentUser.id).eq('status', 'pending'),
+      supabaseClient.from('follows').select('accepted_at').eq('following_id', currentUser.id).eq('status','accepted').order('accepted_at',{ascending:false}).limit(1),
+      supabaseClient.from('pings').select('created_at').eq('recipient_id', currentUser.id).order('created_at',{ascending:false}).limit(1),
+    ]);
     _pendingRequestCount = count||0;
-  }catch(e){ _pendingRequestCount=0; }
+    const latestFollowAt = (latestFollow && latestFollow[0]) ? new Date(latestFollow[0].accepted_at).getTime() : 0;
+    const latestPingAt = (latestPing && latestPing[0]) ? new Date(latestPing[0].created_at).getTime() : 0;
+    const latestAt = Math.max(latestFollowAt, latestPingAt);
+    const lastSeen = db.lastInteractionsSeenAt ? new Date(db.lastInteractionsSeenAt).getTime() : 0;
+    _hasUnseenInteractions = latestAt>0 && latestAt>lastSeen;
+  }catch(e){ _pendingRequestCount=0; _hasUnseenInteractions=false; }
 }
 // Patches just the badge dot in place (see renderSearchScreen) instead of
 // re-rendering the whole toprow, so it can't wipe out anything the user
 // has already typed into #search-input.
 function updateSearchPendingBadge(){
   const badge=document.getElementById('search-pending-badge');
-  if(badge) badge.style.display = _pendingRequestCount>0 ? 'block' : 'none';
+  if(badge) badge.style.display = (_pendingRequestCount>0 || _hasUnseenInteractions) ? 'block' : 'none';
 }
 
 function renderSearchScreen(){
@@ -4196,6 +4234,14 @@ function renderSearchScreen(){
 function setSearchMode(mode){
   _searchMode=mode;
   document.getElementById('search-title').textContent = mode==='interactions' ? 'Interactions' : 'Search';
+  if(mode==='interactions' && _hasUnseenInteractions){
+    // Actually viewing the feed clears the "something new" dot — the
+    // pending-requests count is untouched, that only clears by acting on
+    // a request (see Requests screen), not just glancing at this list.
+    _hasUnseenInteractions=false;
+    db.lastInteractionsSeenAt=new Date().toISOString();
+    saveDB();
+  }
   renderSearchTopRow();
   renderSearchBody();
 }
@@ -4203,7 +4249,7 @@ function setSearchMode(mode){
 function renderSearchTopRow(){
   const el=document.getElementById('search-toprow');
   if(_searchMode==='search'){
-    const badgeHtml = `<span class="search-circle-badge" id="search-pending-badge" style="display:${_pendingRequestCount>0?'block':'none'}"></span>`;
+    const badgeHtml = `<span class="search-circle-badge" id="search-pending-badge" style="display:${(_pendingRequestCount>0||_hasUnseenInteractions)?'block':'none'}"></span>`;
     el.innerHTML=`
       <div class="search-toprow-inner">
         <div class="search-pill-real">
@@ -4345,7 +4391,7 @@ async function fetchFollowList(userId, kind){
 
 function buildFollowListRowHtml(p, tierIconHtml){
   const verifiedBadge = p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
-  return `<div class="search-result-row" onclick="closeModal();openOtherProfile('${p.id}','search')">
+  return `<div class="search-result-row" onclick="openProfileFromFollowList('${p.id}')">
     ${buildListRowTierHtml(tierIconHtml)}
     <div class="search-result-id">
       <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
@@ -4354,7 +4400,25 @@ function buildFollowListRowHtml(p, tierIconHtml){
   </div>`;
 }
 
+// Set fresh every time the popup opens; read only by a row's click inside
+// it, so this can't go stale in a way that's ever actually observed.
+let _followListContext=null;
+
+// Tapping a row inside the popup drills into that person's profile — on
+// the way back, this reopens the exact same popup instead of just landing
+// on whatever screen was underneath (see openOtherProfile/closeOtherProfile).
+function openProfileFromFollowList(targetUserId){
+  const ctx=_followListContext;
+  closeModal();
+  openOtherProfile(targetUserId, ctx.underlyingScreen, ctx.underlyingOtherProfileUserId, {ownerUserId:ctx.ownerUserId, kind:ctx.kind});
+}
+
 async function openFollowListPopup(userId, kind){
+  _followListContext = {
+    ownerUserId: userId, kind,
+    underlyingScreen: (userId===currentUser.id) ? 'profile' : 'other-profile',
+    underlyingOtherProfileUserId: (userId===currentUser.id) ? null : _otherProfileUserId,
+  };
   document.getElementById('modal-title').textContent = kind==='followers' ? 'Followers' : 'Following';
   document.getElementById('modal-body').innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
   document.getElementById('modal-footer').innerHTML = `<button class="btn-ghost" onclick="closeModal()">Close</button>`;
