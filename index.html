@@ -1725,6 +1725,15 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="settings-section-label">Account</div>
     <div id="account-section-body"></div>
 
+    <!-- WEIGHT LOGGING — how to interpret the raw number typed into a
+         weight field, so 1RM math (and every "true weight" display) is
+         correct for both barbell per-side loaders and dumbbell per-hand
+         loggers. Local-first (works for guests too, not gated on
+         sign-in like Account above) — see getTrueWeight(). Filled in by
+         renderWeightPrefsSection(). -->
+    <div class="settings-section-label">Weight Logging</div>
+    <div id="weight-prefs-section-body"></div>
+
     <!-- DATA -->
     <div class="settings-section-label">Data</div>
     <div class="settings-group">
@@ -2129,94 +2138,97 @@ body.light-mode .auth-choice-title{color:#111;}
 //  DEFAULT DATA  (Alan's baseline from docx)
 // ═══════════════════════════════════════════
 const DEFAULT_EXERCISES=[
-  {id:"e01",name:"Barbell Squat",muscle:"Legs",notes:"90º depth",video:"0043-qXTaZnJ"},
-  {id:"e61",name:"Bulgarian Split Squat",muscle:"Legs",notes:""},
-  {id:"e81",name:"Split Squat",muscle:"Legs",notes:"",video:"2368-9E25EOx"},
-  {id:"e62",name:"Hack Squat",muscle:"Legs",notes:""},
-  {id:"e78",name:"Barbell Hack Squat",muscle:"Legs",notes:"",video:"0046-5VCj6iH"},
-  {id:"e06",name:"Leg Press",muscle:"Legs",notes:"",video:"0739-10Z2DXU"},
-  {id:"e02",name:"Romanian Deadlift",muscle:"Legs",notes:"Chest: OUT · Stance: SHOULDER · Hands: OUTSIDE",video:"0085-wQ2c4XD"},
-  {id:"e36",name:"Deadlift",muscle:"Legs",notes:"",video:"0032-ila4NZS"},
-  {id:"e03",name:"Hip Thrust",muscle:"Legs",notes:""},
-  {id:"e82",name:"Resistance Band Hip Thrust on Knees",muscle:"Legs",notes:"",video:"3236-Pjbc0Kt"},
-  {id:"e04",name:"Leg Extension",muscle:"Legs",notes:"Respaldo: 1 · Rodilla: IN · Pies: HIGH",video:"0585-my33uHU"},
-  {id:"e35",name:"Lying Leg Curl",muscle:"Legs",notes:"",video:"0586-17lJ1kr"},
-  {id:"e77",name:"Sitting Leg Curl",muscle:"Legs",notes:"",video:"0599-Zg3XY7P"},
-  {id:"e07",name:"Leg Curl (Unilateral)",muscle:"Legs",notes:"",video:"0795-C5jncD2"},
-  {id:"e08",name:"Seated Hip Adduction",muscle:"Legs",notes:""},
-  {id:"e32",name:"Seated Hip Abduction (Glutes)",muscle:"Legs",notes:"",video:"0597-CHpahtl"},
-  {id:"e09",name:"Cable Glute Kickback",muscle:"Legs",notes:""},
-  {id:"e63",name:"Walking Lunge",muscle:"Legs",notes:"",video:"1460-IZVHb27"},
-  {id:"e64",name:"Lunge",muscle:"Legs",notes:""},
-  {id:"e83",name:"Dumbbell Lunge",muscle:"Legs",notes:"",video:"0336-RRWFUcw"},
-  {id:"e37",name:"Calf Raise",muscle:"Legs",notes:"",video:"1373-bJYHBIN"},
-  {id:"e38",name:"Dumbbell Calf Raise (Unilateral)",muscle:"Legs",notes:"",video:"0409-1kB3Wmk"},
-  {id:"e05",name:"Haka Calf Raise",muscle:"Legs",notes:"Hombros: 7"},
-  {id:"e39",name:"Haka Calf Raise (Unilateral)",muscle:"Legs",notes:"Hombros: 7"},
-  {id:"e91",name:"Dumbbell Goblet Squat",muscle:"Legs",notes:"",video:"1760-yn8yg1r"},
-  {id:"e92",name:"Barbell Front Squat",muscle:"Legs",notes:"",video:"0042-zG0zs85"},
-  {id:"e93",name:"Barbell Sumo Deadlift",muscle:"Legs",notes:"",video:"0117-KgI0tqW"},
-  {id:"e94",name:"Barbell Good Morning",muscle:"Legs",notes:"",video:"0044-XlZ4lAC"},
-  {id:"e95",name:"Barbell Glute Bridge",muscle:"Legs",notes:"",video:"1409-qKBpF7I"},
-  {id:"e96",name:"Dumbbell Step-Up",muscle:"Legs",notes:"",video:"0431-aXtJhlg"},
-  {id:"e97",name:"Barbell Rack Pull",muscle:"Legs",notes:"",video:"0074-za9Ni4z"},
-  {id:"e10",name:"Barbell Bench Press",muscle:"Chest",notes:"",video:"0025-EIeI8Vf"},
-  {id:"e40",name:"Dumbbell Bench Press",muscle:"Chest",notes:"",video:"0289-SpYC0Kp"},
-  {id:"e11",name:"Barbell Incline Bench Press",muscle:"Chest",notes:"30º · Nip height",video:"0047-3TZduzM"},
-  {id:"e41",name:"Dumbbell Incline Bench Press",muscle:"Chest",notes:"",video:"0314-ns0SIbU"},
-  {id:"e65",name:"Barbell Decline Bench Press",muscle:"Chest",notes:"",video:"0033-GrO65fd"},
-  {id:"e13",name:"Machine Chest Fly",muscle:"Chest",notes:"Position: 5 · Seat: Low"},
-  {id:"e60",name:"Dumbbell Chest Fly",muscle:"Chest",notes:"",video:"0308-yz9nUhF"},
-  {id:"e14",name:"Cable Seated Chest Press",muscle:"Chest",notes:"Position: 20",video:"2144-nIR4Rwl"},
-  {id:"e66",name:"Cable Chest Crossover",muscle:"Chest",notes:""},
-  {id:"e84",name:"Cable Upper Chest Crossover",muscle:"Chest",notes:"",video:"1270-j7XMAyn"},
-  {id:"e42",name:"Push-Up",muscle:"Chest",notes:"",video:"0662-I4hDWkc"},
-  {id:"e98",name:"Weighted Svend Press",muscle:"Chest",notes:"",video:"0856-I1OBLnn"},
-  {id:"e24",name:"Pull-Up",muscle:"Back",notes:"Weighted",video:"0652-lBDjFxJ"},
-  {id:"e20",name:"Cable Pulldown",muscle:"Back",notes:"Position: 2",video:"0198-RVwzP10"},
-  {id:"e23",name:"Barbell Bent Over Row",muscle:"Back",notes:"Elbows 45º OUT",video:"0027-eZyBC3j"},
-  {id:"e21",name:"Chest Supported Row",muscle:"Back",notes:"Position: 4 · Seat: UP"},
-  {id:"e25",name:"Chest Supported Row (Unilateral)",muscle:"Back",notes:""},
-  {id:"e67",name:"Cable Seated Row",muscle:"Back",notes:"",video:"0861-fUBheHs"},
-  {id:"e26",name:"Low Cable Row (Unilateral)",muscle:"Back",notes:""},
-  {id:"e85",name:"Cable Low Seated Row",muscle:"Back",notes:"",video:"0180-hvV79Si"},
-  {id:"e43",name:"Dumbbell Bent Over Row (Unilateral)",muscle:"Back",notes:""},
-  {id:"e86",name:"Dumbbell Bent Over Row",muscle:"Back",notes:"",video:"0293-BJ0Hz5L"},
-  {id:"e68",name:"T-Bar Row",muscle:"Back",notes:"",video:"0606-aaXr7ld"},
-  {id:"e22",name:"One-Arm Cable Pullover",muscle:"Back",notes:"Rest: 60''"},
-  {id:"e31",name:"Dumbbell Shrug",muscle:"Back",notes:"Rest: 30''"},
-  {id:"e79",name:"Barbell Shrug",muscle:"Back",notes:"",video:"0095-dG7tG5y"},
-  {id:"e69",name:"Hyperextension",muscle:"Back",notes:"",video:"0489-zhMwOwE"},
-  {id:"e99",name:"Cable Straight Arm Pulldown",muscle:"Back",notes:"",video:"0238-x69MAlq"},
-  {id:"e16",name:"Dumbbell Shoulder Press",muscle:"Shoulders",notes:"67.5º",video:"0405-znQUdHY"},
-  {id:"e75",name:"Standing Military Press",muscle:"Shoulders",notes:""},
-  {id:"e87",name:"Smith Standing Military Press",muscle:"Shoulders",notes:"",video:"0774-jjUPrze"},
-  {id:"e100",name:"Dumbbell Arnold Press",muscle:"Shoulders",notes:"",video:"2137-Xy4jlWA"},
-  {id:"e76",name:"Machine Shoulder Press",muscle:"Shoulders",notes:""},
-  {id:"e12",name:"Dumbbell Lateral Raise",muscle:"Shoulders",notes:"",video:"0334-DsgkuIt"},
-  {id:"e71",name:"Dumbbell Front Raise",muscle:"Shoulders",notes:"",video:"0310-3eGE2JC"},
-  {id:"e72",name:"Barbell Upright Row",muscle:"Shoulders",notes:"",video:"0120-UDlhcO8"},
-  {id:"e70",name:"Dumbbell Reverse Fly",muscle:"Shoulders",notes:"",video:"0383-EAs3xL9"},
-  {id:"e15",name:"Cable Face Pull",muscle:"Shoulders",notes:"Position: 13 · Elbows: UP · Elbows: OUT"},
-  {id:"e18",name:"Cable Overhead Triceps Extension",muscle:"Triceps",notes:"Position: 11",video:"0194-2IxROQ1"},
-  {id:"e34",name:"Cable Overhead Triceps Extension (Unilateral)",muscle:"Triceps",notes:"Position: 11",video:"1727-i11JWU7"},
-  {id:"e17",name:"Cable Triceps Pushdown (V-Bar)",muscle:"Triceps",notes:"Position: 1",video:"0241-gAwDzB3"},
-  {id:"e33",name:"Cable Triceps Pushdown (Unilateral)",muscle:"Triceps",notes:"",video:"1723-qRZ5S1N"},
-  {id:"e19",name:"Triceps Dip",muscle:"Triceps",notes:"Bodyweight",video:"0814-X6C6i5Y"},
-  {id:"e48",name:"Skull Crusher",muscle:"Triceps",notes:"",video:"0060-h8LFzo9"},
-  {id:"e49",name:"Dumbbell Triceps Kickback",muscle:"Triceps",notes:"",video:"0333-W6PxUkg"},
-  {id:"e50",name:"Diamond Push-Up",muscle:"Triceps",notes:"",video:"0283-soIB2rj"},
-  {id:"e29",name:"Dumbbell Biceps Curl",muscle:"Biceps",notes:"Drop set",video:"0294-NbVPDMW"},
-  {id:"e73",name:"Barbell Biceps Curl",muscle:"Biceps",notes:"",video:"0031-25GPyDY"},
-  {id:"e30",name:"Cable Biceps Curl",muscle:"Biceps",notes:"Position: 11 · Chest: OUT · Elbows: FIXED",video:"0868-G08RZcQ"},
-  {id:"e45",name:"Dumbbell Hammer Curl",muscle:"Biceps",notes:"",video:"0313-slDvUAU"},
-  {id:"e46",name:"Dumbbell Incline Curl",muscle:"Biceps",notes:"",video:"0318-ae9UoXQ"},
-  {id:"e27",name:"EZ-Bar Preacher Curl",muscle:"Biceps",notes:""},
-  {id:"e80",name:"Dumbbell Preacher Curl",muscle:"Biceps",notes:"",video:"0372-jivWf8n"},
-  {id:"e28",name:"Declined Dumbbell Curl",muscle:"Biceps",notes:"37.5º"},
-  {id:"e47",name:"Dumbbell Concentration Curl",muscle:"Biceps",notes:"",video:"0297-gvsWLQw"},
-  {id:"e101",name:"EZ Barbell Spider Curl",muscle:"Biceps",notes:"",video:"0454-Ye5Qxb0"},
-  {id:"e102",name:"Dumbbell Zottman Curl",muscle:"Biceps",notes:"",video:"0439-kXaIn5A"},
+  {id:"e01",name:"Barbell Squat",muscle:"Legs",notes:"90º depth",video:"0043-qXTaZnJ",equipment:"barbell"},
+  {id:"e61",name:"Bulgarian Split Squat",muscle:"Legs",notes:"",equipment:"other"},
+  {id:"e81",name:"Split Squat",muscle:"Legs",notes:"",video:"2368-9E25EOx",equipment:"other"},
+  {id:"e62",name:"Hack Squat",muscle:"Legs",notes:"",equipment:"machine"},
+  {id:"e78",name:"Barbell Hack Squat",muscle:"Legs",notes:"",video:"0046-5VCj6iH",equipment:"barbell"},
+  {id:"e06",name:"Leg Press",muscle:"Legs",notes:"",video:"0739-10Z2DXU",equipment:"machine"},
+  {id:"e02",name:"Barbell Romanian Deadlift",muscle:"Legs",notes:"Chest: OUT · Stance: SHOULDER · Hands: OUTSIDE",video:"0085-wQ2c4XD",equipment:"barbell"},
+  {id:"e36",name:"Barbell Deadlift",muscle:"Legs",notes:"",video:"0032-ila4NZS",equipment:"barbell"},
+  {id:"e112",name:"Dumbbell Romanian Deadlift",muscle:"Legs",notes:"",equipment:"dumbbell"},
+  {id:"e113",name:"Dumbbell Deadlift",muscle:"Legs",notes:"",equipment:"dumbbell"},
+  {id:"e03",name:"Hip Thrust",muscle:"Legs",notes:"",equipment:"other"},
+  {id:"e82",name:"Resistance Band Hip Thrust on Knees",muscle:"Legs",notes:"",video:"3236-Pjbc0Kt",equipment:"band"},
+  {id:"e04",name:"Leg Extension",muscle:"Legs",notes:"Respaldo: 1 · Rodilla: IN · Pies: HIGH",video:"0585-my33uHU",equipment:"machine"},
+  {id:"e35",name:"Lying Leg Curl",muscle:"Legs",notes:"",video:"0586-17lJ1kr",equipment:"machine"},
+  {id:"e77",name:"Sitting Leg Curl",muscle:"Legs",notes:"",video:"0599-Zg3XY7P",equipment:"machine"},
+  {id:"e07",name:"Leg Curl (Unilateral)",muscle:"Legs",notes:"",video:"0795-C5jncD2",equipment:"machine",unilateral:true},
+  {id:"e08",name:"Seated Hip Adduction",muscle:"Legs",notes:"",equipment:"machine"},
+  {id:"e32",name:"Seated Hip Abduction (Glutes)",muscle:"Legs",notes:"",video:"0597-CHpahtl",equipment:"machine"},
+  {id:"e09",name:"Cable Glute Kickback",muscle:"Legs",notes:"",equipment:"cable"},
+  {id:"e63",name:"Walking Lunge",muscle:"Legs",notes:"",video:"1460-IZVHb27",equipment:"other"},
+  {id:"e64",name:"Lunge",muscle:"Legs",notes:"",equipment:"other"},
+  {id:"e83",name:"Dumbbell Lunge",muscle:"Legs",notes:"",video:"0336-RRWFUcw",equipment:"dumbbell"},
+  {id:"e37",name:"Calf Raise",muscle:"Legs",notes:"",video:"1373-bJYHBIN",equipment:"other"},
+  {id:"e38",name:"Dumbbell Calf Raise (Unilateral)",muscle:"Legs",notes:"",video:"0409-1kB3Wmk",equipment:"dumbbell",unilateral:true},
+  {id:"e05",name:"Haka Calf Raise",muscle:"Legs",notes:"Hombros: 7",equipment:"machine"},
+  {id:"e39",name:"Haka Calf Raise (Unilateral)",muscle:"Legs",notes:"Hombros: 7",equipment:"machine",unilateral:true},
+  {id:"e91",name:"Dumbbell Goblet Squat",muscle:"Legs",notes:"",video:"1760-yn8yg1r",equipment:"dumbbell",dumbbellCount:1},
+  {id:"e92",name:"Barbell Front Squat",muscle:"Legs",notes:"",video:"0042-zG0zs85",equipment:"barbell"},
+  {id:"e93",name:"Barbell Sumo Deadlift",muscle:"Legs",notes:"",video:"0117-KgI0tqW",equipment:"barbell"},
+  {id:"e94",name:"Barbell Good Morning",muscle:"Legs",notes:"",video:"0044-XlZ4lAC",equipment:"barbell"},
+  {id:"e95",name:"Barbell Glute Bridge",muscle:"Legs",notes:"",video:"1409-qKBpF7I",equipment:"barbell"},
+  {id:"e96",name:"Dumbbell Step-Up",muscle:"Legs",notes:"",video:"0431-aXtJhlg",equipment:"dumbbell"},
+  {id:"e97",name:"Barbell Rack Pull",muscle:"Legs",notes:"",video:"0074-za9Ni4z",equipment:"barbell"},
+  {id:"e10",name:"Barbell Bench Press",muscle:"Chest",notes:"",video:"0025-EIeI8Vf",equipment:"barbell"},
+  {id:"e40",name:"Dumbbell Bench Press",muscle:"Chest",notes:"",video:"0289-SpYC0Kp",equipment:"dumbbell"},
+  {id:"e11",name:"Barbell Incline Bench Press",muscle:"Chest",notes:"30º · Nip height",video:"0047-3TZduzM",equipment:"barbell"},
+  {id:"e41",name:"Dumbbell Incline Bench Press",muscle:"Chest",notes:"",video:"0314-ns0SIbU",equipment:"dumbbell"},
+  {id:"e65",name:"Barbell Decline Bench Press",muscle:"Chest",notes:"",video:"0033-GrO65fd",equipment:"barbell"},
+  {id:"e13",name:"Machine Chest Fly",muscle:"Chest",notes:"Position: 5 · Seat: Low",equipment:"machine"},
+  {id:"e60",name:"Dumbbell Chest Fly",muscle:"Chest",notes:"",video:"0308-yz9nUhF",equipment:"dumbbell"},
+  {id:"e14",name:"Cable Seated Chest Press",muscle:"Chest",notes:"Position: 20",video:"2144-nIR4Rwl",equipment:"cable"},
+  {id:"e66",name:"Cable Chest Crossover",muscle:"Chest",notes:"",equipment:"cable"},
+  {id:"e84",name:"Cable Upper Chest Crossover",muscle:"Chest",notes:"",video:"1270-j7XMAyn",equipment:"cable"},
+  {id:"e42",name:"Push-Up",muscle:"Chest",notes:"",video:"0662-I4hDWkc",equipment:"bodyweight"},
+  {id:"e98",name:"Weighted Svend Press",muscle:"Chest",notes:"",video:"0856-I1OBLnn",equipment:"other"},
+  {id:"e24",name:"Pull-Up",muscle:"Back",notes:"Weighted",video:"0652-lBDjFxJ",equipment:"bodyweight",bodyweightAssisted:true},
+  {id:"e20",name:"Cable Pulldown",muscle:"Back",notes:"Position: 2",video:"0198-RVwzP10",equipment:"cable"},
+  {id:"e23",name:"Barbell Bent Over Row",muscle:"Back",notes:"Elbows 45º OUT",video:"0027-eZyBC3j",equipment:"barbell"},
+  {id:"e21",name:"Chest Supported Row",muscle:"Back",notes:"Position: 4 · Seat: UP",equipment:"machine"},
+  {id:"e25",name:"Chest Supported Row (Unilateral)",muscle:"Back",notes:"",equipment:"machine",unilateral:true},
+  {id:"e67",name:"Cable Seated Row",muscle:"Back",notes:"",video:"0861-fUBheHs",equipment:"cable"},
+  {id:"e26",name:"Low Cable Row (Unilateral)",muscle:"Back",notes:"",equipment:"cable",unilateral:true},
+  {id:"e85",name:"Cable Low Seated Row",muscle:"Back",notes:"",video:"0180-hvV79Si",equipment:"cable"},
+  {id:"e43",name:"Dumbbell Bent Over Row (Unilateral)",muscle:"Back",notes:"",equipment:"dumbbell",unilateral:true},
+  {id:"e86",name:"Dumbbell Bent Over Row",muscle:"Back",notes:"",video:"0293-BJ0Hz5L",equipment:"dumbbell"},
+  {id:"e68",name:"T-Bar Row",muscle:"Back",notes:"",video:"0606-aaXr7ld",equipment:"machine"},
+  {id:"e22",name:"One-Arm Cable Pullover",muscle:"Back",notes:"Rest: 60''",equipment:"cable",unilateral:true},
+  {id:"e31",name:"Dumbbell Shrug",muscle:"Back",notes:"Rest: 30''",equipment:"dumbbell"},
+  {id:"e79",name:"Barbell Shrug",muscle:"Back",notes:"",video:"0095-dG7tG5y",equipment:"barbell"},
+  {id:"e69",name:"Hyperextension",muscle:"Back",notes:"",video:"0489-zhMwOwE",equipment:"bodyweight"},
+  {id:"e99",name:"Cable Straight Arm Pulldown",muscle:"Back",notes:"",video:"0238-x69MAlq",equipment:"cable"},
+  {id:"e16",name:"Dumbbell Shoulder Press",muscle:"Shoulders",notes:"67.5º",video:"0405-znQUdHY",equipment:"dumbbell"},
+  {id:"e75",name:"Barbell Standing Military Press",muscle:"Shoulders",notes:"",equipment:"barbell"},
+  {id:"e114",name:"Dumbbell Standing Military Press",muscle:"Shoulders",notes:"",equipment:"dumbbell"},
+  {id:"e87",name:"Smith Standing Military Press",muscle:"Shoulders",notes:"",video:"0774-jjUPrze",equipment:"smith"},
+  {id:"e100",name:"Dumbbell Arnold Press",muscle:"Shoulders",notes:"",video:"2137-Xy4jlWA",equipment:"dumbbell"},
+  {id:"e76",name:"Machine Shoulder Press",muscle:"Shoulders",notes:"",equipment:"machine"},
+  {id:"e12",name:"Dumbbell Lateral Raise",muscle:"Shoulders",notes:"",video:"0334-DsgkuIt",equipment:"dumbbell"},
+  {id:"e71",name:"Dumbbell Front Raise",muscle:"Shoulders",notes:"",video:"0310-3eGE2JC",equipment:"dumbbell"},
+  {id:"e72",name:"Barbell Upright Row",muscle:"Shoulders",notes:"",video:"0120-UDlhcO8",equipment:"barbell"},
+  {id:"e70",name:"Dumbbell Reverse Fly",muscle:"Shoulders",notes:"",video:"0383-EAs3xL9",equipment:"dumbbell"},
+  {id:"e15",name:"Cable Face Pull",muscle:"Shoulders",notes:"Position: 13 · Elbows: UP · Elbows: OUT",equipment:"cable"},
+  {id:"e18",name:"Cable Overhead Triceps Extension",muscle:"Triceps",notes:"Position: 11",video:"0194-2IxROQ1",equipment:"cable"},
+  {id:"e34",name:"Cable Overhead Triceps Extension (Unilateral)",muscle:"Triceps",notes:"Position: 11",video:"1727-i11JWU7",equipment:"cable",unilateral:true},
+  {id:"e17",name:"Cable Triceps Pushdown (V-Bar)",muscle:"Triceps",notes:"Position: 1",video:"0241-gAwDzB3",equipment:"cable"},
+  {id:"e33",name:"Cable Triceps Pushdown (Unilateral)",muscle:"Triceps",notes:"",video:"1723-qRZ5S1N",equipment:"cable",unilateral:true},
+  {id:"e19",name:"Triceps Dip",muscle:"Triceps",notes:"Bodyweight",video:"0814-X6C6i5Y",equipment:"bodyweight",bodyweightAssisted:true},
+  {id:"e48",name:"Skull Crusher",muscle:"Triceps",notes:"",video:"0060-h8LFzo9",equipment:"other"},
+  {id:"e49",name:"Dumbbell Triceps Kickback (Unilateral)",muscle:"Triceps",notes:"",video:"0333-W6PxUkg",equipment:"dumbbell",unilateral:true},
+  {id:"e50",name:"Diamond Push-Up",muscle:"Triceps",notes:"",video:"0283-soIB2rj",equipment:"bodyweight"},
+  {id:"e29",name:"Dumbbell Biceps Curl",muscle:"Biceps",notes:"Drop set",video:"0294-NbVPDMW",equipment:"dumbbell"},
+  {id:"e73",name:"Barbell Biceps Curl",muscle:"Biceps",notes:"",video:"0031-25GPyDY",equipment:"barbell"},
+  {id:"e30",name:"Cable Biceps Curl",muscle:"Biceps",notes:"Position: 11 · Chest: OUT · Elbows: FIXED",video:"0868-G08RZcQ",equipment:"cable"},
+  {id:"e45",name:"Dumbbell Hammer Curl",muscle:"Biceps",notes:"",video:"0313-slDvUAU",equipment:"dumbbell"},
+  {id:"e46",name:"Dumbbell Incline Curl",muscle:"Biceps",notes:"",video:"0318-ae9UoXQ",equipment:"dumbbell"},
+  {id:"e27",name:"EZ-Bar Preacher Curl",muscle:"Biceps",notes:"",equipment:"ez-bar"},
+  {id:"e80",name:"Dumbbell Preacher Curl (Unilateral)",muscle:"Biceps",notes:"",video:"0372-jivWf8n",equipment:"dumbbell",unilateral:true},
+  {id:"e28",name:"Declined Dumbbell Curl",muscle:"Biceps",notes:"37.5º",equipment:"dumbbell"},
+  {id:"e47",name:"Dumbbell Concentration Curl (Unilateral)",muscle:"Biceps",notes:"",video:"0297-gvsWLQw",equipment:"dumbbell",unilateral:true},
+  {id:"e101",name:"EZ Barbell Spider Curl",muscle:"Biceps",notes:"",video:"0454-Ye5Qxb0",equipment:"ez-bar"},
+  {id:"e102",name:"Dumbbell Zottman Curl",muscle:"Biceps",notes:"",video:"0439-kXaIn5A",equipment:"dumbbell"},
   {id:"e51",name:"Plank",muscle:"Core",notes:"",trackingType:"time"},
   {id:"e88",name:"Front Plank with Twist",muscle:"Core",notes:"",video:"0464-CosupLu",trackingType:"time"},
   {id:"e52",name:"Crunch",muscle:"Core",notes:"",video:"0274-TFqbd8t"},
@@ -2326,7 +2338,17 @@ const DEFAULT_DB={
   equippedInsignia:null,
   // Local-only (not cloud-synced) — when the Interactions bell dot last
   // got cleared by actually viewing that tab, see refreshPendingBadge().
-  lastInteractionsSeenAt:null
+  lastInteractionsSeenAt:null,
+  // How to interpret the raw number typed into a weight field, per
+  // equipment type — see getTrueWeight(). Purely a display/calculation
+  // lens: raw entered numbers in workoutLog/lastWeights/allTimePRs are
+  // NEVER rewritten when these change, so flipping a preference instantly
+  // and correctly reinterprets all existing history instead of requiring
+  // a data migration. bodyweightKg is null until the user sets it — with
+  // no bodyweight on file, bodyweight-assisted exercises (weighted pull-
+  // ups) can't produce a real 1RM number, so they intentionally show a
+  // prompt instead of a wrong one.
+  weightPrefs:{barbellMode:'total', barWeightKg:20, dumbbellMode:'perDumbbell', bodyweightKg:null}
 };
 
 
@@ -2418,6 +2440,16 @@ function syncDefaultExercises(){
       existing.muscle=def.muscle;
       if(def.video) existing.video=def.video; else delete existing.video;
       if(def.trackingType) existing.trackingType=def.trackingType; else delete existing.trackingType;
+      // Weight-logging metadata (equipment/unilateral/dumbbellCount/
+      // bodyweightAssisted) — same "sync from catalog, never touch notes"
+      // rule as the fields above. Added 2026-07-24 for true-weight
+      // normalization; every already-installed device needs this synced
+      // in, not just fresh installs, or their catalog is permanently stuck
+      // without it.
+      if(def.equipment) existing.equipment=def.equipment; else delete existing.equipment;
+      if(def.unilateral) existing.unilateral=true; else delete existing.unilateral;
+      if(def.dumbbellCount) existing.dumbbellCount=def.dumbbellCount; else delete existing.dumbbellCount;
+      if(def.bodyweightAssisted) existing.bodyweightAssisted=true; else delete existing.bodyweightAssisted;
     }
   });
 }
@@ -2436,6 +2468,7 @@ function loadDB() {
       if (!db.lastWeights) db.lastWeights = DEFAULT_LAST_WEIGHTS;
       if (!db.lastNotes)   db.lastNotes   = {};
       if (!db.allTimePRs)  db.allTimePRs  = {};
+      db.weightPrefs = {...DEFAULT_DB.weightPrefs, ...(db.weightPrefs||{})};
       migratePRsToV2();
       return;
     }
@@ -2462,7 +2495,12 @@ function migratePRsToV2(){
   db.workoutLog.forEach(sess=>sess.exercises.forEach(e=>{ if(!isTimeTrackedEx(e.id)) exIds.add(e.id); }));
   exIds.forEach(exId=>{
     const best=bestSetForExercise(db.workoutLog,exId);
-    if(best) db.allTimePRs[exId]={weight:best.weight,reps:best.reps,date:best.date};
+    // best.rawWeight (not best.weight, which is already true-weight-
+    // normalized for display) — allTimePRs must hold the raw typed number,
+    // same convention as workoutLog/lastWeights, or every later read
+    // through getTrueWeight()/recordToOneRM() double-normalizes it.
+    // {needsBodyweight:true} has neither field — skip, nothing to save yet.
+    if(best && !best.needsBodyweight) db.allTimePRs[exId]={weight:best.rawWeight,reps:best.reps,date:best.date};
   });
   saveDB();
 }
@@ -2549,7 +2587,7 @@ function showScreen(id){
   if(id==='routines') renderRoutines();
   if(id==='schedule') renderSchedule();
   if(id==='exercises') renderExercisesDB();
-  if(id==='settings') renderAccountSection();
+  if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); }
   if(id==='profile') renderProfile();
   if(id==='analytics') initProgressCharts();
   if(id==='search'){ _searchMode='search'; renderSearchScreen(); }
@@ -2896,6 +2934,75 @@ function calc1RM(weight,reps){
   return Math.round(weight*(1+reps/30)*2)/2; // nearest 0.5kg
 }
 
+// ── True weight normalization ──
+// What someone types into a weight field is not always the true total
+// load moved: a barbell lifter who thinks "50 a side" is really moving
+// 2×50 + the bar; someone logging dumbbells per-hand is really moving
+// 2× that. Raw numbers in workoutLog/lastWeights/allTimePRs are NEVER
+// rewritten for this — these two functions are read-time lenses, applied
+// wherever a weight is displayed or fed into 1RM math, so changing a
+// preference later instantly (and correctly) reinterprets all existing
+// history instead of requiring a data migration.
+//
+// Per-exercise `equipment` (see DEFAULT_EXERCISES) decides whether either
+// convention even applies — machines/cables/bodyweight/EZ-bar/Smith all
+// pass the entered number through unchanged, since none of them have a
+// "per side" or "per hand" ambiguity the way a barbell/dumbbell does.
+// `unilateral` (one limb at a time, tagged in the catalog) always skips
+// doubling regardless of equipment — you already only logged one arm/leg.
+function getTrueWeight(exId,enteredWeight){
+  if(!enteredWeight) return 0;
+  const def=db.exercises.find(e=>e.id===exId);
+  if(!def || def.unilateral) return enteredWeight;
+  const prefs=db.weightPrefs||DEFAULT_DB.weightPrefs;
+  if(def.equipment==='barbell' && prefs.barbellMode==='perSide'){
+    return enteredWeight*2 + (prefs.barWeightKg||0);
+  }
+  if(def.equipment==='dumbbell' && prefs.dumbbellMode==='perDumbbell'){
+    return enteredWeight*(def.dumbbellCount||2);
+  }
+  return enteredWeight;
+}
+
+// The weight actually fed into calc1RM — getTrueWeight() plus bodyweight
+// for bodyweight-assisted exercises (weighted pull-ups etc.), matching
+// standard practice: total load = bodyweight + added, run THAT through
+// the formula. Deliberately kept separate from getTrueWeight() so
+// history/volume displays for these exercises keep showing just the
+// added weight (e.g. "+30kg"), unchanged — only the 1RM estimate itself
+// is bodyweight-inclusive, per Alan's explicit ask (2026-07-24).
+// Returns 0 if bodyweight-inclusive math is needed but no bodyweight is
+// on file — callers must treat that as "can't estimate", never as "0kg".
+function getFormulaWeight(exId,enteredWeight){
+  const trueW=getTrueWeight(exId,enteredWeight);
+  const def=db.exercises.find(e=>e.id===exId);
+  if(def && def.bodyweightAssisted){
+    const bw=(db.weightPrefs && db.weightPrefs.bodyweightKg) || 0;
+    return bw>0 ? trueW+bw : 0;
+  }
+  return trueW;
+}
+
+// Converts a single raw (weight, reps) record — e.g. a cached allTimePRs
+// or lastWeights row — into the same "comparable 1RM" units
+// bestSetForExercise() produces: true weight, run through Epley,
+// bodyweight-subtracted for bodyweight-assisted exercises. `reps` may be
+// omitted (legacy allTimePRs rows recorded before this feature existed
+// never stored reps for weight-based exercises) — treated as a direct
+// single-rep weight rather than guessing, the same conservative "can't
+// trust an estimate, compare raw weight directly" fallback already used
+// for reps values calc1RM itself can't estimate from (e.g. >12 reps).
+function recordToOneRM(exId,weight,reps){
+  const def=db.exercises.find(e=>e.id===exId);
+  const bwAssisted=!!(def && def.bodyweightAssisted);
+  const bwKg=(db.weightPrefs && db.weightPrefs.bodyweightKg)||0;
+  if(bwAssisted && bwKg<=0) return 0;
+  const trueW=getTrueWeight(exId,weight);
+  const formulaW=bwAssisted ? trueW+bwKg : trueW;
+  const rm=typeof reps==='number' ? (calc1RM(formulaW,reps)||formulaW) : formulaW;
+  return bwAssisted ? Math.max(0,rm-bwKg) : rm;
+}
+
 // The "PR set" for a weight-based exercise is whichever logged set has the
 // highest calculated 1RM — not necessarily the heaviest weight ever moved
 // (e.g. 100kg×8 legitimately outranks 120kg×1). Scans full session history
@@ -2904,33 +3011,76 @@ function calc1RM(weight,reps){
 // for other users' profiles, where `sessions` comes from fetchUserWorkoutLog
 // instead of the local db.workoutLog — same shape, so one function serves
 // both call sites.
+//
+// For a bodyweight-assisted exercise (weighted pull-up) with no bodyweight
+// on file, returns {needsBodyweight:true} instead of null/a result — sets
+// exist, but there's no honest way to estimate a 1RM without bodyweight,
+// so callers must show a prompt rather than a silently-wrong number.
 function bestSetForExercise(sessions,exId){
-  let best=null; // {weight, reps, oneRM, date}
-  let bestSingleWeight=0; // heaviest ever done for exactly 1 rep, for the "hit" tick
+  const def=db.exercises.find(e=>e.id===exId);
+  const bwAssisted=!!(def && def.bodyweightAssisted);
+  const bwKg=(db.weightPrefs && db.weightPrefs.bodyweightKg) || 0;
+  let best=null; // {weight, reps, oneRM, date} — weight/oneRM both in "true"/added-weight terms
+  let bestSingleTrueWeight=0; // heaviest true weight ever done for exactly 1 rep, for the "hit" tick
+  let hasAnySet=false;
   sessions.forEach(sess=>{
     const exLog=sess.exercises.find(e=>e.id===exId);
     if(!exLog) return;
     exLog.sets.forEach(s=>{
-      if(s.reps===1 && s.weight>bestSingleWeight) bestSingleWeight=s.weight;
-      const oneRM=calc1RM(s.weight,s.reps);
-      if(oneRM>0 && (!best || oneRM>best.oneRM)){
-        best={weight:s.weight, reps:s.reps, oneRM, date:sess.date};
-      }
+      hasAnySet=true;
+      const trueW=getTrueWeight(exId,s.weight);
+      if(s.reps===1 && trueW>bestSingleTrueWeight) bestSingleTrueWeight=trueW;
+      if(bwAssisted && bwKg<=0) return; // can't compute without bodyweight — still records hasAnySet/bestSingleTrueWeight above
+      const formulaW=getFormulaWeight(exId,s.weight);
+      const oneRMTotal=calc1RM(formulaW,s.reps);
+      if(oneRMTotal<=0) return;
+      const oneRM=bwAssisted ? Math.max(0,oneRMTotal-bwKg) : oneRMTotal;
+      // rawWeight is kept alongside the display-ready true weight so
+      // migratePRsToV2() can write the *raw* number back into allTimePRs —
+      // that cache is meant to always hold what was actually typed (same
+      // convention as workoutLog/lastWeights), with normalization applied
+      // only at read time. Storing the already-normalized `weight` there
+      // instead would double-normalize on every later read.
+      if(!best || oneRM>best.oneRM) best={weight:trueW, rawWeight:s.weight, reps:s.reps, oneRM, date:sess.date};
     });
   });
+  if(bwAssisted && bwKg<=0 && hasAnySet) return {needsBodyweight:true};
   if(!best) return null;
-  return {...best, verified: bestSingleWeight>0 && bestSingleWeight>=best.oneRM};
+  return {...best, verified: bestSingleTrueWeight>0 && bestSingleTrueWeight>=best.oneRM};
 }
 
-// Weight-based allTimePRs entries now hold whichever set has the highest
+// Weight-based allTimePRs entries hold whichever set has the highest
 // calculated 1RM, not literally the heaviest weight ever moved — so the
 // weight alone can look like a regression if reps aren't shown alongside
 // it (e.g. "100kg" reads as weaker than a previous "120kg" unless you know
 // the 100kg set was ×8). Every display of a weight-based PR includes reps
 // for this reason; falls back to weight-only for the rare pre-migration
-// edge case where reps isn't a number yet.
-function fmtPRWeight(pr){
-  return pr.weight+'kg'+(typeof pr.reps==='number'&&pr.reps>0?'×'+pr.reps:'');
+// edge case where reps isn't a number yet. Takes exId so the stored raw
+// weight can be run through getTrueWeight() before formatting.
+function fmtPRWeight(pr,exId){
+  const w=getTrueWeight(exId,pr.weight);
+  return w+'kg'+(typeof pr.reps==='number'&&pr.reps>0?'×'+pr.reps:'');
+}
+
+// "Last:" display for the Exercises DB list. lw.history is a string baked
+// in at save time from the raw entered weight — can't be reinterpreted
+// after the fact, so this rebuilds the display from lw.sets (per-set raw
+// weight/reps, always available for anything logged since sets tracking
+// existed) via getTrueWeight instead of trusting the stale string. Falls
+// back to the old precomputed history/weight for older/seed rows that
+// never had a `sets` array (e.g. DEFAULT_LAST_WEIGHTS) — best effort,
+// self-corrects the moment the user logs a real session for that exercise.
+function fmtLastWeightDisplay(lw,exId,timed){
+  if(timed) return lw.history || fmtDuration(lw.reps);
+  if(lw.sets && lw.sets.length){
+    const allSameW=lw.sets.every(s=>s.weight===lw.sets[0].weight);
+    if(allSameW){
+      const tw=getTrueWeight(exId,lw.sets[0].weight);
+      return (tw===0?'BW':tw+'kg')+' · '+lw.sets.map(s=>s.reps).join('/');
+    }
+    return lw.sets.map((s,i)=>{ const tw=getTrueWeight(exId,s.weight); return (i+1)+': '+(tw===0?'BW':tw+'kg')+'×'+s.reps; }).join(' / ');
+  }
+  return lw.history || (getTrueWeight(exId,lw.weight)+'kg');
 }
 
 // A "new PR" during a live workout now means "this set's calculated 1RM
@@ -2944,22 +3094,25 @@ function checkPR(ei,si){
   const r=ex.actualReps[si];
   const badge=document.getElementById('pr-'+ei+'-'+si);
   if(!badge) return;
-  const curOneRM=calc1RM(w,r);
+  const def=db.exercises.find(e=>e.id===ex.id);
+  const bwAssisted=!!(def && def.bodyweightAssisted);
+  const bwKg=(db.weightPrefs && db.weightPrefs.bodyweightKg)||0;
+  if(bwAssisted && bwKg<=0){ badge.classList.remove('show'); return; } // can't estimate without bodyweight on file
+  let curOneRM=calc1RM(getFormulaWeight(ex.id,w),r);
+  if(curOneRM>0 && bwAssisted) curOneRM=Math.max(0,curOneRM-bwKg);
   if(!curOneRM){ badge.classList.remove('show'); return; }
   // Best known 1RM: prefer allTimePRs (the cached record), else derive one
-  // from lastWeights' set-by-set history. Legacy allTimePRs rows recorded
-  // before this feature existed only ever stored a raw weight with no reps
-  // — treat those conservatively as if they were a single rep (oneRM ==
-  // weight) rather than guessing, so an old entry can't be beaten too easily.
+  // from lastWeights' set-by-set history — recordToOneRM() applies true-
+  // weight normalization and the legacy-reps fallback consistently.
   const cur=db.allTimePRs[ex.id];
   const lw=db.lastWeights[ex.id];
   let bestOneRM=0;
   if(cur && typeof cur.weight==='number'){
-    bestOneRM = typeof cur.reps==='number' ? calc1RM(cur.weight,cur.reps) || cur.weight : cur.weight;
+    bestOneRM=recordToOneRM(ex.id,cur.weight,cur.reps);
   } else if(lw && lw.sets && lw.sets.length){
-    bestOneRM=Math.max(...lw.sets.map(s=>calc1RM(s.weight,s.reps)||s.weight||0));
+    bestOneRM=Math.max(...lw.sets.map(s=>recordToOneRM(ex.id,s.weight,s.reps)));
   } else if(lw && typeof lw.weight==='number'){
-    bestOneRM=lw.weight;
+    bestOneRM=recordToOneRM(ex.id,lw.weight,lw.reps);
   }
   badge.classList.toggle('show', curOneRM>bestOneRM);
 }
@@ -3294,6 +3447,7 @@ function finishWorkout(){
       return;
     }
 
+    const def=db.exercises.find(e=>e.id===ex.id);
     const allSameW=weights.every(w=>w===weights[0]);
     const displayW=lastW===0?'BW':lastW+'kg';
     const history=allSameW
@@ -3301,13 +3455,17 @@ function finishWorkout(){
       : savedSets.map((s,i)=>(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+'×'+s.reps).join(' / ');
     db.lastWeights[key]={sets:savedSets,weight:lastW,reps:lastR,history};
     // PR = the set from THIS session with the highest calculated 1RM, kept
-    // only if it beats the existing record's 1RM (see checkPR() for why a
-    // legacy weight-only record is treated as if reps were 1).
+    // only if it beats the existing record's 1RM. Stored weight/reps stay
+    // raw (as typed) — same convention as lastWeights/workoutLog — with
+    // true-weight/bodyweight normalization applied only when read back
+    // (recordToOneRM here, fmtPRWeight/getTrueWeight wherever displayed).
     const cur=db.allTimePRs[ex.id];
-    const curBestOneRM = cur ? (typeof cur.reps==='number' ? calc1RM(cur.weight,cur.reps)||cur.weight : cur.weight) : 0;
+    const curBestOneRM = cur ? recordToOneRM(ex.id,cur.weight,cur.reps) : 0;
     let sessionBest=null;
     savedSets.forEach(s=>{
-      const oneRM=calc1RM(s.weight,s.reps);
+      const formulaW=getFormulaWeight(ex.id,s.weight);
+      let oneRM=calc1RM(formulaW,s.reps);
+      if(oneRM>0 && def.bodyweightAssisted) oneRM=Math.max(0,oneRM-((db.weightPrefs&&db.weightPrefs.bodyweightKg)||0));
       if(oneRM>0 && (!sessionBest || oneRM>sessionBest.oneRM)) sessionBest={weight:s.weight,reps:s.reps,oneRM};
     });
     if(sessionBest && sessionBest.oneRM>curBestOneRM){
@@ -3353,7 +3511,7 @@ function finishWorkout(){
 
   // Stats for finish screen (headline/sub text is static in the HTML)
   const sets=entry.exercises.reduce((a,e)=>a+e.sets.length,0);
-  const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.weight*s.reps),0),0);
+  const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(getTrueWeight(e.id,s.weight)*s.reps),0),0);
   document.getElementById('st-sets').textContent=sets;
   document.getElementById('st-time').textContent=Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0');
   document.getElementById('st-vol').textContent=Math.round(vol);
@@ -3789,10 +3947,10 @@ function buildLogListHtml(entries){
     const d=new Date(entry.date);
     const ds=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     const dur=Math.floor(entry.duration/60)+'min';
-    const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.weight*s.reps),0),0);
+    const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(getTrueWeight(e.id,s.weight)*s.reps),0),0);
     const det=entry.exercises.map(ex=>{
       const timed=isTimeTrackedEx(ex.id);
-      const ss=ex.sets.map((s,i)=>timed?`${i+1}: ${fmtDuration(s.reps)}`:`${i+1}: ${s.weight===0?'BW':s.weight+'kg'}×${s.reps}`).join('  ·  ');
+      const ss=ex.sets.map((s,i)=>{ if(timed) return `${i+1}: ${fmtDuration(s.reps)}`; const tw=getTrueWeight(ex.id,s.weight); return `${i+1}: ${tw===0?'BW':tw+'kg'}×${s.reps}`; }).join('  ·  ');
       return`<div class="log-ex"><div class="log-ex-n">${escapeHtml(ex.name)}</div><div class="log-sets">${ss||'—'}</div></div>`;
     }).join('');
     const noteHtml=entry.note?`<div class="log-note">"${escapeHtml(entry.note)}"</div>`:'';
@@ -4922,8 +5080,8 @@ function renderExercisesDB(){
           const pr=db.allTimePRs[e.id];
           const lw=db.lastWeights[e.id];
           const timed=e.trackingType==='time';
-          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr)}</div>`:'';
-          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} Last: ${lw.history||(timed?fmtDuration(lw.reps):lw.weight+'kg')}</div>`:'';
+          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr,e.id)}</div>`:'';
+          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} Last: ${fmtLastWeightDisplay(lw,e.id,timed)}</div>`:'';
           return `<div class="ex-db-row" onclick="openExDetail('${e.id}')">
             <div class="ex-db-row-inner">
               <div class="ex-db-info">
@@ -5103,7 +5261,7 @@ function renderExDetail(exId){
     .map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
       const date=new Date(log.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-      const sets=exLog.sets.map((s,i)=>timed?(i+1)+': '+fmtDuration(s.reps):(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+' x'+s.reps).join(' / ');
+      const sets=exLog.sets.map((s,i)=>{ if(timed) return (i+1)+': '+fmtDuration(s.reps); const tw=getTrueWeight(exId,s.weight); return (i+1)+': '+(tw===0?'BW':tw+'kg')+' x'+s.reps; }).join(' / ');
       return `<div class="history-entry">
         <span class="history-date">${date}</span>
         <span class="history-val">${sets||'—'}</span>
@@ -5189,7 +5347,7 @@ function renderExDetail(exId){
               </div>
             </div>`
         )}
-        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
+        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr,exId)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
       </div>
     </div>
 
@@ -5436,21 +5594,21 @@ function drawExChart(){
     .filter(log=>log.date>=cutoff && log.exercises.some(e=>e.id===exId))
     .map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
-      const maxW=exLog.sets.length ? Math.max(...exLog.sets.map(s=>timed?s.reps:s.weight)) : 0;
-      const sets=timed?exLog.sets.map(s=>fmtDuration(s.reps)).join(' / '):exLog.sets.map(s=>(s.weight===0?'BW':s.weight+'kg')+'x'+s.reps).join(' / ');
+      const maxW=exLog.sets.length ? Math.max(...exLog.sets.map(s=>timed?s.reps:getTrueWeight(exId,s.weight))) : 0;
+      const sets=timed?exLog.sets.map(s=>fmtDuration(s.reps)).join(' / '):exLog.sets.map(s=>{const tw=getTrueWeight(exId,s.weight);return (tw===0?'BW':tw+'kg')+'x'+s.reps;}).join(' / ');
       return {date:log.date, w:maxW, sets, label:fmtDate(log.date,exRange)};
     });
 
   document.getElementById('ex-chart-title').textContent=ex.name;
   const pr=db.allTimePRs[exId];
-  document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+(timed?fmtDuration(pr.reps):fmtPRWeight(pr)):'';
+  document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+(timed?fmtDuration(pr.reps):fmtPRWeight(pr,exId)):'';
 
   if(sessions.length<2){
     document.getElementById('ex-svg').innerHTML='<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family="Rajdhani" dy=".3em">Not enough data for this range</text>';
     document.getElementById('ex-svg').setAttribute('viewBox','0 0 400 80');
     document.getElementById('ex-svg').style.height='80px';
     document.getElementById('ex-stat-gain').textContent='—';
-    document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):pr.weight+'kg'):'—';
+    document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):getTrueWeight(exId,pr.weight)+'kg'):'—';
     document.getElementById('ex-stat-sess').textContent=sessions.length;
     return;
   }
@@ -5865,6 +6023,20 @@ function buildPRsTabHtml(sessions){
       const def = db.exercises.find(e=>e.id===exId);
       if(!def) return ''; // catalog changed underneath a stale id — skip rather than show a blank row
       const best = bestSetForExercise(sessions, exId);
+      if(best && best.needsBodyweight){
+        // Bodyweight-assisted (e.g. Weighted Pull-Up) needs the lifter's
+        // bodyweight on file to turn "added weight" into a real 1RM — show
+        // a nudge instead of a wrong/missing number. Only actionable on
+        // your own profile (Settings isn't reachable from someone else's).
+        const canFix = sessions===db.workoutLog;
+        return `<div class="pr-row unset"${canFix?` onclick="showScreen('settings')" style="cursor:pointer;"`:''}>
+          <div class="pr-main">
+            <div class="pr-ex-name">${escapeHtml(def.name)}</div>
+            <div class="pr-ex-set">${canFix?'Add your bodyweight in Settings →':'Needs bodyweight on file'}</div>
+          </div>
+          <div class="pr-1rm-col"><div><div class="pr-1rm">—</div></div></div>
+        </div>`;
+      }
       if(!best){
         return `<div class="pr-row unset">
           <div class="pr-main">
@@ -6212,6 +6384,68 @@ async function renderAccountSection(){
       </div>
     </div>
   `;
+}
+
+// How to interpret the raw number typed into a weight field — see
+// getTrueWeight()/DEFAULT_DB.weightPrefs. Local-first: works for guests
+// too (unlike Account above), since it's just a lens over local data, not
+// something that needs an account to be useful. Bar weight only matters
+// (and only shows) in Per Side mode; Total mode has nothing to configure
+// since "what you type" already is the true weight.
+function renderWeightPrefsSection(){
+  const el=document.getElementById('weight-prefs-section-body');
+  if(!el) return;
+  const p=db.weightPrefs||DEFAULT_DB.weightPrefs;
+  el.innerHTML=`
+    <div class="settings-group">
+      <div class="settings-row" style="align-items:flex-start;">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div><div>
+          <div class="settings-row-title">Body Weight</div>
+          <div class="settings-row-sub">Optional — only used to correctly estimate 1RM on bodyweight-assisted exercises like Weighted Pull-Up</div>
+        </div></div>
+      </div>
+      <div style="padding:0 18px 16px;">
+        <input class="ex-edit-field" type="number" inputmode="decimal" style="max-width:120px;"
+          placeholder="e.g. 80" value="${p.bodyweightKg||''}"
+          onchange="saveWeightPref('bodyweightKg', parseFloat(this.value)||null)">
+      </div>
+
+      <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="3" y="8" width="4" height="8" rx="1"/><rect x="17" y="8" width="4" height="8" rx="1"/></svg></div><div>
+          <div class="settings-row-title">Barbell Logging</div>
+          <div class="settings-row-sub">What does the number you type mean, for barbell exercises?</div>
+        </div></div>
+      </div>
+      <div class="prog-time-pills" style="padding:0 18px 14px;">
+        <button class="prog-pill ${p.barbellMode==='total'?'active':''}" onclick="saveWeightPref('barbellMode','total')">Total weight</button>
+        <button class="prog-pill ${p.barbellMode==='perSide'?'active':''}" onclick="saveWeightPref('barbellMode','perSide')">Per side</button>
+      </div>
+      ${p.barbellMode==='perSide' ? `
+      <div style="padding:0 18px 16px;">
+        <div class="ex-weight-label">BAR WEIGHT (KG)</div>
+        <input class="ex-edit-field" type="number" inputmode="decimal" style="max-width:120px;"
+          value="${p.barWeightKg||20}"
+          onchange="saveWeightPref('barWeightKg', parseFloat(this.value)||0)">
+      </div>` : ''}
+
+      <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);border-bottom:none;">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="2.5" y="10" width="4" height="4" rx="1"/><rect x="17.5" y="10" width="4" height="4" rx="1"/><path d="M6.5 12h11"/></svg></div><div>
+          <div class="settings-row-title">Dumbbell Logging</div>
+          <div class="settings-row-sub">What does the number you type mean, for dumbbell exercises?</div>
+        </div></div>
+      </div>
+      <div class="prog-time-pills" style="padding:0 18px 4px;">
+        <button class="prog-pill ${p.dumbbellMode==='perDumbbell'?'active':''}" onclick="saveWeightPref('dumbbellMode','perDumbbell')">Per dumbbell</button>
+        <button class="prog-pill ${p.dumbbellMode==='total'?'active':''}" onclick="saveWeightPref('dumbbellMode','total')">Total (both)</button>
+      </div>
+    </div>
+  `;
+}
+
+function saveWeightPref(key,value){
+  db.weightPrefs={...(db.weightPrefs||DEFAULT_DB.weightPrefs), [key]:value};
+  saveDB();
+  renderWeightPrefsSection();
 }
 
 // Enforcement lives server-side: follows' INSERT policy forces a new
@@ -6904,6 +7138,7 @@ async function pushLocalDataToCloud(){
     schedule: db.schedule || [],
     schedule_pos: db.schedulePos || 0,
     last_notes: db.lastNotes || {},
+    weight_prefs: db.weightPrefs || DEFAULT_DB.weightPrefs,
   });
 
   const notedExercises = (db.exercises||[]).filter(e=>e.notes && e.notes.trim());
@@ -7044,6 +7279,7 @@ async function pullCloudDataToLocal(){
     db.schedule = s.schedule || [];
     db.schedulePos = s.schedule_pos || 0;
     db.lastNotes = s.last_notes || {};
+    db.weightPrefs = {...DEFAULT_DB.weightPrefs, ...(s.weight_prefs||{})};
     try{
       localStorage.setItem('alans_settings', JSON.stringify({
         lightMode: s.theme === 'light', accent: s.accent, lang: s.lang
