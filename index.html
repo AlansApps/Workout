@@ -2179,6 +2179,9 @@ const DEFAULT_EXERCISES=[
   {id:"e95",name:"Barbell Glute Bridge",muscle:"Legs",notes:"",video:"1409-qKBpF7I",equipment:"barbell"},
   {id:"e96",name:"Dumbbell Step-Up",muscle:"Legs",notes:"",video:"0431-aXtJhlg",equipment:"dumbbell"},
   {id:"e97",name:"Barbell Rack Pull",muscle:"Legs",notes:"",video:"0074-za9Ni4z",equipment:"barbell"},
+  {id:"e115",name:"Barbell Snatch",muscle:"Legs",notes:"",equipment:"barbell"},
+  {id:"e116",name:"Barbell Clean and Jerk",muscle:"Legs",notes:"",equipment:"barbell"},
+  {id:"e117",name:"Barbell Power Clean",muscle:"Legs",notes:"",equipment:"barbell"},
   {id:"e10",name:"Barbell Bench Press",muscle:"Chest",notes:"",video:"0025-EIeI8Vf",equipment:"barbell"},
   {id:"e40",name:"Dumbbell Bench Press",muscle:"Chest",notes:"",video:"0289-SpYC0Kp",equipment:"dumbbell"},
   {id:"e11",name:"Barbell Incline Bench Press",muscle:"Chest",notes:"30º · Nip height",video:"0047-3TZduzM",equipment:"barbell"},
@@ -2261,16 +2264,19 @@ const DEFAULT_EXERCISES=[
 ];
 
 // Which lifts get a PR/1RM row on the profile's PRs tab, and in what order.
-// Hand-picked per muscle group (Alan's call, 2026-07-23) rather than every
-// exercise: isolation/accessory work, machines, and time-tracked exercises
-// don't have a meaningful 1RM, so Triceps/Biceps/Core/Cardio are excluded
-// entirely. Deadlift stays filed under Legs to match DEFAULT_EXERCISES'
-// own muscle grouping, even though most lifters would call it a Back lift.
+// Hand-picked per muscle group (Alan's call, 2026-07-23, revised 2026-07-24
+// after checking which lifts people actually 1RM-test — Dumbbell Shoulder
+// Press and Barbell Bent Over Row dropped, the 3 Olympic lifts added)
+// rather than every exercise: isolation/accessory work, machines, and
+// time-tracked exercises don't have a meaningful 1RM, so Triceps/Biceps/
+// Core/Cardio are excluded entirely. Deadlift (and the Olympic lifts)
+// stay filed under Legs to match DEFAULT_EXERCISES' own muscle grouping,
+// even though most lifters would call them Back/full-body lifts.
 const PR_TRACKED_EXERCISES=[
-  {muscle:"Legs",      ids:["e01","e36","e02"]}, // Barbell Squat, Deadlift, Romanian Deadlift
+  {muscle:"Legs",      ids:["e01","e36","e02","e115","e116","e117"]}, // Barbell Squat, Deadlift, Romanian Deadlift, Snatch, Clean and Jerk, Power Clean
   {muscle:"Chest",     ids:["e10"]},              // Barbell Bench Press
-  {muscle:"Back",      ids:["e24","e23"]},        // Pull-Up (Weighted), Barbell Bent Over Row
-  {muscle:"Shoulders", ids:["e75","e16"]},        // Standing Military Press, Dumbbell Shoulder Press
+  {muscle:"Back",      ids:["e24"]},              // Pull-Up (Weighted)
+  {muscle:"Shoulders", ids:["e75"]},               // Standing Military Press
 ];
 
 // Source data for the Browse Workouts catalog only (openBrowseRoutines()) —
