@@ -572,6 +572,7 @@ select.form-inp option{background:var(--panel);}
 .pr-main{flex:1;min-width:0;}
 .pr-ex-name{font-size:14px;font-weight:600;color:var(--bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pr-ex-set{font-size:11px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums;}
+.pr-date{color:var(--line2);}
 .pr-1rm-col{text-align:right;flex-shrink:0;display:flex;align-items:center;gap:7px;}
 .pr-1rm{font-family:var(--hd);font-weight:700;font-size:17px;color:var(--pr);font-variant-numeric:tabular-nums;}
 .pr-1rm-unit{font-size:9px;color:var(--pr);opacity:.65;font-weight:600;margin-left:2px;}
@@ -3104,6 +3105,17 @@ function bestSetForExercise(sessions,exId){
   if(bwAssisted && bwKg<=0 && hasAnySet) return {needsBodyweight:true};
   if(!best) return null;
   return {...best, verified: bestSingleTrueWeight>0 && bestSingleTrueWeight>=best.oneRM};
+}
+
+// Subtle date for the PRs tab (Option 2, Alan's pick, 2026-07-25) — drops
+// the year for anything set this year ("21 Jul") so the common case stays
+// minimal, but shows it ("21 Jul 2025") the moment the PR is actually
+// from a different year, so an old one never reads as recent just because
+// the format hid the part that would've given it away.
+function fmtPRDate(ts){
+  const d=new Date(ts);
+  const thisYear=new Date().getFullYear()===d.getFullYear();
+  return d.toLocaleDateString('en-GB', thisYear?{day:'numeric',month:'short'}:{day:'numeric',month:'short',year:'numeric'});
 }
 
 // Weight-based allTimePRs entries hold whichever set has the highest
@@ -6247,7 +6259,10 @@ function buildPRsTabHtml(sessions){
       }
       const dispW=toDisplayWeight(best.weight);
       const dispOneRM=toDisplayWeight(best.oneRM);
-      const setLabel = (dispW===0?'BW':dispW+unitLabel())+' × '+best.reps;
+      // "· 21 Jul" reuses the exact separator convention the Log tab
+      // already uses for date/duration/volume — Option 2 from the 3
+      // proposed, Alan's pick (2026-07-25).
+      const setLabel = (dispW===0?'BW':dispW+unitLabel())+' × '+best.reps+' <span class="pr-date">· '+fmtPRDate(best.date)+'</span>';
       const tickHtml = best.verified
         ? `<div class="pr-tick" onclick="this.classList.toggle('tapped')">${ICON_TICK}<div class="pr-tip">Hit — real set logged at this weight</div></div>`
         : '';
