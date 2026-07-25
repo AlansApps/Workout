@@ -379,6 +379,13 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .ex-weight-label{font-size:8px;color:#777;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;font-weight:600;}
 .save-flash{font-size:9px;color:var(--ok);letter-spacing:2px;font-weight:600;opacity:0;transition:opacity .3s;text-transform:uppercase;}
 .save-flash.show{opacity:1;}
+
+/* Generic transient toast — currently only used by shareRoutine()'s
+   clipboard-copy fallback, but deliberately generic (id-based singleton,
+   plain text) so any future "quick confirmation" need can reuse it
+   instead of growing its own one-off notification. */
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:var(--lift);border:1px solid var(--gold3);color:var(--text);font-family:var(--body);font-size:13px;font-weight:600;padding:10px 20px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:500;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .history-entry{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;}
 .history-entry:last-child{border-bottom:none;}
 .history-date{font-size:9px;color:#666;letter-spacing:1px;}
@@ -3629,6 +3636,7 @@ function renderRoutines(){
     <div class="rtn-row">
       <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
       <div class="rtn-acts">
+        <button class="btn-ico" onclick="shareRoutine(db.routines.find(x=>x.id==='${r.id}'))" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
         <button class="btn-ico" onclick="openRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
         <button class="btn-ico del" onclick="delRoutine('${r.id}')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
@@ -3668,7 +3676,10 @@ function openBrowseRoutines(){
       ${DEFAULT_ROUTINES.map(r=>`
         <div class="browse-row">
           <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
-          <button class="browse-dl-btn" onclick="openDownloadRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14"/></svg>Add</button>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <button class="btn-ico" onclick="shareRoutine(DEFAULT_ROUTINES.find(x=>x.id==='${r.id}'))" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+            <button class="browse-dl-btn" onclick="openDownloadRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14"/></svg>Add</button>
+          </div>
         </div>`).join('')}
     </div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">Close</button>`;
@@ -3700,6 +3711,127 @@ function confirmDownloadRoutine(defId){
   db.routines.push({id:genId(), name, exercises:JSON.parse(JSON.stringify(def.exercises))});
   saveDB(); closeModal(); renderRoutines();
   syncOfflineVideoCache(); // the downloaded routine may reference exercises with cached videos
+}
+
+// Generic transient toast — see the .toast CSS comment for reuse intent.
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){ t=document.createElement('div'); t.id='app-toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ═══════════════════════════════════════════
+//  SHARE A ROUTINE — a link, not a live subscription. The whole routine
+//  (name + each exercise's sets/reps/rest, deliberately never weight —
+//  same convention as Browse's own "Add" copy, see confirmDownloadRoutine
+//  above) is base64url-encoded straight into the URL's query string, so
+//  there's no server-side storage, no account needed to send or receive
+//  one, and nothing to keep in sync: opening the link decodes a snapshot,
+//  and saving it makes an independent copy exactly like downloading from
+//  Browse does. If the sender edits their routine later, or deletes it,
+//  already-sent links are completely unaffected.
+// ═══════════════════════════════════════════
+function b64UrlEncode(str){
+  const bytes=new TextEncoder().encode(str);
+  let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function b64UrlDecode(str){
+  str=str.replace(/-/g,'+').replace(/_/g,'/');
+  while(str.length%4) str+='=';
+  const bin=atob(str);
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function encodeRoutineForShare(routine){
+  // Short keys (n/e/i/s/r/t) — this rides in a URL, not storage, so every
+  // byte shaved off keeps the link shorter for WhatsApp/email/copy-paste.
+  const compact={ n:routine.name, e:routine.exercises.map(ex=>({i:ex.id, s:ex.sets, r:ex.reps, t:ex.rest})) };
+  return b64UrlEncode(JSON.stringify(compact));
+}
+
+// Untrusted input — this came from a URL someone could have hand-edited
+// or a stale/corrupted link, not from our own storage. Fails closed
+// (returns null) on anything malformed, and drops any exercise id this
+// device's catalogue doesn't recognize rather than importing a broken
+// routine referencing an exercise that doesn't exist.
+function decodeSharedRoutine(encoded){
+  try{
+    const compact=JSON.parse(b64UrlDecode(encoded));
+    if(!compact||typeof compact.n!=='string'||!Array.isArray(compact.e)) return null;
+    const exercises=compact.e
+      .map(ex=>({ id:String(ex.i||''), sets:parseInt(ex.s)||3, reps:parseInt(ex.r)||8, weight:0, rest:parseInt(ex.t)||60 }))
+      .filter(ex=>db.exercises.some(e=>e.id===ex.id));
+    if(!exercises.length) return null;
+    return { name:compact.n.slice(0,60)||'Shared Workout', exercises };
+  }catch(e){ return null; }
+}
+
+// Works for both a db.routines entry and a DEFAULT_ROUTINES catalog entry
+// — same {name, exercises} shape either way. navigator.share opens the
+// native share sheet (WhatsApp/Mail/Messages/Copy all show up there for
+// free on iOS/Android); falls back to a straight clipboard copy on
+// desktop browsers that don't support it.
+async function shareRoutine(routine){
+  if(!routine) return;
+  const url=location.origin+location.pathname+'?share='+encodeRoutineForShare(routine);
+  if(navigator.share){
+    try{ await navigator.share({ title:routine.name, text:`Check out this workout: ${routine.name}`, url }); }
+    catch(e){ /* user cancelled the share sheet — nothing to do */ }
+  } else if(navigator.clipboard && navigator.clipboard.writeText){
+    try{ await navigator.clipboard.writeText(url); showToast('Link copied'); }
+    catch(e){ showToast('Could not copy link'); }
+  } else {
+    showToast('Sharing not supported on this device');
+  }
+}
+
+// Called once at boot (see INIT section) — checks whether this load came
+// from a shared-workout link, and if so shows the import prompt on top
+// of whatever screen normally opens. Clears the query param immediately
+// so refreshing or navigating back doesn't re-trigger the prompt.
+function checkIncomingSharedRoutine(){
+  const params=new URLSearchParams(location.search);
+  const encoded=params.get('share');
+  if(!encoded) return;
+  history.replaceState(null,'',location.pathname);
+  const shared=decodeSharedRoutine(encoded);
+  if(!shared){ showToast('This workout link looks broken'); return; }
+  openImportSharedRoutineModal(shared);
+}
+
+let _pendingSharedRoutine=null;
+function openImportSharedRoutineModal(shared){
+  _pendingSharedRoutine=shared;
+  document.getElementById('modal-title').textContent='Add Shared Workout';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-grp">
+      <label class="form-lbl">Workout Name</label>
+      <input class="form-inp" id="dl-name-inp" value="${escapeHtml(shared.name)}" maxlength="60">
+    </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;">Someone shared this workout with you — ${shared.exercises.length} exercise${shared.exercises.length===1?'':'s'}. Adding it makes your own copy that tracks your own sets and weights independently from here on.</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="_pendingSharedRoutine=null;closeModal();">Cancel</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmImportSharedRoutine()">Add</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+  const inp=document.getElementById('dl-name-inp'); inp.focus(); inp.select();
+}
+
+function confirmImportSharedRoutine(){
+  const shared=_pendingSharedRoutine;
+  if(!shared) return;
+  const name=document.getElementById('dl-name-inp').value.trim();
+  if(!name){ alert('Name your routine.'); return; }
+  db.routines.push({id:genId(), name, exercises:JSON.parse(JSON.stringify(shared.exercises))});
+  saveDB(); closeModal(); renderRoutines();
+  syncOfflineVideoCache();
+  _pendingSharedRoutine=null;
+  showToast('Workout added');
 }
 
 function openRoutineModal(editId){
@@ -7416,6 +7548,7 @@ loadDB();
 loadSettings();
 bootstrapAuthGate();
 syncOfflineVideoCache(); // fire-and-forget: mirrors this device's routine videos into the cache in the background
+checkIncomingSharedRoutine(); // opens the "Add Shared Workout" modal if this load came from a ?share= link
 
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
