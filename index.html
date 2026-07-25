@@ -111,7 +111,7 @@ body.light-mode .float-nav-pill{background:rgba(0,0,0,.06);}
 
 /* ── WORKOUT ── */
 #screen-workout{flex-direction:column;}
-.wo-topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 18px;padding-top:max(14px,calc(14px + env(safe-area-inset-top)));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.wo-topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 18px;padding-top:max(14px,calc(14px + env(safe-area-inset-top)));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;transform:translateZ(0);-webkit-backface-visibility:hidden;}
 .wo-left{display:flex;flex-direction:column;gap:2px;}
 .wo-name{font-family:var(--hd);font-size:18px;font-weight:700;letter-spacing:3px;color:var(--gold);text-transform:uppercase;}
 .wo-elapsed{font-size:10px;color:var(--dim);letter-spacing:3px;font-weight:600;}
@@ -356,7 +356,7 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 
 /* Exercise detail slide-in */
 #screen-ex-detail{flex-direction:column;}
-.ex-detail-header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--panel);position:sticky;top:0;z-index:5;}
+.ex-detail-header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--panel);position:sticky;top:0;z-index:5;transform:translateZ(0);-webkit-backface-visibility:hidden;}
 .ex-detail-title-row{display:flex;align-items:center;gap:12px;}
 .ex-detail-muscle{font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:3px;}
 .ex-detail-name{font-family:var(--hd);font-size:20px;font-weight:700;letter-spacing:3px;color:#fff;text-transform:uppercase;}
@@ -490,8 +490,16 @@ select.form-inp option{background:var(--panel);}
 /* ── PROFILE — Instagram-style header, matches the My Account identity
    block pattern (tier icon beside real-case name/handle, not caps). ── */
 /* Pinned to the top of #profile-body while only the tab content below it
-   scrolls — same treatment for your own profile and anyone else's. */
-.profile-sticky{position:sticky;top:0;z-index:2;background:var(--void);}
+   scrolls — same treatment for your own profile and anyone else's.
+   translateZ(0) forces this onto its own GPU compositor layer — on iOS
+   Safari (especially in installed-PWA/standalone mode), a plain
+   position:sticky element tracked by the OS's own momentum-scroll
+   animation instead of the compositor otherwise visibly lags/drifts a
+   few pixels during a fast scroll or the address-bar show/hide
+   transition, so it never reads as truly frozen. Applied to every
+   sticky header in the app (.wo-topbar, .ex-detail-header) for the
+   same reason. */
+.profile-sticky{position:sticky;top:0;z-index:2;background:var(--void);transform:translateZ(0);-webkit-backface-visibility:hidden;}
 .profile-id-row{display:flex;align-items:center;gap:16px;padding:24px 18px 20px;}
 .profile-id-row .settings-btn{margin-left:auto;align-self:flex-start;flex-shrink:0;}
 .profile-tier-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
@@ -1441,7 +1449,7 @@ body.light-mode .auth-choice-title{color:#111;}
   <div class="finish-grid">
     <div class="stat-tile"><div id="st-sets" class="stat-n">0</div><div class="stat-l">Sets</div></div>
     <div class="stat-tile"><div id="st-time" class="stat-n">0:00</div><div class="stat-l">Time</div></div>
-    <div class="stat-tile"><div id="st-vol" class="stat-n">0</div><div class="stat-l">Volume kg</div></div>
+    <div class="stat-tile"><div id="st-vol" class="stat-n">0</div><div class="stat-l">Volume <span id="st-vol-unit">kg</span></div></div>
     <div class="stat-tile"><div id="st-exs" class="stat-n">0</div><div class="stat-l">Exercises</div></div>
   </div>
   <div class="finish-note-wrap">
@@ -1507,7 +1515,7 @@ body.light-mode .auth-choice-title{color:#111;}
         </div>
         <div class="prog-stats-row">
           <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-gain">—</div><div class="prog-stat-lbl">Gain</div></div>
-          <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-pr">—</div><div class="prog-stat-lbl">PR (kg)</div></div>
+          <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-pr">—</div><div class="prog-stat-lbl" id="ex-stat-pr-lbl">PR (kg)</div></div>
           <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-sess">—</div><div class="prog-stat-lbl">Sessions</div></div>
         </div>
       </div>
@@ -2348,7 +2356,14 @@ const DEFAULT_DB={
   // no bodyweight on file, bodyweight-assisted exercises (weighted pull-
   // ups) can't produce a real 1RM number, so they intentionally show a
   // prompt instead of a wrong one.
-  weightPrefs:{barbellMode:'total', barWeightKg:20, dumbbellMode:'perDumbbell', bodyweightKg:null}
+  // `units` is a different kind of preference from the ones above: kg<->lb
+  // is a deterministic conversion (no ambiguity to reinterpret later), so
+  // — unlike barbellMode/dumbbellMode — it's applied at INPUT time, not
+  // read time. Every stored weight (workoutLog/lastWeights/allTimePRs) is
+  // always in kg regardless of what unit was active when it was typed;
+  // 'lb' only affects what a field shows/accepts. See toDisplayWeight()/
+  // fromDisplayUnit().
+  weightPrefs:{barbellMode:'total', barWeightKg:20, dumbbellMode:'perDumbbell', bodyweightKg:null, units:'kg'}
 };
 
 
@@ -2750,14 +2765,15 @@ function renderWoScreen(){
         <button class="go-btn" onclick="openActiveClock(${ei},${s},${targetSec},'${escapeHtml(ex.name).replace(/'/g,"\\'")}')">GO</button>
       </div>`;
     }
+    const stepAmt=isLbMode()?5:2.5;
     return `<div class="set-row" id="sr-${ei}-${s}">
       <span class="set-n">${s+1}</span>
       <div class="set-field-wrap">
-        <span class="set-field-lbl">kg</span>
+        <span class="set-field-lbl">${unitLabel()}</span>
         <div class="stepper">
-          <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',-2.5)">&#8722;</button>
-          <input class="set-inp" type="text" inputmode="decimal" id="w-${ei}-${s}" value="${ex.actualWeight[s]||''}" placeholder="0" onchange="updSet(${ei},${s},'w',this.value)">
-          <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',2.5)">&#43;</button>
+          <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',-${stepAmt})">&#8722;</button>
+          <input class="set-inp" type="text" inputmode="decimal" id="w-${ei}-${s}" value="${ex.actualWeight[s]?toDisplayWeight(ex.actualWeight[s]):''}" placeholder="0" onchange="updSet(${ei},${s},'w',this.value)">
+          <button class="stepper-btn" onclick="stepVal(${ei},${s},'w',${stepAmt})">&#43;</button>
         </div>
       </div>
       <div class="set-field-wrap">
@@ -2797,14 +2813,15 @@ function renderWoScreen(){
         item.exercises.forEach((ex,e)=>{
           const ei=ex._ei;
           const isLast=e===item.exercises.length-1;
+          const ssStepAmt=isLbMode()?5:2.5;
           exRows+=`<div class="ss-ex-row">
             <span class="ss-ex-lbl">${String.fromCharCode(65+e)}</span>
             <div class="set-field-wrap">
-              <span class="set-field-lbl">kg</span>
+              <span class="set-field-lbl">${unitLabel()}</span>
               <div class="stepper">
-                <button class="stepper-btn" onclick="stepVal(${ei},${r},'w',-2.5)">&#8722;</button>
-                <input class="set-inp" type="text" inputmode="decimal" id="w-${ei}-${r}" value="${ex.actualWeight[r]||''}" placeholder="0" onchange="updSet(${ei},${r},'w',this.value)">
-                <button class="stepper-btn" onclick="stepVal(${ei},${r},'w',2.5)">&#43;</button>
+                <button class="stepper-btn" onclick="stepVal(${ei},${r},'w',-${ssStepAmt})">&#8722;</button>
+                <input class="set-inp" type="text" inputmode="decimal" id="w-${ei}-${r}" value="${ex.actualWeight[r]?toDisplayWeight(ex.actualWeight[r]):''}" placeholder="0" onchange="updSet(${ei},${r},'w',this.value)">
+                <button class="stepper-btn" onclick="stepVal(${ei},${r},'w',${ssStepAmt})">&#43;</button>
               </div>
             </div>
             <div class="set-field-wrap">
@@ -2875,7 +2892,7 @@ function saveWoNote(ei){
 }
 
 function updSet(ei,si,t,v){
-  if(t==='w'){session.exercises[ei].actualWeight[si]=parseKg(v);checkPR(ei,si);}
+  if(t==='w'){session.exercises[ei].actualWeight[si]=fromDisplayUnit(parseKg(v));checkPR(ei,si);}
   if(t==='r') session.exercises[ei].actualReps[si]=parseInt(v)||0;
 
   saveSession();
@@ -2890,6 +2907,33 @@ function stepVal(ei,si,t,delta){
 }
 
 function parseKg(v){ return parseFloat(String(v).replace(',','.').trim())||0; }
+
+// ── Units (kg / lb) ──
+// Everything stored (workoutLog, lastWeights, allTimePRs, weightPrefs'
+// own barWeightKg/bodyweightKg) is always in kg — a single canonical
+// unit, never mixed. 'lb' is purely a display-and-input-field lens
+// layered on top, converted at the two boundaries: fromDisplayUnit()
+// right when a typed value is parsed (before it's stored anywhere),
+// toDisplayWeight() right when a kg value is shown in the UI. Composes
+// with getTrueWeight()'s barbell/dumbbell normalization, which always
+// operates in kg first — unit conversion is the last step before display.
+const KG_PER_LB=0.45359237;
+function isLbMode(){ return !!(db.weightPrefs && db.weightPrefs.units==='lb'); }
+function unitLabel(){ return isLbMode()?'lb':'kg'; }
+// Rounds to a sane display precision — 1 decimal covers both a 0.5kg
+// plate jump and a whole-lb reading without a long float tail.
+function toDisplayWeight(kg){
+  if(!kg) return 0;
+  const v=isLbMode()?kg/KG_PER_LB:kg;
+  return Math.round(v*10)/10;
+}
+// Converts a value just typed into a weight field (already in the
+// CURRENT display unit) into kg for storage. Use on every weight input's
+// onchange, paired with toDisplayWeight() on that same input's value=.
+function fromDisplayUnit(v){
+  if(!v) return 0;
+  return isLbMode()?v*KG_PER_LB:v;
+}
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 // Time-tracked exercises (Plank-style holds, Cardio) reuse the reps field to
@@ -3058,8 +3102,8 @@ function bestSetForExercise(sessions,exId){
 // edge case where reps isn't a number yet. Takes exId so the stored raw
 // weight can be run through getTrueWeight() before formatting.
 function fmtPRWeight(pr,exId){
-  const w=getTrueWeight(exId,pr.weight);
-  return w+'kg'+(typeof pr.reps==='number'&&pr.reps>0?'×'+pr.reps:'');
+  const w=toDisplayWeight(getTrueWeight(exId,pr.weight));
+  return w+unitLabel()+(typeof pr.reps==='number'&&pr.reps>0?'×'+pr.reps:'');
 }
 
 // "Last:" display for the Exercises DB list. lw.history is a string baked
@@ -3075,12 +3119,17 @@ function fmtLastWeightDisplay(lw,exId,timed){
   if(lw.sets && lw.sets.length){
     const allSameW=lw.sets.every(s=>s.weight===lw.sets[0].weight);
     if(allSameW){
-      const tw=getTrueWeight(exId,lw.sets[0].weight);
-      return (tw===0?'BW':tw+'kg')+' · '+lw.sets.map(s=>s.reps).join('/');
+      const tw=toDisplayWeight(getTrueWeight(exId,lw.sets[0].weight));
+      return (tw===0?'BW':tw+unitLabel())+' · '+lw.sets.map(s=>s.reps).join('/');
     }
-    return lw.sets.map((s,i)=>{ const tw=getTrueWeight(exId,s.weight); return (i+1)+': '+(tw===0?'BW':tw+'kg')+'×'+s.reps; }).join(' / ');
+    return lw.sets.map((s,i)=>{ const tw=toDisplayWeight(getTrueWeight(exId,s.weight)); return (i+1)+': '+(tw===0?'BW':tw+unitLabel())+'×'+s.reps; }).join(' / ');
   }
-  return lw.history || (getTrueWeight(exId,lw.weight)+'kg');
+  // Prefer live recomputation from lw.weight whenever it exists — lw.history
+  // is a stale baked string (wrong unit as soon as the user switches units,
+  // wrong true-weight as soon as a logging-convention setting changes) and
+  // should only be trusted when there's no raw number left to recompute
+  // from at all.
+  return typeof lw.weight==='number' ? (toDisplayWeight(getTrueWeight(exId,lw.weight))+unitLabel()) : (lw.history||'');
 }
 
 // A "new PR" during a live workout now means "this set's calculated 1RM
@@ -3145,7 +3194,7 @@ function tickSet(ei,si){
   if(_restMinimized && restRem > 0) return;
   const ex=session.exercises[ei];
   const btn=document.getElementById('t-'+ei+'-'+si);
-  session.exercises[ei].actualWeight[si]=parseKg(document.getElementById('w-'+ei+'-'+si).value);
+  session.exercises[ei].actualWeight[si]=fromDisplayUnit(parseKg(document.getElementById('w-'+ei+'-'+si).value));
   session.exercises[ei].actualReps[si]=parseInt(document.getElementById('r-'+ei+'-'+si).value)||0;
   if(ex.tickedSets.includes(si)){
     ex.tickedSets=ex.tickedSets.filter(s=>s!==si);
@@ -3174,7 +3223,7 @@ function tickSSRound(ii,r){
   // Read current input values into each exercise in this round
   ssItem.exercises.forEach(ex=>{
     const ei=ex._ei;
-    ex.actualWeight[r]=parseKg((document.getElementById('w-'+ei+'-'+r)||{}).value||'');
+    ex.actualWeight[r]=fromDisplayUnit(parseKg((document.getElementById('w-'+ei+'-'+r)||{}).value||''));
     ex.actualReps[r]=parseInt((document.getElementById('r-'+ei+'-'+r)||{}).value)||0;
     if(!ex.tickedSets.includes(r)) ex.tickedSets.push(r);
   });
@@ -3514,7 +3563,8 @@ function finishWorkout(){
   const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(getTrueWeight(e.id,s.weight)*s.reps),0),0);
   document.getElementById('st-sets').textContent=sets;
   document.getElementById('st-time').textContent=Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0');
-  document.getElementById('st-vol').textContent=Math.round(vol);
+  document.getElementById('st-vol').textContent=Math.round(toDisplayWeight(vol));
+  document.getElementById('st-vol-unit').textContent=unitLabel();
   document.getElementById('st-exs').textContent=entry.exercises.length;
   document.getElementById('finish-note').value='';
   document.getElementById('finish-save-status').textContent='✓ Saved';
@@ -3716,7 +3766,7 @@ function openRoutineModal(editId){
       </div>`:`
       <div class="eb-set-row" id="ebr-${i}-${si}">
         <span class="eb-set-num">${si+1}</span>
-        <input class="eb-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].setRows[${si}].kg=parseKg(this.value)">
+        <input class="eb-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg?toDisplayWeight(sr.kg):''}" onchange="mItems[${i}].setRows[${si}].kg=fromDisplayUnit(parseKg(this.value))">
         <input class="eb-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].setRows[${si}].reps=parseInt(this.value)||0">
         <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>`).join('');
@@ -3730,7 +3780,7 @@ function openRoutineModal(editId){
           <button class="btn-ico del" onclick="rmItem(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         <div class="eb-sets-head ${isTimed?'time-head':''}">
-          ${isTimed?'<span>Set</span><span>Target duration</span><span></span>':'<span>Set</span><span>KG</span><span>Reps</span><span></span>'}
+          ${isTimed?'<span>Set</span><span>Target duration</span><span></span>':`<span>Set</span><span>${unitLabel().toUpperCase()}</span><span>Reps</span><span></span>`}
         </div>
         ${setRowsHtml}
         <button class="eb-add-set" onclick="addSet(${i})">
@@ -3748,7 +3798,7 @@ function openRoutineModal(editId){
   function buildSSBlock(ss, i){
     const rounds=ss.sets.length, exCount=ss.exercises.length;
     let rowsHtml=`<div class="eb-sets-head" style="border-color:color-mix(in srgb,var(--gold) 20%,transparent);">
-      <span>Rnd</span><span>KG</span><span>Reps</span><span></span>
+      <span>Rnd</span><span>${unitLabel().toUpperCase()}</span><span>Reps</span><span></span>
     </div>`;
     for(let r=0;r<rounds;r++){
       rowsHtml+=`<div class="ss-round-sep">
@@ -3760,7 +3810,7 @@ function openRoutineModal(editId){
         const canDel=rounds>1 && e===0;
         rowsHtml+=`<div class="ss-set-row" id="ssr-${i}-${r}-${e}">
           <span class="ss-set-exlbl">${String.fromCharCode(65+e)}</span>
-          <input class="ss-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg||''}" onchange="mItems[${i}].sets[${r}][${e}].kg=parseKg(this.value)">
+          <input class="ss-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg?toDisplayWeight(sr.kg):''}" onchange="mItems[${i}].sets[${r}][${e}].kg=fromDisplayUnit(parseKg(this.value))">
           <input class="ss-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].sets[${r}][${e}].reps=parseInt(this.value)||0">
           ${canDel?`<button class="eb-set-del" onclick="rmSSRound(${i},${r})" title="Remove round"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:'<span></span>'}
         </div>`;
@@ -3950,13 +4000,13 @@ function buildLogListHtml(entries){
     const vol=entry.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(getTrueWeight(e.id,s.weight)*s.reps),0),0);
     const det=entry.exercises.map(ex=>{
       const timed=isTimeTrackedEx(ex.id);
-      const ss=ex.sets.map((s,i)=>{ if(timed) return `${i+1}: ${fmtDuration(s.reps)}`; const tw=getTrueWeight(ex.id,s.weight); return `${i+1}: ${tw===0?'BW':tw+'kg'}×${s.reps}`; }).join('  ·  ');
+      const ss=ex.sets.map((s,i)=>{ if(timed) return `${i+1}: ${fmtDuration(s.reps)}`; const tw=toDisplayWeight(getTrueWeight(ex.id,s.weight)); return `${i+1}: ${tw===0?'BW':tw+unitLabel()}×${s.reps}`; }).join('  ·  ');
       return`<div class="log-ex"><div class="log-ex-n">${escapeHtml(ex.name)}</div><div class="log-sets">${ss||'—'}</div></div>`;
     }).join('');
     const noteHtml=entry.note?`<div class="log-note">"${escapeHtml(entry.note)}"</div>`:'';
     return`<div class="log-item">
       <div class="log-hd" onclick="toggleEl(this)">
-        <div><div class="log-n">${escapeHtml(entry.routineName)}</div><div class="log-d">${ds} · ${dur} · ${Math.round(vol)}kg</div></div>
+        <div><div class="log-n">${escapeHtml(entry.routineName)}</div><div class="log-d">${ds} · ${dur} · ${Math.round(toDisplayWeight(vol))}${unitLabel()}</div></div>
         <span style="color:var(--muted);font-size:15px">›</span>
       </div>
       <div class="log-bd">${noteHtml}${det}</div>
@@ -5261,7 +5311,7 @@ function renderExDetail(exId){
     .map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
       const date=new Date(log.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-      const sets=exLog.sets.map((s,i)=>{ if(timed) return (i+1)+': '+fmtDuration(s.reps); const tw=getTrueWeight(exId,s.weight); return (i+1)+': '+(tw===0?'BW':tw+'kg')+' x'+s.reps; }).join(' / ');
+      const sets=exLog.sets.map((s,i)=>{ if(timed) return (i+1)+': '+fmtDuration(s.reps); const tw=toDisplayWeight(getTrueWeight(exId,s.weight)); return (i+1)+': '+(tw===0?'BW':tw+unitLabel())+' x'+s.reps; }).join(' / ');
       return `<div class="history-entry">
         <span class="history-date">${date}</span>
         <span class="history-val">${sets||'—'}</span>
@@ -5319,9 +5369,9 @@ function renderExDetail(exId){
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
               <span style="font-size:9px;color:#666;letter-spacing:1px;width:36px;">Set ${i+1}</span>
               <div style="flex:1;">
-                <div class="ex-weight-label">KG</div>
+                <div class="ex-weight-label">${unitLabel().toUpperCase()}</div>
                 <input class="ex-edit-field" type="number" inputmode="decimal"
-                  value="${s.weight}" placeholder="0"
+                  value="${toDisplayWeight(s.weight)}" placeholder="0"
                   onchange="saveExSetWeight('${exId}',${i},'w',this.value)">
               </div>
               <div style="flex:1;">
@@ -5334,9 +5384,9 @@ function renderExDetail(exId){
           :`
             <div style="display:flex;gap:10px;">
               <div style="flex:1;">
-                <div class="ex-weight-label">KG</div>
+                <div class="ex-weight-label">${unitLabel().toUpperCase()}</div>
                 <input class="ex-edit-field" type="number" inputmode="decimal"
-                  value="${lw.weight||''}" placeholder="0"
+                  value="${lw.weight?toDisplayWeight(lw.weight):''}" placeholder="0"
                   onchange="saveExWeight('${exId}','w',this.value)">
               </div>
               <div style="flex:1;">
@@ -5377,7 +5427,7 @@ function saveExWeight(exId, type, val){
   if(!db.lastWeights[exId]) db.lastWeights[exId]={sets:[],weight:0,reps:0,history:''};
   const lw=db.lastWeights[exId];
   const timed=isTimeTrackedEx(exId);
-  if(type==='w') lw.weight=parseKg(val);
+  if(type==='w') lw.weight=fromDisplayUnit(parseKg(val));
   if(type==='r') lw.reps=timed?parseDuration(val):(parseInt(val)||0);
   lw.history=timed?fmtDuration(lw.reps):((lw.weight===0?'BW':lw.weight+'kg')+' · '+lw.reps);
   saveDB();
@@ -5391,7 +5441,7 @@ function saveExSetWeight(exId, setIdx, type, val){
   const timed=isTimeTrackedEx(exId);
   if(!lw.sets) lw.sets=[];
   if(!lw.sets[setIdx]) lw.sets[setIdx]={weight:0,reps:0};
-  if(type==='w') lw.sets[setIdx].weight=parseKg(val);
+  if(type==='w') lw.sets[setIdx].weight=fromDisplayUnit(parseKg(val));
   if(type==='r') lw.sets[setIdx].reps=timed?parseDuration(val):(parseInt(val)||0);
   if(timed){
     lw.weight=0;
@@ -5471,9 +5521,13 @@ function _startWithRoutine(rt){
         actualReps.push(defR);
       }
     }
+    // fmtLastWeightDisplay() rebuilds this from last.sets (true weight +
+    // current unit) rather than trusting last.history, which was baked in
+    // raw kg at save time and can't be reinterpreted after the fact.
+    const lastHistory=last.weight!==undefined||last.sets ? fmtLastWeightDisplay(last,re.id,isTimeTrackedEx(re.id)) : '';
     return {type:'ex', id:re.id, name:ex.name, notes:ex.notes||'',
       sets:re.sets, reps:re.reps, rest:re.rest,
-      tickedSets:[], actualReps, actualWeight, lastHistory:last.history||''};
+      tickedSets:[], actualReps, actualWeight, lastHistory};
   }
 
   // Build session items: group consecutive same-ssGroup exercises into ss blocks
@@ -5594,13 +5648,15 @@ function drawExChart(){
     .filter(log=>log.date>=cutoff && log.exercises.some(e=>e.id===exId))
     .map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
-      const maxW=exLog.sets.length ? Math.max(...exLog.sets.map(s=>timed?s.reps:getTrueWeight(exId,s.weight))) : 0;
-      const sets=timed?exLog.sets.map(s=>fmtDuration(s.reps)).join(' / '):exLog.sets.map(s=>{const tw=getTrueWeight(exId,s.weight);return (tw===0?'BW':tw+'kg')+'x'+s.reps;}).join(' / ');
+      const maxW=exLog.sets.length ? Math.max(...exLog.sets.map(s=>timed?s.reps:toDisplayWeight(getTrueWeight(exId,s.weight)))) : 0;
+      const sets=timed?exLog.sets.map(s=>fmtDuration(s.reps)).join(' / '):exLog.sets.map(s=>{const tw=toDisplayWeight(getTrueWeight(exId,s.weight));return (tw===0?'BW':tw+unitLabel())+'x'+s.reps;}).join(' / ');
       return {date:log.date, w:maxW, sets, label:fmtDate(log.date,exRange)};
     });
 
   document.getElementById('ex-chart-title').textContent=ex.name;
+  document.getElementById('ex-stat-pr-lbl').textContent=timed?'PR':'PR ('+unitLabel()+')';
   const pr=db.allTimePRs[exId];
+  const prDispW=pr?toDisplayWeight(getTrueWeight(exId,pr.weight)):0; // pr.weight is raw kg — normalize+convert once, reused below for the chart's PR-dot comparison and both stat cells
   document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+(timed?fmtDuration(pr.reps):fmtPRWeight(pr,exId)):'';
 
   if(sessions.length<2){
@@ -5608,7 +5664,7 @@ function drawExChart(){
     document.getElementById('ex-svg').setAttribute('viewBox','0 0 400 80');
     document.getElementById('ex-svg').style.height='80px';
     document.getElementById('ex-stat-gain').textContent='—';
-    document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):getTrueWeight(exId,pr.weight)+'kg'):'—';
+    document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):prDispW+unitLabel()):'—';
     document.getElementById('ex-stat-sess').textContent=sessions.length;
     return;
   }
@@ -5646,7 +5702,7 @@ function drawExChart(){
   // Points
   sessions.forEach((s,i)=>{
     const x=xS(i),y=yS(s.w);
-    const isPR=pr&&s.w>=(timed?pr.reps:pr.weight);
+    const isPR=pr&&s.w>=(timed?pr.reps:prDispW);
     html+=`<circle cx="${x}" cy="${y}" r="${isPR?6:4}" fill="${isPR?accent:'#111'}" stroke="${accent}" stroke-width="2" class="ex-dot" data-i="${i}" style="cursor:pointer;"/>`;
     if(isPR) html+=`<text x="${x}" y="${y-9}" fill="${accent}" font-size="9" text-anchor="middle" font-family="Rajdhani" font-weight="700">PR</text>`;
   });
@@ -5668,7 +5724,7 @@ function drawExChart(){
     const handler=e=>{
       const s=sessions[parseInt(el.dataset.i)];
       const tt=document.getElementById('ex-tooltip');
-      tt.innerHTML=`<div class="prog-tt-date">${s.label}</div><div class="prog-tt-val">${timed?fmtDuration(s.w):(s.w===0?'BW':s.w+' kg')}</div><div class="prog-tt-sets">${s.sets}</div>`;
+      tt.innerHTML=`<div class="prog-tt-date">${s.label}</div><div class="prog-tt-val">${timed?fmtDuration(s.w):(s.w===0?'BW':s.w+' '+unitLabel())}</div><div class="prog-tt-sets">${s.sets}</div>`;
       const wrap=document.getElementById('ex-chart-wrap');
       const br=wrap.getBoundingClientRect(), er=el.getBoundingClientRect();
       let left=er.left-br.left+8, top=er.top-br.top-68;
@@ -5684,8 +5740,8 @@ function drawExChart(){
 
   // Stats
   const gain=sessions[sessions.length-1].w-sessions[0].w;
-  document.getElementById('ex-stat-gain').textContent=timed?(gain>0?'+':'')+fmtDuration(Math.abs(gain)):(gain>0?'+':'')+gain+'kg';
-  document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):pr.weight+'kg'):'—';
+  document.getElementById('ex-stat-gain').textContent=timed?(gain>0?'+':'')+fmtDuration(Math.abs(gain)):(gain>0?'+':'')+gain+unitLabel();
+  document.getElementById('ex-stat-pr').textContent=pr?(timed?fmtDuration(pr.reps):prDispW+unitLabel()):'—';
   document.getElementById('ex-stat-sess').textContent=sessions.length;
 }
 
@@ -5720,7 +5776,11 @@ function drawRtChart(){
     const vals=logs.map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
       if(!exLog||!exLog.sets.length) return null;
-      return {w:Math.max(...exLog.sets.map(s=>s.weight)), sets:exLog.sets.map(s=>(s.weight===0?'BW':s.weight+'kg')+'x'+s.reps).join(' / '), date:fmtDate(log.date,rtRange)};
+      // getTrueWeight() here (not just raw s.weight) matters beyond
+      // display: for barbell per-side mode true weight = raw×2+bar, not
+      // proportional to raw, so the %-vs-first-session trend this chart
+      // plots would come out subtly wrong without it.
+      return {w:Math.max(...exLog.sets.map(s=>getTrueWeight(exId,s.weight))), sets:exLog.sets.map(s=>{const tw=toDisplayWeight(getTrueWeight(exId,s.weight));return (tw===0?'BW':tw+unitLabel())+'x'+s.reps;}).join(' / '), date:fmtDate(log.date,rtRange)};
     });
     const first=vals.find(v=>v!==null);
     if(!first||first.w===0) return null;
@@ -5803,7 +5863,8 @@ function drawRtChart(){
       const v=s.vals[li]; if(!v) return;
       const pct=s.pcts[li];
       const tt=document.getElementById('rt-tooltip');
-      tt.innerHTML=`<div class="prog-tt-date">${v.date}</div><div class="prog-tt-ex">${s.name}</div><div class="prog-tt-val">${v.w===0?'BW':v.w+' kg'} (${pct>=0?'+':''}${pct}%)</div><div class="prog-tt-sets">${v.sets}</div>`;
+      const vwDisp=toDisplayWeight(v.w);
+      tt.innerHTML=`<div class="prog-tt-date">${v.date}</div><div class="prog-tt-ex">${s.name}</div><div class="prog-tt-val">${vwDisp===0?'BW':vwDisp+' '+unitLabel()} (${pct>=0?'+':''}${pct}%)</div><div class="prog-tt-sets">${v.sets}</div>`;
       const wrap=document.getElementById('rt-chart-wrap');
       const br=wrap.getBoundingClientRect(), er=el.getBoundingClientRect();
       let left=er.left-br.left+8, top=er.top-br.top-80;
@@ -6046,7 +6107,9 @@ function buildPRsTabHtml(sessions){
           <div class="pr-1rm-col"><div><div class="pr-1rm">—</div></div></div>
         </div>`;
       }
-      const setLabel = (best.weight===0?'BW':best.weight+'kg')+' × '+best.reps;
+      const dispW=toDisplayWeight(best.weight);
+      const dispOneRM=toDisplayWeight(best.oneRM);
+      const setLabel = (dispW===0?'BW':dispW+unitLabel())+' × '+best.reps;
       const tickHtml = best.verified
         ? `<div class="pr-tick" onclick="this.classList.toggle('tapped')">${ICON_TICK}<div class="pr-tip">Hit — real set logged at this weight</div></div>`
         : '';
@@ -6057,7 +6120,7 @@ function buildPRsTabHtml(sessions){
         </div>
         <div class="pr-1rm-col">
           ${tickHtml}
-          <div class="pr-1rm">${best.oneRM}<span class="pr-1rm-unit">KG</span></div>
+          <div class="pr-1rm">${dispOneRM}<span class="pr-1rm-unit">${unitLabel().toUpperCase()}</span></div>
         </div>
       </div>`;
     }).join('');
@@ -6396,9 +6459,21 @@ function renderWeightPrefsSection(){
   const el=document.getElementById('weight-prefs-section-body');
   if(!el) return;
   const p=db.weightPrefs||DEFAULT_DB.weightPrefs;
+  const unit=unitLabel();
   el.innerHTML=`
     <div class="settings-group">
       <div class="settings-row" style="align-items:flex-start;">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M6 12h12M6 12a2 2 0 1 1-2-2v4a2 2 0 1 1 2-2zM18 12a2 2 0 1 0 2-2v4a2 2 0 1 0-2-2z"/></svg></div><div>
+          <div class="settings-row-title">Units</div>
+          <div class="settings-row-sub">What every weight in the app is shown and typed in</div>
+        </div></div>
+      </div>
+      <div class="prog-time-pills" style="padding:0 18px 16px;">
+        <button class="prog-pill ${!isLbMode()?'active':''}" onclick="saveWeightPref('units','kg')">Kilograms (kg)</button>
+        <button class="prog-pill ${isLbMode()?'active':''}" onclick="saveWeightPref('units','lb')">Pounds (lb)</button>
+      </div>
+
+      <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div><div>
           <div class="settings-row-title">Body Weight</div>
           <div class="settings-row-sub">Optional — only used to correctly estimate 1RM on bodyweight-assisted exercises like Weighted Pull-Up</div>
@@ -6406,8 +6481,8 @@ function renderWeightPrefsSection(){
       </div>
       <div style="padding:0 18px 16px;">
         <input class="ex-edit-field" type="number" inputmode="decimal" style="max-width:120px;"
-          placeholder="e.g. 80" value="${p.bodyweightKg||''}"
-          onchange="saveWeightPref('bodyweightKg', parseFloat(this.value)||null)">
+          placeholder="${isLbMode()?'e.g. 175':'e.g. 80'}" value="${p.bodyweightKg?toDisplayWeight(p.bodyweightKg):''}"
+          onchange="saveWeightPref('bodyweightKg', fromDisplayUnit(parseFloat(this.value)||0)||null)">
       </div>
 
       <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);">
@@ -6422,10 +6497,10 @@ function renderWeightPrefsSection(){
       </div>
       ${p.barbellMode==='perSide' ? `
       <div style="padding:0 18px 16px;">
-        <div class="ex-weight-label">BAR WEIGHT (KG)</div>
+        <div class="ex-weight-label">BAR WEIGHT (${unit.toUpperCase()})</div>
         <input class="ex-edit-field" type="number" inputmode="decimal" style="max-width:120px;"
-          value="${p.barWeightKg||20}"
-          onchange="saveWeightPref('barWeightKg', parseFloat(this.value)||0)">
+          value="${toDisplayWeight(p.barWeightKg||20)}"
+          onchange="saveWeightPref('barWeightKg', fromDisplayUnit(parseFloat(this.value)||0))">
       </div>` : ''}
 
       <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);border-bottom:none;">
