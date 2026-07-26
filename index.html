@@ -379,6 +379,8 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .ex-weight-label{font-size:8px;color:#777;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;font-weight:600;}
 .save-flash{font-size:9px;color:var(--ok);letter-spacing:2px;font-weight:600;opacity:0;transition:opacity .3s;text-transform:uppercase;}
 .save-flash.show{opacity:1;}
+.btn-spinner{display:inline-block;width:13px;height:13px;border:2px solid color-mix(in srgb, currentColor 30%, transparent);border-top-color:currentColor;border-radius:50%;animation:btn-spin .7s linear infinite;vertical-align:-2px;margin-right:7px;}
+@keyframes btn-spin{to{transform:rotate(360deg);}}
 
 /* Generic transient toast — currently only used by shareRoutine()'s
    clipboard-copy fallback, but deliberately generic (id-based singleton,
@@ -452,6 +454,29 @@ select.form-inp option{background:var(--panel);}
 .form-inp.sm{padding:6px 7px;font-size:12px;}
 .modal-ft{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:7px;justify-content:flex-end;}
 .empty-state{text-align:center;padding:44px 18px;color:var(--muted);}
+/* ── Trainer roster + student detail ── */
+.trainer-header-row{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 10px;}
+.trainer-header-title{font-size:8px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;font-weight:700;}
+.trainer-roster-list{padding:0 12px;}
+.trainer-roster-row{display:flex;align-items:center;gap:12px;padding:13px 8px;border-radius:12px;cursor:pointer;transition:background .15s;}
+.trainer-roster-row:hover{background:var(--surface);}
+.trainer-roster-avatar{width:38px;height:38px;border-radius:50%;background:var(--lift);border:1px solid var(--line2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--hd);font-size:14px;font-weight:700;color:var(--dim);}
+.trainer-roster-name{font-size:13px;font-weight:600;color:var(--text);}
+.trainer-roster-status{font-size:10.5px;color:var(--gold);margin-top:2px;}
+body.light-mode .trainer-roster-status{color:var(--gold-ink);}
+.trainer-roster-status.expired{color:var(--muted);}
+.trainer-roster-arrow{color:var(--muted);font-size:18px;flex-shrink:0;}
+.trainer-detail-hd{display:flex;align-items:center;gap:12px;padding:4px 16px 8px;}
+.trainer-detail-name{font-size:15px;font-weight:700;color:var(--bright);}
+.trainer-detail-handle{font-size:11px;color:var(--dim);margin-top:1px;}
+.trainer-assign-list,.trainer-log-list{padding:0 16px;}
+.trainer-assign-row{padding:11px 0;border-bottom:1px solid var(--line);}
+.trainer-assign-row:last-child{border-bottom:none;}
+.trainer-assign-name{font-size:13px;font-weight:600;color:var(--text);}
+.trainer-assign-meta{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.trainer-log-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--text);}
+.trainer-log-row:last-child{border-bottom:none;}
+.trainer-log-date{color:var(--muted);}
 .empty-state p{font-size:11px;letter-spacing:2px;line-height:2;font-weight:500;text-transform:uppercase;}
 .notice{font-size:8px;color:var(--muted);letter-spacing:3px;text-align:center;padding:10px;border-top:1px solid var(--line);margin-top:auto;text-transform:uppercase;font-weight:600;}
 /* ── PROGRESS / LOG TABS ── */
@@ -623,6 +648,7 @@ body.light-mode .pr-1rm,body.light-mode .pr-1rm-unit,body.light-mode .pr-formula
 .search-circle-btn{position:relative;flex-shrink:0;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--line2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,color .15s;padding:0;}
 .search-circle-btn:hover{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 40%,var(--line2));}
 .search-circle-badge{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;background:#e0453f;border:2px solid var(--void);}
+.nav-search-badge{position:absolute;top:-2px;right:-3px;width:7px;height:7px;border-radius:50%;background:#e0453f;border:2px solid var(--void);}
 .search-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px 30px;text-align:center;}
 .search-empty-title{font-size:13px;font-weight:600;color:var(--soft);}
 .search-empty-sub{font-size:11px;color:var(--muted);line-height:1.5;}
@@ -689,6 +715,12 @@ body.light-mode .pr-1rm,body.light-mode .pr-1rm-unit,body.light-mode .pr-formula
 .theme-toggle-track{width:44px;height:26px;background:var(--lift);border:1px solid var(--line2);border-radius:13px;position:relative;transition:background .25s,border-color .25s;flex-shrink:0;}
 .theme-toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--dim);border-radius:50%;transition:transform .25s,background .25s;}
 .theme-toggle-label{font-size:9px;letter-spacing:2px;font-weight:700;color:var(--dim);text-transform:uppercase;min-width:32px;}
+/* The "off" (dark-mode) state had no accent of its own — flat grey on
+   flat grey — while the "on" (light-mode) state gets the full gold
+   treatment below. A faint gold-tinted border and a brighter, softly
+   lit thumb keep the dark state from looking unfinished by comparison. */
+body:not(.light-mode) .theme-toggle-track{border-color:color-mix(in srgb, var(--gold) 22%, var(--line2));}
+body:not(.light-mode) .theme-toggle-thumb{background:var(--soft);box-shadow:0 0 5px rgba(0,0,0,.35), 0 0 4px color-mix(in srgb, var(--gold) 25%, transparent);}
 
 /* Generic on/off switch — same track/thumb visual as the theme toggle,
    but driven by an .on class instead of body.light-mode, so it's reusable
@@ -755,7 +787,6 @@ body.light-mode .ex-db-pr{color:var(--gold-ink);}
 body.light-mode .mg-name{color:var(--gold-ink);}
 body.light-mode .ex-section-title{color:var(--gold-ink);}
 body.light-mode .ex-detail-muscle{color:var(--gold-ink);}
-body.light-mode .fa-label{color:var(--gold-ink);}
 body.light-mode .prog-stat-val{color:var(--gold-ink);}
 body.light-mode .prog-trend-badge{color:var(--gold-ink);}
 body.light-mode .rest-time{color:var(--gold-ink);}
@@ -1057,91 +1088,47 @@ input, select, textarea {
 
 
 /* ════════════════════════════════════
-   FIRST-RUN PWA ONBOARDING
-   Integrated from onboarding preview without duplicating the app shell.
+   ONBOARDING TIPS — contextual, one at a time, fired by what the user
+   actually opens rather than a fixed numbered tour. Two scopes:
+     - the first-open tip (#tip-first-overlay): device-local via
+       localStorage, fires for guests too, before any account exists.
+     - every other tip: account-scoped via profiles.onboarding_seen, so
+       it follows the account across devices instead of resetting per
+       install. See hasSeenTip()/markTipSeen()/showSpotlightTip() near
+       the bottom of the script for the engine both share.
 ════════════════════════════════════ */
 body.ob-lock{overflow:hidden;touch-action:none;}
-#screen-home.ob-target-layer{z-index:600;}
-#top-right-area.ob-lit,
-.float-nav-item.ob-lit{
-  position:relative;
-  z-index:620;
-}
-.float-nav-item.ob-lit{
-  color:#ffffff !important;
-  text-shadow:0 0 8px rgba(255,255,255,.6);
-  filter:drop-shadow(0 0 6px rgba(255,255,255,.45));
-}
-.ob-dim{
-  position:fixed;inset:0;
-  background:rgba(5,5,5,0);
-  transition:background .4s;
-  z-index:590;
-  pointer-events:none;
-}
-.ob-dim.show{background:rgba(5,5,5,.72);pointer-events:auto;}
-.ob-float-arrow{
-  position:fixed;
-  display:flex;flex-direction:column;align-items:center;gap:5px;
-  z-index:630;
-  opacity:0;transition:opacity .3s;
-  pointer-events:none;
-}
-.ob-float-arrow.show{opacity:1;}
-.fa-up{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:12px solid var(--gold);filter:drop-shadow(0 0 6px rgba(212,168,67,.8));}
-.fa-down{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:12px solid var(--gold);filter:drop-shadow(0 0 6px rgba(212,168,67,.8));}
-.fa-label{font-family:var(--body);font-size:8px;color:var(--gold);letter-spacing:2px;font-weight:700;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 8px rgba(212,168,67,.5);}
-@keyframes obFloatUp{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
-@keyframes obFloatDown{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
-.ob-float-arrow.up{animation:obFloatUp 1.5s ease-in-out infinite;}
-.ob-float-arrow.down{animation:obFloatDown 1.5s ease-in-out infinite;}
-.ob-card{
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%);
-  width:calc(100% - 32px);max-width:440px;
-  background:#111;border:1px solid #222;
-  border-radius:2px;
-  z-index:625;
-  display:none;
-  animation:obScaleIn .35s cubic-bezier(.16,1,.3,1) both;
-  box-shadow:0 18px 50px rgba(0,0,0,.55);
-}
-@keyframes obScaleIn{from{transform:translateX(-50%) scale(.94);opacity:0;}to{transform:translateX(-50%) scale(1);opacity:1;}}
-@keyframes obScaleOut{from{transform:translateX(-50%) scale(1);opacity:1;}to{transform:translateX(-50%) scale(.94);opacity:0;}}
-.ob-card.exit{animation:obScaleOut .25s cubic-bezier(.16,1,.3,1) both;}
-.ob-dots{display:flex;gap:6px;justify-content:center;padding:14px 0 0;}
-.ob-dot{width:5px;height:5px;border-radius:50%;background:#333;transition:background .2s,width .2s;}
-.ob-dot.active{background:var(--gold);width:16px;border-radius:3px;}
-.ob-body{padding:16px 24px 0;}
-.ob-eyebrow{font-size:8px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;font-weight:700;margin-bottom:6px;transition:color .2s;}
-.ob-title{font-family:var(--hd);font-size:18px;font-weight:900;letter-spacing:2px;color:#f5f5f5;text-transform:uppercase;line-height:1.1;margin-bottom:5px;transition:color .4s;}
-.ob-desc{font-size:12px;color:#888;letter-spacing:.5px;line-height:1.7;margin-bottom:14px;transition:color .4s;}
-.ob-footer{padding:12px 24px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .4s;}
-.ob-skip{background:none;border:none;color:#8a8a8a;font-family:var(--body);font-size:12px;letter-spacing:.2px;font-weight:600;cursor:pointer;transition:color .25s;padding:0;}
-.ob-next{background:var(--gold);color:#000;border:none;padding:11px 24px;border-radius:20px;font-family:var(--body);font-size:14px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:background .2s;flex:1;max-width:180px;}
-.ob-theme-row{display:flex;align-items:center;gap:12px;padding:10px 0 14px;border-top:1px solid #1a1a1a;}
-.sim-track{width:44px;height:26px;border-radius:13px;position:relative;transition:background .35s;border:1px solid #333;}
-.sim-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;transition:transform .35s,background .35s;background:#555;}
-.sim-track.light{background:var(--gold);border-color:var(--gold);}
-.sim-track.light .sim-thumb{background:#fff;transform:translateX(18px);}
-.sim-label{font-family:var(--hd);font-size:10px;font-weight:700;letter-spacing:3px;transition:color .35s;text-transform:uppercase;color:#555;min-width:44px;}
-.sim-label.light{color:var(--gold);}
-.mode-icon{width:18px;height:18px;display:inline-flex;color:var(--gold);}
-.mode-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
-.ob-swatches{display:flex;gap:10px;padding:10px 0 14px;border-top:1px solid #1a1a1a;align-items:center;flex-wrap:wrap;}
-.ob-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .2s,border-color .2s,box-shadow .2s;}
-.ob-swatch.sel{border-color:#fff;transform:scale(1.2);box-shadow:0 0 10px rgba(255,255,255,.2);}
-.color-label{font-family:var(--hd);font-size:8px;letter-spacing:3px;transition:color .2s;margin-left:4px;text-transform:uppercase;}
-.sim-sched{display:flex;gap:4px;overflow:hidden;}
-.sc-pill{background:#161616;border:1px solid #222;padding:5px 7px;font-size:7px;font-weight:700;letter-spacing:1px;color:#555;text-align:center;min-width:38px;line-height:1.4;transition:all .3s;}
-.sc-pill.next{background:#1a1800;border-color:var(--gold);color:var(--gold);}
-.sc-next-badge{background:var(--gold);color:#000;font-size:7px;font-weight:700;letter-spacing:2px;padding:2px 6px;display:inline-block;margin-bottom:6px;text-transform:uppercase;}
-.sim-rrows{display:flex;flex-direction:column;gap:3px;width:100%;}
-.sim-rrow{background:#161616;border:1px solid #222;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;transition:all .25s;}
-.sim-rrow.hl{border-color:var(--gold);background:#1a1800;}.sim-rname{font-size:10px;font-weight:600;color:#c0c0c0;transition:color .25s;}.sim-rrow.hl .sim-rname{color:var(--gold);}.sim-rmeta{font-size:8px;color:#7a7a7a;}.sim-redit{font-size:11px;color:#7a7a7a;transition:color .25s;}.sim-rrow.hl .sim-redit{color:var(--gold);}
-.ob-card.lp{background:#f2f2f2;border-color:#ddd;}.ob-card.lp .ob-title{color:#111;}.ob-card.lp .ob-desc{color:#555;}.ob-card.lp .ob-footer{background:#f2f2f2;}.ob-card.lp .ob-theme-row{border-color:#ddd;}
-@media (max-height:640px){.ob-card{width:calc(100% - 24px);}.ob-body{padding:12px 18px 0;}.ob-footer{padding:10px 18px 14px;}.ob-desc{line-height:1.45;margin-bottom:10px;}}
+.tip-dim{position:fixed;inset:0;background:rgba(5,5,5,0);transition:background .3s;z-index:590;pointer-events:none;}
+.tip-dim.show{background:rgba(5,5,5,.7);pointer-events:auto;}
+body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
+/* A class on the real target can't visually rise above .tip-dim: every
+   .screen has its own stacking context (position:relative + z-index:1,
+   see .screen below), which caps ALL its descendants — including a lit
+   target with its own high z-index — beneath any sibling of .screen with
+   a higher z-index, like the dim. So the "glow" is a separate floating
+   ring (.tip-ring) positioned over the target via getBoundingClientRect
+   and appended straight to <body>, a true sibling of the dim, instead of
+   a class applied to the target itself. Its border-radius is copied from
+   the real target at creation time so a circular button or a pill field
+   glows as a circle/pill instead of being forced into a rounded square. */
+.tip-ring{position:fixed;z-index:601;pointer-events:none;box-shadow:0 0 0 3px var(--gold),0 0 22px 3px color-mix(in srgb,var(--gold) 55%,transparent);}
+.tip-card{position:fixed;z-index:610;background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.4);animation:tipPop .25s cubic-bezier(.16,1,.3,1) both;}
+@keyframes tipPop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+.tip-card.tip-centered{left:50%;top:50%;transform:translate(-50%,-50%) !important;width:calc(100% - 48px);max-width:300px;text-align:center;}
+.tip-card-text{font-size:12.5px;color:var(--soft);line-height:1.6;letter-spacing:.2px;margin-bottom:12px;}
+.tip-card-btn{background:var(--gold);color:var(--void);border:none;border-radius:20px;padding:9px 20px;font-family:var(--body);font-size:12.5px;font-weight:600;letter-spacing:.3px;cursor:pointer;width:100%;}
+.light-mode .tip-card-btn{color:#000;}
+
+/* First-open tip — centered, no target, live theme + accent controls so
+   picking one IS the tip (not just a demo you tap through). Reuses the
+   real .theme-toggle/.swatch classes and applyTheme()/applyAccentByName()
+   so tapping here updates the same state Settings reads, live. */
+.tip-first-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:610;background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:22px 20px;width:calc(100% - 48px);max-width:320px;text-align:center;animation:tipPop .3s cubic-bezier(.16,1,.3,1) both;}
+.tip-first-title{font-family:var(--hd);font-size:14px;font-weight:900;letter-spacing:2px;color:var(--bright);text-transform:uppercase;margin-bottom:8px;}
+.tip-first-text{font-size:12px;color:var(--soft);line-height:1.6;margin-bottom:4px;}
+.tip-first-row{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 0;border-top:1px solid var(--line);}
+.tip-first-swatches{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;padding:14px 0;border-top:1px solid var(--line);}
+.tip-first-note{font-size:10px;color:var(--muted);margin:2px 0 16px;}
 
 
 /* ══ LIGHT MODE COMPREHENSIVE ══ */
@@ -1815,6 +1802,17 @@ body.light-mode .auth-choice-title{color:#111;}
   <div id="other-profile-body" style="flex:1;"></div>
 </div>
 
+<!-- ══ TRAINER ══ Trainer-tier top-level destination — the nav ITEM is
+     hidden for everyone else (see updateTrainerNavVisibility()), not this
+     screen, but showScreen('trainer') is never called from anywhere a
+     non-eligible account could reach, so there's no separate gate needed
+     here. Roster + connect + assign/view MVP — see renderTrainerScreen().
+     Progressive-overload nudges are a deliberately separate future pass. -->
+<div id="screen-trainer" class="screen">
+  <div class="pg-header"><div class="pg-title">Trainer</div></div>
+  <div id="trainer-body" class="list-scroll"></div>
+</div>
+
 <!-- ══ FLOATING NAV ══ persistent across Home/Program/Search/Profile only
      (updateFloatNav toggles display:none on every other screen) -->
 <div id="app-float-nav" class="float-nav" style="display:none;">
@@ -1842,8 +1840,25 @@ body.light-mode .auth-choice-title{color:#111;}
       <span class="float-nav-icon">
         <svg class="ol" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
         <svg class="fl" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;"><circle cx="10" cy="10" r="6.5"/><path d="M19.5 19.5l-5-5"/></svg>
+        <!-- Mirrors #search-pending-badge inside the Search screen itself
+             (see updateSearchNavBadge) — same red dot, so a pending
+             request/ping is visible from the nav before ever opening Search. -->
+        <span class="nav-search-badge" id="nav-search-badge" style="display:none;"></span>
       </span>
       <span class="float-nav-label">Search</span>
+    </span>
+  </button>
+  <!-- Trainer-tier only (see updateTrainerNavVisibility()) — hidden by
+       default, shown only for accounts where getEffectiveTier()==='trainer'.
+       Placed here (not appended at the end) since it's still meant to
+       read as a first-class destination once unlocked, not an afterthought. -->
+  <button class="float-nav-item" id="nav-trainer-item" data-screen="trainer" onclick="showScreen('trainer')" style="display:none;">
+    <span class="float-nav-item-inner">
+      <span class="float-nav-icon">
+        <svg class="ol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="10" width="4" height="4" rx="1"/><rect x="17.5" y="10" width="4" height="4" rx="1"/><path d="M6.5 12h11"/></svg>
+        <svg class="fl" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 9a1 1 0 0 0-1 1v4a1 1 0 0 0 2 0v-1h1v1a1 1 0 0 0 2 0v-8a1 1 0 0 0-2 0v1h-1v-1a1 1 0 0 0-1-1zM17.5 9a1 1 0 0 1 1 1v4a1 1 0 0 1-2 0v-1h-1v1a1 1 0 0 1-2 0v-8a1 1 0 0 1 2 0v1h1v-1a1 1 0 0 1 1-1z"/></svg>
+      </span>
+      <span class="float-nav-label">Trainer</span>
     </span>
   </button>
   <button class="float-nav-item" data-screen="profile" onclick="showScreen('profile')">
@@ -2084,70 +2099,6 @@ body.light-mode .auth-choice-title{color:#111;}
 </div>
 
 
-
-<!-- ══ FIRST-RUN PWA ONBOARDING ══ -->
-<div class="ob-dim" id="ob-dim" aria-hidden="true"></div>
-<div class="ob-float-arrow up" id="fa-settings" aria-hidden="true"><div class="fa-up" id="fa-up-head"></div><div class="fa-label" id="fa-settings-label">Settings</div></div>
-<div class="ob-float-arrow down" id="fa-routines" aria-hidden="true"><div class="fa-label">Workouts</div><div class="fa-down"></div></div>
-<div class="ob-float-arrow down" id="fa-schedule" aria-hidden="true"><div class="fa-label">Program</div><div class="fa-down"></div></div>
-
-<div class="ob-card" id="ob-card1" role="dialog" aria-modal="true" aria-labelledby="ob-title1">
-  <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
-  <div class="ob-body">
-    <div class="ob-eyebrow">Step 1 of 4 · Personalize</div>
-    <div class="ob-title" id="ob-title1">Make It Yours</div>
-    <div class="ob-desc">Switch between dark and light mode in Settings anytime.</div>
-    <div class="ob-theme-row"><span class="mode-icon" id="ob-mode-icon"><svg viewBox="0 0 24 24"><path d="M20 14.1A8.5 8.5 0 1 1 9.9 4a7 7 0 0 0 10.1 10.1z"/></svg></span><div class="sim-track" id="ob-sim-track"><div class="sim-thumb" id="ob-sim-thumb"></div></div><span class="sim-label" id="ob-sim-label">Dark</span></div>
-  </div>
-  <div class="ob-footer"><button class="ob-skip" id="ob-skip1" type="button">Skip</button><button class="ob-next" id="ob-next1" type="button">Next →</button></div>
-</div>
-
-<div class="ob-card" id="ob-card2" role="dialog" aria-modal="true" aria-labelledby="ob-title2">
-  <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
-  <div class="ob-body">
-    <div class="ob-eyebrow" id="ob-ey2">Step 2 of 4 · Accent Color</div>
-    <div class="ob-title" id="ob-title2">Pick Your Color</div>
-    <div class="ob-desc">Choose an accent that colors the entire interface.</div>
-    <div class="ob-swatches">
-      <div class="ob-swatch sel" style="background:linear-gradient(135deg,#f0c060,#b8922e);" data-c="#d4a843" data-n="Gold"></div>
-      <div class="ob-swatch" style="background:linear-gradient(135deg,#ff8c42,#c45a18);" data-c="#e8722a" data-n="Orange"></div>
-      <div class="ob-swatch" style="background:linear-gradient(135deg,#ff5555,#c42020);" data-c="#e84040" data-n="Red"></div>
-      <div class="ob-swatch" style="background:linear-gradient(135deg,#ff70b8,#c43580);" data-c="#e8529a" data-n="Rosa"></div>
-      <div class="ob-swatch" style="background:linear-gradient(135deg,#58c4f0,#2178a8);" data-c="#3a9fd4" data-n="Sky Blue"></div>
-      <div class="ob-swatch" style="background:linear-gradient(135deg,#6b8fc4,#2e4f82);" data-c="#4a6fa8" data-n="Navy"></div>
-      <div class="ob-swatch" style="background:linear-gradient(135deg,#4edd88,#1aaa58);" data-c="#2ecc71" data-n="Emerald"></div>
-      <div class="ob-swatch" style="background:linear-gradient(135deg,#9ecc88,#5d8a4a);" data-c="#7fb069" data-n="Sage"></div>
-      <div class="color-label" id="ob-clabel" style="color:#d4a843;">Gold</div>
-    </div>
-  </div>
-  <div class="ob-footer"><button class="ob-skip" type="button">Skip</button><button class="ob-next" id="ob-next2" type="button">Next →</button></div>
-</div>
-
-<div class="ob-card" id="ob-card3" role="dialog" aria-modal="true" aria-labelledby="ob-title3">
-  <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
-  <div class="ob-body">
-    <div class="ob-eyebrow">Step 3 of 4 · Workouts</div>
-    <div class="ob-title" id="ob-title3">Build Your Workouts</div>
-    <div class="ob-desc">Create and customize your workouts. Name them, pick exercises, sets and reps. Your gym, your rules.</div>
-    <div class="sim-rrows" style="margin-bottom:14px;border-top:1px solid #1a1a1a;padding-top:10px;">
-      <div class="sim-rrow hl" id="rr0"><div><div class="sim-rname">Leg Day 1</div><div class="sim-rmeta">6 exercises</div></div><div class="sim-redit">✎</div></div>
-      <div class="sim-rrow" id="rr1"><div><div class="sim-rname">Push Day 1</div><div class="sim-rmeta">7 exercises</div></div><div class="sim-redit">✎</div></div>
-      <div class="sim-rrow" id="rr2"><div><div class="sim-rname">Pull Day 1</div><div class="sim-rmeta">6 exercises</div></div><div class="sim-redit">✎</div></div>
-    </div>
-  </div>
-  <div class="ob-footer"><button class="ob-skip" type="button">Skip</button><button class="ob-next" id="ob-next3" type="button">Next →</button></div>
-</div>
-
-<div class="ob-card" id="ob-card4" role="dialog" aria-modal="true" aria-labelledby="ob-title4">
-  <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
-  <div class="ob-body">
-    <div class="ob-eyebrow">Step 4 of 4 · Program</div>
-    <div class="ob-title" id="ob-title4">Never Miss Your Turn</div>
-    <div class="ob-desc">Set your training rotation once, the app always knows which workout is up next.</div>
-    <div style="border-top:1px solid #1a1a1a;padding-top:10px;margin-bottom:14px;"><div class="sc-next-badge" id="sc-badge">NEXT</div><div class="sim-sched"><div class="sc-pill">LEG<br>D1</div><div class="sc-pill">PUSH<br>D1</div><div class="sc-pill next" id="sc-next">PULL<br>D1</div><div class="sc-pill">LEG<br>D2</div><div class="sc-pill">PUSH<br>D2</div><div class="sc-pill">PULL<br>D2</div></div></div>
-  </div>
-  <div class="ob-footer"><button class="ob-skip" type="button">Skip</button><button class="ob-next" id="ob-finish" type="button">Let's Go ›</button></div>
-</div>
 
 <script>
 // ═══════════════════════════════════════════
@@ -2605,11 +2556,13 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','other-profile','requests'];
-// Screens that show the floating nav (the 4 top-level destinations). Every
-// other screen is reached via a back button and hides the nav, matching
-// the app's existing back-row pattern rather than stacking two nav layers.
-const NAV_SCREENS=['home','schedule','search','profile'];
+const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','other-profile','requests','trainer'];
+// Screens that show the floating nav (the top-level destinations). 'trainer'
+// is always in this list — the nav ITEM for it is what's conditionally
+// hidden (see updateTrainerNavVisibility()), not the screen/destination
+// itself, so someone who loses trainer eligibility while already on this
+// screen doesn't get stranded on a screen with no way back via the nav.
+const NAV_SCREENS=['home','schedule','search','profile','trainer'];
 function showScreen(id){
   SCR.forEach(s=>document.getElementById('screen-'+s).classList.toggle('active',s===id));
   if(id==='home') renderHome();
@@ -2622,10 +2575,27 @@ function showScreen(id){
   if(id==='search'){ _searchMode='search'; renderSearchScreen(); }
   if(id==='requests') renderRequestsScreen();
   if(id==='other-profile') renderOtherProfile();
+  if(id==='trainer'){ _trainerDetailConnectionId=null; renderTrainerScreen(); }
   updateFloatNav(id);
+
+  // Onboarding tips — fired after the screen's own render call above so
+  // the real elements each tip points at already exist. A short delay
+  // covers renders that finish async (profile/schedule/search all await
+  // a network round trip before painting their real content).
+  const tipFns = {
+    settings: '__maybeShowSettingsTip',
+    schedule: '__maybeShowProgramTip',
+    home: '__maybeShowHomeNextTip',
+    'other-profile': '__maybeShowPingTip',
+    trainer: '__maybeShowTrainerTip',
+    search: '__maybeShowSearchTip',
+    profile: '__maybeShowPrsTip',
+  };
+  const tipFn = tipFns[id];
+  if(tipFn) setTimeout(()=>{ if(typeof window[tipFn]==='function') window[tipFn](); }, 350);
 }
 
-// Floating nav only shows on the 4 top-level destinations — every other
+// Floating nav only shows on the top-level destinations — every other
 // screen already has its own back-row, and showing both would be two
 // competing navigation layers on screen at once.
 let _floatNavInitialized=false;
@@ -2637,6 +2607,35 @@ function updateFloatNav(id){
   if(show){
     setFloatNavActive(id, _floatNavInitialized);
     _floatNavInitialized=true;
+  }
+  updateTrainerNavVisibility();
+  // Keeps the nav's red dot current on every screen change, not just when
+  // Search itself is opened — see updateSearchPendingBadge(). refreshPendingBadge()
+  // is cheap (three small counted/limited queries) and already a no-op for guests.
+  refreshPendingBadge().then(updateSearchPendingBadge);
+}
+
+// Shows/hides the Trainer nav item based on getEffectiveTier() — everyone
+// else sees the normal 4 destinations, trainer-tier accounts (and @alan,
+// via is_admin) see 5. Fire-and-forget: the item starts hidden by default
+// in the markup, so there's nothing wrong to see while this resolves.
+async function updateTrainerNavVisibility(){
+  const item=document.getElementById('nav-trainer-item');
+  if(!item) return;
+  const wasShown=item.style.display!=='none';
+  let show=false;
+  if(currentUser){
+    const profile=await getMyProfile();
+    show=getEffectiveTier(profile)==='trainer';
+  }
+  item.style.display=show?'':'none';
+  if(show!==wasShown){
+    // Adding/removing a 5th flex item reflows every item's width, so the
+    // active pill (positioned before this async check resolved) needs to
+    // snap to its new position rather than staying wherever it was.
+    const nav=document.getElementById('app-float-nav');
+    const activeEl=nav&&nav.querySelector('.float-nav-item.active');
+    if(activeEl) _placeFloatNavPill(activeEl, false);
   }
 }
 
@@ -3726,6 +3725,24 @@ function confirmDownloadRoutine(defId){
 }
 
 // Generic transient toast — see the .toast CSS comment for reuse intent.
+// Auth actions (sign up, sign in, complete profile, reset password) all
+// funnel through handleSignedInBoot()/afterAuthResolved(), which chains
+// several sequential Supabase round-trips (profile fetch, cloud-data
+// check, push/pull) — on a slow connection this visibly "freezes" a
+// plain disabled button with no other feedback. Swaps the button's own
+// label for a spinner + status text instead of a separate overlay, so it
+// stays anchored to the exact thing the person just tapped.
+function setBtnLoading(btn,loading,loadingLabel){
+  if(loading){
+    if(btn._origLabel===undefined) btn._origLabel=btn.textContent;
+    btn.disabled=true;
+    btn.innerHTML='<span class="btn-spinner"></span>'+(loadingLabel||'Please wait…');
+  } else {
+    btn.disabled=false;
+    if(btn._origLabel!==undefined){ btn.textContent=btn._origLabel; btn._origLabel=undefined; }
+  }
+}
+
 function showToast(msg){
   let t=document.getElementById('app-toast');
   if(!t){ t=document.createElement('div'); t.id='app-toast'; t.className='toast'; document.body.appendChild(t); }
@@ -4199,9 +4216,18 @@ async function renderProfile(){
   renderLog();
 }
 
-function renderProfilePRsTab(){
+async function renderProfilePRsTab(){
   const el=document.getElementById('profile-tab-prs');
-  if(el) el.innerHTML=buildPRsTabHtml(db.workoutLog);
+  if(!el) return;
+  // You always see your own real PRs here regardless of the toggle — it
+  // only changes what OTHER viewers see (see buildPRsHiddenHtml). This
+  // banner just makes sure you know it's hidden from them while you look
+  // at your own data.
+  const profile = await getMyProfile();
+  const hiddenNote = (profile && profile.show_prs===false)
+    ? `<div class="settings-row-sub" style="padding:12px 16px 0;">Hidden from other people viewing your profile — see Settings to change this.</div>`
+    : '';
+  el.innerHTML = hiddenNote + buildPRsTabHtml(db.workoutLog);
 }
 
 function switchProfileTab(tab){
@@ -4218,6 +4244,23 @@ function switchProfileTab(tab){
 // is cached in memory — every later open reads it instantly. There's no
 // in-app way to edit name/handle/tier yet, so staleness risk is
 // essentially zero; call invalidateMyProfileCache() if that changes.
+// Membership tiers — no billing exists yet, so `member`/`trainer` are
+// currently unreachable for anyone except via direct DB action (see
+// 20260725000001_membership_tiers.sql), but the labels/pricing already
+// match what Settings should show the moment a real upgrade path exists.
+const TIER_LABELS={ free:'Free', member:'Member — $0.99/mo', trainer:'Trainer — $5.99/mo' };
+
+// Single source of truth for "what tier does this account actually get
+// treated as" — used by both the Settings Plan row and the Trainer nav
+// tab's visibility check, so the two can never drift out of sync.
+// is_admin (currently only @alan) gets full Trainer behavior for free,
+// per that column's own comment in the profiles table.
+function getEffectiveTier(profile){
+  if(!profile) return 'free';
+  if(profile.is_admin) return 'trainer';
+  return profile.subscription_tier||'free';
+}
+
 let _myProfileCache=null;
 async function getMyProfile(){
   if(!currentUser) return null;
@@ -4229,7 +4272,7 @@ async function fetchMyProfile(){
   try{
     const { data }=await supabaseClient
       .from('profiles')
-      .select('username, full_name, verified, subscription_tier, has_password, is_private')
+      .select('username, full_name, verified, subscription_tier, is_admin, has_password, is_private, show_prs')
       .eq('id', currentUser.id)
       .single();
     _myProfileCache=data;
@@ -4521,6 +4564,213 @@ async function fetchUserWorkoutLog(userId){
 }
 
 // ═══════════════════════════════════════════
+//  TRAINER — roster + connect (via a reusable invite link) + assign a
+//  routine + view a connected student's logged sessions. Scope stops
+//  there on purpose: progressive-overload nudges are a separate future
+//  pass, not part of this build (see supabase/migrations/
+//  20260726000003_trainer_connections.sql for the schema/RLS side).
+// ═══════════════════════════════════════════
+let _trainerDetailConnectionId=null;
+
+async function renderTrainerScreen(){
+  const el=document.getElementById('trainer-body');
+  if(!el || !currentUser) return;
+  if(_trainerDetailConnectionId){ renderTrainerStudentDetail(_trainerDetailConnectionId); return; }
+  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  const { data, error } = await supabaseClient
+    .from('trainer_connections')
+    .select('id, status, expires_at, connected_at, student:profiles!trainer_connections_student_id_fkey(id, username, full_name)')
+    .eq('trainer_id', currentUser.id)
+    .order('connected_at', {ascending:false});
+  if(error){ el.innerHTML='<div class="empty-state"><p>Could not load your roster.</p></div>'; return; }
+  el.innerHTML=buildTrainerRosterHtml(data||[]);
+}
+
+// First-letter fallback rather than a blank circle — no per-student photo
+// or insignia data is fetched for the roster list, so this is deliberately
+// the same lightweight treatment, not a partial version of the full
+// tiered-badge avatar used elsewhere (profile headers, search results).
+function trainerAvatarInitial(name){
+  return escapeHtml((name||'?').trim().charAt(0).toUpperCase() || '?');
+}
+
+function buildTrainerRosterHtml(connections){
+  const rows=connections.map(c=>{
+    const expired = c.status!=='active' || new Date(c.expires_at)<new Date();
+    const displayName=(c.student&&(c.student.full_name||c.student.username))||'—';
+    const name=escapeHtml(displayName);
+    const statusLabel = expired ? 'Access expired' : ('Active until '+new Date(c.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+    return `<div class="trainer-roster-row" onclick="openTrainerStudentDetail('${c.id}')">
+      <div class="trainer-roster-avatar">${trainerAvatarInitial(displayName)}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="trainer-roster-name">${name}</div>
+        <div class="trainer-roster-status ${expired?'expired':''}">${statusLabel}</div>
+      </div>
+      <span class="trainer-roster-arrow">›</span>
+    </div>`;
+  }).join('');
+  return `
+    <div class="trainer-header-row"><div class="trainer-header-title">Your Students</div><button class="btn-new" onclick="addTrainerStudent()">+ Add Student</button></div>
+    ${connections.length ? `<div class="trainer-roster-list">${rows}</div>` : '<div class="empty-state"><p>No students yet.<br>Share your invite link to connect one.</p></div>'}
+  `;
+}
+
+function openTrainerStudentDetail(connectionId){ _trainerDetailConnectionId=connectionId; renderTrainerScreen(); }
+function closeTrainerStudentDetail(){ _trainerDetailConnectionId=null; renderTrainerScreen(); }
+
+async function renderTrainerStudentDetail(connectionId){
+  const el=document.getElementById('trainer-body');
+  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  const { data:connection } = await supabaseClient
+    .from('trainer_connections')
+    .select('id, status, expires_at, student:profiles!trainer_connections_student_id_fkey(id, username, full_name)')
+    .eq('id', connectionId).maybeSingle();
+  if(!connection){ el.innerHTML='<div class="empty-state"><p>This connection no longer exists.</p></div>'; return; }
+  const [{data:assignments}, logEntries] = await Promise.all([
+    supabaseClient.from('trainer_assignments').select('id, routine_name, exercises, assigned_at').eq('connection_id', connectionId).order('assigned_at',{ascending:false}),
+    fetchUserWorkoutLog(connection.student.id),
+  ]);
+  el.innerHTML=buildTrainerStudentDetailHtml(connection, assignments||[], logEntries||[]);
+}
+
+function buildTrainerStudentDetailHtml(connection, assignments, logEntries){
+  const displayName=(connection.student&&(connection.student.full_name||connection.student.username))||'—';
+  const name=escapeHtml(displayName);
+  const handle=connection.student&&connection.student.username ? '@'+escapeHtml(connection.student.username) : '';
+  const expired = connection.status!=='active' || new Date(connection.expires_at)<new Date();
+  const statusLine = expired ? 'Access expired' : ('Active until '+new Date(connection.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}));
+  const assignmentsHtml = assignments.length ? assignments.map(a=>`
+    <div class="trainer-assign-row">
+      <div class="trainer-assign-name">${escapeHtml(a.routine_name)}</div>
+      <div class="trainer-assign-meta">${a.exercises.length} exercise${a.exercises.length===1?'':'s'} · assigned ${new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
+    </div>`).join('') : '<div class="empty-state" style="padding:20px 0;"><p>No routines assigned yet.</p></div>';
+  const recentLogs = logEntries.slice(0,6);
+  const logsHtml = recentLogs.length ? recentLogs.map(l=>`
+    <div class="trainer-log-row"><span>${escapeHtml(l.routineName||'Workout')}</span><span class="trainer-log-date">${new Date(l.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span></div>`).join('') : '<div class="empty-state" style="padding:20px 0;"><p>No sessions logged yet.</p></div>';
+
+  return `
+    <div class="back-row"><button class="btn-back" onclick="closeTrainerStudentDetail()">← Back</button></div>
+    <div class="trainer-detail-hd">
+      <div class="trainer-roster-avatar" style="width:52px;height:52px;font-size:18px;">${trainerAvatarInitial(displayName)}</div>
+      <div>
+        <div class="trainer-detail-name">${name}</div>
+        ${handle?`<div class="trainer-detail-handle">${handle}</div>`:''}
+        <div class="trainer-roster-status ${expired?'expired':''}">${statusLine}</div>
+      </div>
+    </div>
+    <div class="trainer-header-row"><div class="trainer-header-title">Assigned Routines</div><button class="btn-new" onclick="openAssignRoutineModal('${connection.id}')">+ Assign</button></div>
+    <div class="trainer-assign-list">${assignmentsHtml}</div>
+    <div class="trainer-header-row"><div class="trainer-header-title">Recent Sessions</div></div>
+    <div class="trainer-log-list">${logsHtml}</div>
+  `;
+}
+
+function openAssignRoutineModal(connectionId){
+  if(!db.routines.length){ alert('Create a routine first, then assign it.'); return; }
+  document.getElementById('modal-title').textContent='Assign Routine';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-grp"><label class="form-lbl">Select Routine</label><select class="form-inp" id="assign-routine-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;">This sends a copy with today's sets, reps, and weights. Later changes to your own routine won't affect what they see.</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmAssignRoutine('${connectionId}')">Assign</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+async function confirmAssignRoutine(connectionId){
+  const routineId=document.getElementById('assign-routine-sel').value;
+  const routine=db.routines.find(r=>r.id===routineId);
+  if(!routine) return;
+  const exercises=routine.exercises.map(ex=>{
+    const exInfo=db.exercises.find(e=>e.id===ex.id);
+    return { id:ex.id, name: exInfo?exInfo.name:'Exercise', sets:ex.sets, reps:ex.reps, weight:ex.weight||0, rest:ex.rest };
+  });
+  try{
+    const { error } = await supabaseClient.from('trainer_assignments').insert({ connection_id:connectionId, routine_name:routine.name, exercises });
+    if(error) throw error;
+    closeModal();
+    showToast('Routine assigned');
+    renderTrainerStudentDetail(connectionId);
+  }catch(e){
+    alert(e.message || 'Could not assign routine.');
+  }
+}
+
+// ── Connect flow: one-time-use link, same mental model (and the same
+// one-tap fire-the-share-sheet UX) as shareRoutine() above — Alan's own
+// call: a reusable link is a leak risk (anyone who ever sees it could
+// connect themselves as a student, indefinitely), a one-off link is dead
+// the instant it's claimed. Renewing an existing student just means
+// tapping this again and sending them a fresh one; claim_trainer_invite()
+// still recognizes the same trainer/student pair and extends their
+// existing connection instead of duplicating it.
+async function addTrainerStudent(){
+  if(!currentUser) return;
+  try{
+    const { data, error } = await supabaseClient.from('trainer_invites').insert({ trainer_id: currentUser.id }).select('token').single();
+    if(error) throw error;
+    const url=location.origin+location.pathname+'?trainer_invite='+encodeURIComponent(data.token);
+    if(navigator.share){
+      try{ await navigator.share({ title:'Connect with me as your trainer', text:'Connect with me as your trainer', url }); }
+      catch(e){ /* user cancelled the share sheet */ }
+    } else if(navigator.clipboard && navigator.clipboard.writeText){
+      try{ await navigator.clipboard.writeText(url); showToast('Link copied — good for one student'); }
+      catch(e){ showToast('Could not copy link'); }
+    } else {
+      showToast('Sharing not supported on this device');
+    }
+  }catch(e){
+    showToast('Could not create an invite link');
+  }
+}
+
+// Called once at boot (see checkIncomingSharedRoutine, right next to this)
+// and stored rather than acted on immediately — claiming requires a real
+// signed-in account, which may not exist yet (still on the auth screen,
+// or about to sign up), and an OAuth redirect would otherwise wipe this
+// query param before the app ever gets to read it back.
+function checkIncomingTrainerInvite(){
+  const params=new URLSearchParams(location.search);
+  const token=params.get('trainer_invite');
+  if(!token) return;
+  history.replaceState(null,'',location.pathname);
+  try{ localStorage.setItem('pending_trainer_invite', token); }catch(e){}
+}
+
+// Called after a real sign-in/sign-up resolves (not for guests — becoming
+// someone's student requires an actual account). No-op if there's nothing
+// pending, so it's safe to call unconditionally from afterAuthResolved().
+async function maybeShowPendingTrainerInvite(){
+  if(!currentUser) return;
+  let token;
+  try{ token=localStorage.getItem('pending_trainer_invite'); }catch(e){ return; }
+  if(!token) return;
+  try{ localStorage.removeItem('pending_trainer_invite'); }catch(e){}
+  openTrainerInviteConfirmModal(token);
+}
+
+function openTrainerInviteConfirmModal(token){
+  document.getElementById('modal-title').textContent='Connect with Trainer';
+  document.getElementById('modal-body').innerHTML=`<div style="font-size:13px;color:var(--soft);line-height:1.6;">Someone invited you to connect as their student. They'll be able to assign you routines and see your logged workouts.</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">Not now</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmClaimTrainerInvite('${token}')">Connect</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+async function confirmClaimTrainerInvite(token){
+  try{
+    const { error } = await supabaseClient.rpc('claim_trainer_invite', { invite_token: token });
+    if(error) throw error;
+    closeModal();
+    showToast('Connected with your trainer');
+  }catch(e){
+    closeModal();
+    alert(e.message || 'Could not connect. The link may be invalid.');
+  }
+}
+
+// ═══════════════════════════════════════════
 //  OTHER USER'S PROFILE — a drill-down screen (back arrow, not a nav
 //  destination). closeOtherProfile() returns to whichever screen opened
 //  it (search results, the Interactions feed, Requests, another profile's
@@ -4594,7 +4844,7 @@ async function renderOtherProfile(){
   body.innerHTML = _otherProfileHtmlCache[uid] || '<div class="empty-state"><p>Loading…</p></div>';
 
   const [{data:profile}, followState, counts, pingUsed] = await Promise.all([
-    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia').eq('id', uid).maybeSingle(),
+    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia, show_prs').eq('id', uid).maybeSingle(),
     getFollowState(uid),
     getFollowCounts(uid),
     hasPingedToday(),
@@ -4682,7 +4932,14 @@ async function renderOtherProfile(){
     fetchUserWorkoutLog(uid),
   ]);
   if(_otherProfileUserId!==uid) return; // navigated away again while these were in flight
-  document.getElementById('oprof-tab-prs').innerHTML=buildPRsTabHtml(logEntries);
+  // show_prs is a presentation choice, not a new privacy boundary — the
+  // same sessions are already visible in the Log tab below regardless
+  // (see the migration comment). Only false explicitly hides it; a
+  // missing/undefined value (e.g. a client that hasn't picked up this
+  // column yet) defaults to showing, matching the column's own default.
+  document.getElementById('oprof-tab-prs').innerHTML = (profile.show_prs===false)
+    ? buildPRsHiddenHtml(profile.full_name || profile.username || 'This user')
+    : buildPRsTabHtml(logEntries);
   document.getElementById('oprof-tab-program').innerHTML=buildProgramRotationHtml(programData.schedule, programData.schedulePos, programData.routines);
   document.getElementById('oprof-log-list').innerHTML=buildLogListHtml(logEntries);
   _otherProfileHtmlCache[uid]=body.innerHTML;
@@ -4693,6 +4950,14 @@ function buildPrivateLockHtml(){
     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
     <div class="oprof-lock-title">This account is private</div>
     <div class="oprof-lock-sub">Follow to see their program and workout history.</div>
+  </div>`;
+}
+
+function buildPRsHiddenHtml(displayName){
+  return `<div class="oprof-lock">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A9.77 9.77 0 0 1 12 20c-6 0-9-6-9-6a17.6 17.6 0 0 1 3.6-4.5M9.9 4.6A9.6 9.6 0 0 1 12 4c6 0 9 6 9 6a17.5 17.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M2 2l20 20"/></svg>
+    <div class="oprof-lock-title">${escapeHtml(displayName)} decided not to show any PRs</div>
+    <div class="oprof-lock-sub">Their program and workout log are still visible below.</div>
   </div>`;
 }
 
@@ -4724,8 +4989,17 @@ let _pendingRequestCount=0;
 // for private-account follow *requests* awaiting an accept/decline.
 let _hasUnseenInteractions=false;
 
+// Throttled: updateFloatNav() calls this on every single screen change so
+// the nav's red dot (see updateSearchPendingBadge) stays current without
+// requiring a Search visit first, but re-querying on every nav tap would
+// multiply Supabase free-tier request volume for no real benefit — nothing
+// generates a new pending request/ping that fast. 20s is frequent enough to
+// feel live, rare enough not to matter.
+let _lastPendingBadgeRefresh=0;
 async function refreshPendingBadge(){
   if(!currentUser){ _pendingRequestCount=0; _hasUnseenInteractions=false; return; }
+  if(Date.now()-_lastPendingBadgeRefresh < 20000) return;
+  _lastPendingBadgeRefresh=Date.now();
   try{
     const [{count}, {data:latestFollow}, {data:latestPing}] = await Promise.all([
       supabaseClient.from('follows').select('follower_id', {count:'exact', head:true}).eq('following_id', currentUser.id).eq('status', 'pending'),
@@ -4744,8 +5018,14 @@ async function refreshPendingBadge(){
 // re-rendering the whole toprow, so it can't wipe out anything the user
 // has already typed into #search-input.
 function updateSearchPendingBadge(){
+  const show = _pendingRequestCount>0 || _hasUnseenInteractions;
   const badge=document.getElementById('search-pending-badge');
-  if(badge) badge.style.display = (_pendingRequestCount>0 || _hasUnseenInteractions) ? 'block' : 'none';
+  if(badge) badge.style.display = show ? 'block' : 'none';
+  // Same dot, mirrored onto the bottom-nav Search icon (see updateFloatNav)
+  // so it's visible before the user ever opens Search — that's the whole
+  // point: notice you have something waiting, then go check it.
+  const navBadge=document.getElementById('nav-search-badge');
+  if(navBadge) navBadge.style.display = show ? 'block' : 'none';
 }
 
 function renderSearchScreen(){
@@ -6534,7 +6814,7 @@ async function renderAccountSection(){
 
   const provider = (currentUser.app_metadata && currentUser.app_metadata.provider) || 'email';
   const providerLabel = provider === 'google' ? 'Google' : 'Email & Password';
-  const tierLabel = (profile && profile.subscription_tier === 'premium') ? 'Premium' : 'Free';
+  const tierLabel = TIER_LABELS[getEffectiveTier(profile)];
   const verifiedBadge = (profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
   // Real case as entered — NOT uppercased. See My Account's original fix:
   // a name someone typed as "Alan Albrecht" has no business being shown
@@ -6544,6 +6824,7 @@ async function renderAccountSection(){
   const hasPassword = !!(profile && profile.has_password);
   const passwordLabel = hasPassword ? 'Change your password' : 'Add a password so you can sign in without Google';
   const isPrivate = !!(profile && profile.is_private);
+  const showPrs = !(profile && profile.show_prs===false);
 
   el.innerHTML = `
     <div class="settings-group">
@@ -6566,6 +6847,15 @@ async function renderAccountSection(){
         </div></div>
         <div class="switch" onclick="togglePrivateAccount()">
           <div class="switch-track ${isPrivate?'on':''}" id="private-toggle-track"><div class="switch-thumb"></div></div>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.5.6-4 3.8.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.8 5.5-.6z"/></svg></div><div>
+          <div class="settings-row-title">Show PRs on Profile</div>
+          <div class="settings-row-sub">Your Program and Log stay visible either way</div>
+        </div></div>
+        <div class="switch" onclick="toggleShowPrs()">
+          <div class="switch-track ${showPrs?'on':''}" id="show-prs-toggle-track"><div class="switch-thumb"></div></div>
         </div>
       </div>
       <div class="settings-row">
@@ -6690,6 +6980,24 @@ async function togglePrivateAccount(){
     const { error } = await supabaseClient.from('profiles').update({ is_private: newVal }).eq('id', currentUser.id);
     if(error) throw error;
     if(_myProfileCache) _myProfileCache.is_private = newVal;
+  }catch(e){
+    track.classList.toggle('on', wasOn); // revert
+    alert('Could not update this setting. Try again.');
+  }
+}
+
+// Unlike is_private, this is purely presentational — see the migration
+// comment for why there's no server-side enforcement to mirror here.
+async function toggleShowPrs(){
+  if(!currentUser) return;
+  const track = document.getElementById('show-prs-toggle-track');
+  const wasOn = track.classList.contains('on');
+  const newVal = !wasOn;
+  track.classList.toggle('on', newVal); // optimistic
+  try{
+    const { error } = await supabaseClient.from('profiles').update({ show_prs: newVal }).eq('id', currentUser.id);
+    if(error) throw error;
+    if(_myProfileCache) _myProfileCache.show_prs = newVal;
   }catch(e){
     track.classList.toggle('on', wasOn); // revert
     alert('Could not update this setting. Try again.');
@@ -6882,7 +7190,7 @@ function isGuestExempt(){
 function continueAsGuest(){
   hideAuthScreen();
   showScreen('home');
-  if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+  if(typeof window.__tryStartFirstOpenTip === 'function') window.__tryStartFirstOpenTip();
 }
 
 // Tracks which Supabase user this device's local data has already been
@@ -6922,7 +7230,7 @@ async function bootstrapAuthGate(){
       // anything this device itself changes, but it never pulls — so
       // server-granted insignias need their own explicit refresh here.
       showScreen('home');
-      if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+      if(typeof window.__tryStartFirstOpenTip === 'function') window.__tryStartFirstOpenTip();
       refreshMyInsignias().catch(()=>{});
       return;
     }
@@ -6935,7 +7243,7 @@ async function bootstrapAuthGate(){
       // blank auth screen with no way forward.
       hideAuthScreen();
       showScreen('home');
-      if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+      if(typeof window.__tryStartFirstOpenTip === 'function') window.__tryStartFirstOpenTip();
     }
     return;
   }
@@ -6985,7 +7293,7 @@ async function authSignInWithEmail(){
   errEl.textContent='';
   if(!email || !password){ errEl.textContent='Enter your email and password.'; return; }
 
-  const btn = document.getElementById('signin-submit'); btn.disabled = true;
+  const btn = document.getElementById('signin-submit'); setBtnLoading(btn,true,'Signing in…');
   try{
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if(error) throw error;
@@ -6993,7 +7301,7 @@ async function authSignInWithEmail(){
   }catch(e){
     errEl.textContent = e.message || 'Could not sign in.';
   }finally{
-    btn.disabled = false;
+    setBtnLoading(btn,false);
   }
 }
 
@@ -7008,12 +7316,13 @@ async function authSignUpWithEmail(){
   if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
   if(!email || password.length < 8){ errEl.textContent='Enter a valid email and a password of at least 8 characters.'; return; }
 
-  const btn = document.getElementById('signup-submit'); btn.disabled = true;
+  const btn = document.getElementById('signup-submit'); setBtnLoading(btn,true,'Checking username…');
   if(!(await isUsernameAllowedRemote(username))){
     errEl.textContent = 'That username isn\'t available. Try something else.';
-    btn.disabled = false;
+    setBtnLoading(btn,false);
     return;
   }
+  setBtnLoading(btn,true,'Creating account…');
   try{
     const { data, error } = await supabaseClient.auth.signUp({
       email, password,
@@ -7030,7 +7339,7 @@ async function authSignUpWithEmail(){
   }catch(e){
     errEl.textContent = e.message || 'Could not create your account.';
   }finally{
-    btn.disabled = false;
+    setBtnLoading(btn,false);
   }
 }
 
@@ -7073,7 +7382,7 @@ async function authCompletePasswordReset(){
   if(pw1.length < 8){ errEl.textContent = 'Password must be at least 8 characters.'; return; }
   if(pw1 !== pw2){ errEl.textContent = 'Passwords don\'t match.'; return; }
 
-  const btn = document.getElementById('reset-password-submit'); btn.disabled = true;
+  const btn = document.getElementById('reset-password-submit'); setBtnLoading(btn,true,'Updating password…');
   try{
     const { error } = await supabaseClient.auth.updateUser({ password: pw1 });
     if(error) throw error;
@@ -7086,7 +7395,7 @@ async function authCompletePasswordReset(){
   }catch(e){
     errEl.textContent = e.message || 'Could not update your password.';
   }finally{
-    btn.disabled = false;
+    setBtnLoading(btn,false);
   }
 }
 
@@ -7094,6 +7403,7 @@ async function authSignOut(){
   try{ await supabaseClient.auth.signOut(); }catch(e){}
   currentUser = null;
   try{ localStorage.removeItem(LINKED_USER_KEY); }catch(e){}
+  if(typeof window.__resetOnboardingSeenCache === 'function') window.__resetOnboardingSeenCache();
 }
 
 // OAuth signups (Google, etc.) don't provide a username — this screen
@@ -7105,12 +7415,13 @@ async function authCompleteProfile(){
   errEl.textContent='';
   if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
 
-  const btn = document.getElementById('profile-submit'); btn.disabled = true;
+  const btn = document.getElementById('profile-submit'); setBtnLoading(btn,true,'Checking username…');
   if(!(await isUsernameAllowedRemote(username))){
     errEl.textContent = 'That username isn\'t available. Try something else.';
-    btn.disabled = false;
+    setBtnLoading(btn,false);
     return;
   }
+  setBtnLoading(btn,true,'Setting up your account…');
   try{
     const { error } = await supabaseClient
       .from('profiles')
@@ -7121,7 +7432,7 @@ async function authCompleteProfile(){
   }catch(e){
     errEl.textContent = e.message || 'That username may already be taken.';
   }finally{
-    btn.disabled = false;
+    setBtnLoading(btn,false);
   }
 }
 
@@ -7189,7 +7500,8 @@ async function afterAuthResolved(){
 
   hideAuthScreen();
   showScreen('home');
-  if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+  if(typeof window.__tryStartFirstOpenTip === 'function') window.__tryStartFirstOpenTip();
+  maybeShowPendingTrainerInvite();
 }
 
 // Local data and the signed-in account's cloud data disagree — both are
@@ -7224,7 +7536,7 @@ async function resolveDataConflict(choice){
   }
   hideAuthScreen();
   showScreen('home');
-  if(typeof window.__tryStartOnboarding === 'function') window.__tryStartOnboarding();
+  if(typeof window.__tryStartFirstOpenTip === 'function') window.__tryStartFirstOpenTip();
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -7564,6 +7876,7 @@ loadSettings();
 bootstrapAuthGate();
 syncOfflineVideoCache(); // fire-and-forget: mirrors this device's routine videos into the cache in the background
 checkIncomingSharedRoutine(); // opens the "Add Shared Workout" modal if this load came from a ?share= link
+checkIncomingTrainerInvite(); // stashes a ?trainer_invite= token for maybeShowPendingTrainerInvite() to pick up once signed in
 
 // Re-sync rest timer when app returns from background
 document.addEventListener('visibilitychange', () => {
@@ -7669,10 +7982,23 @@ function restExpand() {
 
 
 <script>
+// ═══════════════════════════════════════════
+//  ONBOARDING TIPS — contextual, not a numbered tour. Each tip fires the
+//  first time the user actually opens the thing it explains, independently
+//  of the others — no fixed order, no "step X of Y". Two scopes:
+//    - the first-open tip: localStorage-only, fires once per installed
+//      PWA regardless of login state (guests get it too, before any
+//      account exists to attach a flag to).
+//    - every other tip: profiles.onboarding_seen (jsonb), gated on
+//      currentUser, so it follows the ACCOUNT across devices instead of
+//      re-showing every time the same person opens the app somewhere new.
+//      Requires supabase/migrations/20260726000001_onboarding_seen.sql —
+//      until that's pushed, tips 2+ still display correctly but "seen"
+//      only survives for the current session's profile cache, not a reload.
+// ═══════════════════════════════════════════
 (function(){
-  const OB_KEY = 'alans_workout_onboarding_seen_pwa_v1';
-  let toggleInterval, colorInterval, routineInterval, schedInterval;
-  let started = false;
+  const OB_PWA_KEY = 'alans_workout_ob_pwa_open_seen_v1';
+  let _tipOpen = false;
 
   function isStandalonePWA(){
     return (window.navigator.standalone === true) ||
@@ -7683,215 +8009,323 @@ function restExpand() {
       ));
   }
 
-  function targetEls(){
-    return {
-      home: document.getElementById('screen-home'),
-      gear: document.getElementById('app-gear') || document.querySelector('.settings-btn'),
-      topRight: document.getElementById('top-right-area'),
-      // TODO(pending onboarding rework, see project_social_redesign memory):
-      // these still point at the new floating nav just to avoid a null
-      // classList crash — the tour's copy/steps haven't been reconsidered
-      // for the new nav yet, that's a deliberately separate follow-up pass.
-      navBtns: document.querySelectorAll('#app-float-nav .float-nav-item')
-    };
-  }
-
-  function positionArrow(arrowEl, targetEl, dir){
-    if(!arrowEl || !targetEl) return;
-    const tr = targetEl.getBoundingClientRect();
-    const aw = 90;
-    const cx = tr.left + tr.width/2;
-    const maxLeft = window.innerWidth - aw - 8;
-    const left = Math.max(8, Math.min(maxLeft, cx - aw/2));
-    arrowEl.style.width = aw + 'px';
-    arrowEl.style.left = left + 'px';
-    if(dir === 'up'){
-      arrowEl.style.top = (tr.bottom + 8) + 'px';
-      arrowEl.style.bottom = 'auto';
-      arrowEl.style.flexDirection = 'column';
-    } else {
-      arrowEl.style.top = Math.max(8, tr.top - 52) + 'px';
-      arrowEl.style.bottom = 'auto';
-      arrowEl.style.flexDirection = 'column-reverse';
+  // Own tiny cache, deliberately NOT folded into fetchMyProfile()'s select
+  // list: profiles.onboarding_seen only exists once
+  // 20260726000001_onboarding_seen.sql is pushed. Keeping this query
+  // isolated means a not-yet-migrated database only breaks tip-seen
+  // tracking (tips just re-show once) instead of breaking the shared
+  // profile fetch that verified/tier/is_admin/is_private all depend on.
+  let _onboardingSeenCache = null;
+  async function _fetchOnboardingSeen(){
+    if(_onboardingSeenCache) return _onboardingSeenCache;
+    try{
+      const { data, error } = await supabaseClient.from('profiles').select('onboarding_seen').eq('id', currentUser.id).single();
+      if(error) throw error;
+      _onboardingSeenCache = data.onboarding_seen || {};
+    }catch(e){
+      _onboardingSeenCache = {}; // column not migrated yet, or a network hiccup — tips just show again
     }
-    arrowEl.classList.add('show');
-
-    const card = document.querySelector('.ob-card[data-visible="true"]');
-    if(!card) return;
-    if(dir === 'up'){
-      const arrowBottom = parseInt(arrowEl.style.top,10) + 52;
-      card.style.top = Math.min(arrowBottom + 10, window.innerHeight - card.offsetHeight - 14) + 'px';
-      card.style.bottom = 'auto';
-    } else {
-      const arrowTop = parseInt(arrowEl.style.top,10);
-      card.style.bottom = Math.max(70, window.innerHeight - arrowTop + 10) + 'px';
-      card.style.top = 'auto';
-    }
+    return _onboardingSeenCache;
   }
 
-  function hideAllArrows(){
-    ['fa-settings','fa-routines','fa-schedule'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.classList.remove('show');
-    });
+  async function hasSeenTip(tipId){
+    if(!currentUser) return true; // account-scoped tips never fire for guests
+    const seen = await _fetchOnboardingSeen();
+    return !!seen[tipId];
   }
 
-  function clearAllIntervals(){
-    clearInterval(toggleInterval); clearInterval(colorInterval); clearInterval(routineInterval); clearInterval(schedInterval);
+  // Optimistic local update + fire-and-forget server write, same pattern
+  // as togglePrivateAccount() elsewhere — a tip re-showing once after a
+  // dropped request is a much smaller cost than blocking the dismiss on
+  // a round trip. Silently a no-op server-side until the column exists.
+  function markTipSeen(tipId){
+    if(!currentUser) return;
+    const merged = {...(_onboardingSeenCache || {}), [tipId]: true};
+    _onboardingSeenCache = merged;
+    supabaseClient.from('profiles').update({onboarding_seen: merged}).eq('id', currentUser.id).then(()=>{}, ()=>{});
   }
 
-  function clearLit(){
-    const t = targetEls();
-    if(t.home) t.home.classList.remove('ob-target-layer');
-    if(t.gear) t.gear.classList.remove('ob-lit');
-    if(t.topRight) t.topRight.classList.remove('ob-lit');
-    t.navBtns.forEach(b=>b.classList.remove('ob-lit'));
+  // ── Generic spotlight: dims the screen, glows one or more real target
+  // elements (whatever the tip is actually about), drops a short caption
+  // card near the first target — or centered if there's nothing to point
+  // at. Tap the card's button or anywhere on the dim to dismiss.
+  function _tipDim(){
+    let dim = document.getElementById('tip-dim');
+    if(!dim){ dim = document.createElement('div'); dim.id='tip-dim'; dim.className='tip-dim'; document.body.appendChild(dim); }
+    return dim;
   }
-
-  function showCard(n){
-    [1,2,3,4].forEach(i=>{
-      const c = document.getElementById('ob-card'+i);
-      if(!c) return;
-      const on = i===n;
-      c.style.display = on ? 'block' : 'none';
-      c.dataset.visible = on ? 'true' : 'false';
-      c.classList.remove('exit');
-    });
+  // Floating rings, not a class on the real target — see the .tip-ring
+  // CSS comment for why a class on the target can't rise above the dim.
+  let _ringEls = [];
+  function _clearLit(){ _ringEls.forEach(r=>r.remove()); _ringEls = []; }
+  function _createRing(target){
+    const ring = document.createElement('div');
+    ring.className = 'tip-ring';
+    document.body.appendChild(ring);
+    const pad = 5;
+    const r = target.getBoundingClientRect();
+    ring.style.left = (r.left - pad) + 'px';
+    ring.style.top = (r.top - pad) + 'px';
+    ring.style.width = (r.width + pad*2) + 'px';
+    ring.style.height = (r.height + pad*2) + 'px';
+    const radius = getComputedStyle(target).borderRadius;
+    ring.style.borderRadius = (radius && radius !== '0px') ? radius : '10px';
+    return ring;
   }
-
-  function finishOnboarding(){
-    try{ localStorage.setItem(OB_KEY,'1'); }catch(e){}
-    clearAllIntervals(); hideAllArrows(); clearLit();
-    [1,2,3,4].forEach(i=>{
-      const c=document.getElementById('ob-card'+i);
-      if(c){c.style.display='none';c.dataset.visible='false';}
-    });
-    const dim=document.getElementById('ob-dim');
-    if(dim) dim.classList.remove('show');
+  function closeActiveTip(){
+    document.querySelectorAll('.tip-card, .tip-first-card').forEach(c=>c.remove());
+    const dim = document.getElementById('tip-dim');
+    if(dim){ dim.classList.remove('show'); dim.onclick = null; }
+    _clearLit();
     document.body.classList.remove('ob-lock');
+    _tipOpen = false;
   }
 
-  function goStep(from){
-    clearAllIntervals();
-    const card = document.getElementById('ob-card'+from);
-    if(card) card.classList.add('exit');
-    hideAllArrows();
-    setTimeout(()=>{showCard(from+1); startStep(from+1);}, 280);
+  // Scrolls the target to the vertical center of the viewport before it's
+  // measured, so there's roughly equal room above and below to place the
+  // card without it ever landing on top of the very thing it's pointing
+  // at. 'auto' (not 'smooth') so the scroll is already settled by the
+  // time the next line reads getBoundingClientRect() — no animation to
+  // wait out. Works regardless of which ancestor actually scrolls.
+  function _scrollTargetIntoView(target){
+    if(!target) return;
+    try{ target.scrollIntoView({block:'center', inline:'nearest', behavior:'auto'}); }catch(e){}
   }
 
-  function startStep1(){
-    const t = targetEls();
-    const dim=document.getElementById('ob-dim');
-    if(dim) dim.classList.add('show');
+  // Shared by showSpotlightTip and showSpotlightSequence: places a card
+  // near a target (below if there's room, above otherwise), clamped to
+  // the viewport on every side using the card's own measured height —
+  // or dead-centered when there's no target at all. Centering the target
+  // first (see _scrollTargetIntoView) means the "not enough room" clamp
+  // at the end is a rare last resort, not the normal case.
+  function _positionCardNearTarget(card, target){
+    const cardW = Math.min(280, window.innerWidth - 32);
+    card.style.width = cardW + 'px';
+    if(!target){ card.classList.add('tip-centered'); return; }
+    const r = target.getBoundingClientRect();
+    const left = Math.max(16, Math.min(r.left + r.width/2 - cardW/2, window.innerWidth - cardW - 16));
+    card.style.left = left + 'px';
+    const cardH = card.offsetHeight;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const spaceAbove = r.top;
+    let top;
+    if(spaceBelow >= cardH + 14) top = r.bottom + 14;
+    else if(spaceAbove >= cardH + 14) top = r.top - 14 - cardH;
+    else top = spaceBelow >= spaceAbove ? (r.bottom + 14) : (r.top - 14 - cardH);
+    top = Math.max(16, Math.min(top, window.innerHeight - cardH - 16));
+    card.style.top = top + 'px';
+  }
+
+  function showSpotlightTip({targets=[], text, tipId}){
+    if(_tipOpen) return;
+    const liveTargets = targets.filter(Boolean);
+    _tipOpen = true;
+    // Scrolled into view BEFORE ob-lock sets overflow:hidden — locking the
+    // page first would make it unscrollable, silently breaking this.
+    _scrollTargetIntoView(liveTargets[0]);
+    const dim = _tipDim();
+    dim.classList.add('show');
     document.body.classList.add('ob-lock');
-    clearLit();
-       if(t.gear) t.gear.classList.add('ob-lit');
-    if(t.topRight) t.topRight.classList.add('ob-lit');
-    showCard(1);
-    positionArrow(document.getElementById('fa-settings'), t.gear, 'up');
+    _clearLit();
+    _ringEls = liveTargets.map(el=>_createRing(el));
 
-    const track = document.getElementById('ob-sim-track');
-    const label = document.getElementById('ob-sim-label');
-    const icon  = document.getElementById('ob-mode-icon');
-    const card  = document.getElementById('ob-card1');
-    const skip  = document.getElementById('ob-skip1');
-    const sunSvg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 3.5v2.3M12 18.2v2.3M4.6 12H2.3M21.7 12h-2.3M6.3 6.3l1.6 1.6M16.1 16.1l1.6 1.6M17.7 6.3l-1.6 1.6M7.9 16.1l-1.6 1.6"/></svg>';
-    const moonSvg = '<svg viewBox="0 0 24 24"><path d="M20 14.1A8.5 8.5 0 1 1 9.9 4a7 7 0 0 0 10.1 10.1z"/></svg>';
-    let light = false;
-    toggleInterval = setInterval(()=>{
-      light = !light;
-      if(light){ track.className='sim-track light'; label.className='sim-label light'; label.textContent='Light'; icon.innerHTML=sunSvg; }
-      else { track.className='sim-track'; label.className='sim-label'; label.textContent='Dark'; icon.innerHTML=moonSvg; }
-      setTimeout(()=>{ light ? card.classList.add('lp') : card.classList.remove('lp'); }, 200);
-      setTimeout(()=>{ if(skip) skip.style.color = light ? '#aaaaaa' : '#444444'; }, 200);
-    }, 1800);
+    const card = document.createElement('div');
+    card.className = 'tip-card';
+    card.innerHTML = `<div class="tip-card-text">${text}</div><button class="tip-card-btn" type="button">Got it</button>`;
+    document.body.appendChild(card);
+    _positionCardNearTarget(card, liveTargets[0]);
+
+    const finish = ()=>{ closeActiveTip(); markTipSeen(tipId); };
+    card.querySelector('.tip-card-btn').addEventListener('click', finish);
+    dim.onclick = finish;
   }
 
-  function startStep2(){
-    const t = targetEls(); clearLit();
-       if(t.gear) t.gear.classList.add('ob-lit');
-    if(t.topRight) t.topRight.classList.add('ob-lit');
-    positionArrow(document.getElementById('fa-settings'), t.gear, 'up');
-    const swatches = document.querySelectorAll('.ob-swatch');
-    let ci = 0;
-    colorInterval = setInterval(()=>{
-      swatches.forEach(s=>s.classList.remove('sel'));
-      ci = (ci+1) % swatches.length;
-      swatches[ci].classList.add('sel');
-      applyPreviewColor(swatches[ci]);
-    }, 900);
+  // ── Sequence variant: one target and one short line at a time, tapping
+  // through advances to the next — no "step 1 of 3" label, just several
+  // small popups back to back. Used where a single combined tip pointing
+  // at several controls at once would be too much at once (see Settings).
+  function _runSequenceStep(steps, idx, tipId){
+    const step = steps[idx];
+    // ob-lock (overflow:hidden) is still set from the previous step in
+    // this same sequence — lift it just long enough to scroll the NEXT
+    // target into view, otherwise every step after the first would be
+    // scrolling a page that can no longer scroll.
+    document.body.classList.remove('ob-lock');
+    _scrollTargetIntoView(step.target);
+    const dim = _tipDim();
+    dim.classList.add('show');
+    document.body.classList.add('ob-lock');
+    _clearLit();
+    _ringEls = [_createRing(step.target)];
+
+    const card = document.createElement('div');
+    card.className = 'tip-card';
+    card.innerHTML = `<div class="tip-card-text">${step.text}</div><button class="tip-card-btn" type="button">Got it</button>`;
+    document.body.appendChild(card);
+    _positionCardNearTarget(card, step.target);
+
+    const isLast = idx === steps.length - 1;
+    const advance = ()=>{
+      card.remove();
+      if(isLast){ closeActiveTip(); markTipSeen(tipId); }
+      else{ _runSequenceStep(steps, idx+1, tipId); }
+    };
+    card.querySelector('.tip-card-btn').addEventListener('click', advance);
+    dim.onclick = advance;
   }
 
-  function applyPreviewColor(el){
-    if(!el) return;
-    const c = el.dataset.c, n = el.dataset.n;
-    document.getElementById('ob-clabel').style.color = c;
-    document.getElementById('ob-clabel').textContent = n;
-    document.getElementById('ob-next2').style.background = c;
-    document.getElementById('ob-ey2').style.color = c;
-    document.querySelectorAll('#ob-card2 .ob-dot.active').forEach(d=> d.style.background = c);
-    const arrowHead = document.querySelector('#fa-settings .fa-up');
-    const arrowLabel = document.getElementById('fa-settings-label');
-    if(arrowHead) arrowHead.style.borderBottomColor = c;
-    if(arrowLabel) arrowLabel.style.color = c;
+  function showSpotlightSequence(steps, tipId){
+    if(_tipOpen) return;
+    const liveSteps = steps.filter(s=>s.target);
+    if(!liveSteps.length) return;
+    _tipOpen = true;
+    _runSequenceStep(liveSteps, 0, tipId);
   }
 
-  function startStep3(){
-    const t = targetEls(); clearLit();
-       if(t.navBtns[0]) t.navBtns[0].classList.add('ob-lit');
-    positionArrow(document.getElementById('fa-routines'), t.navBtns[0], 'down');
-    const rows = ['rr0','rr1','rr2']; let ri = 0;
-    routineInterval = setInterval(()=>{
-      rows.forEach(id=>{ const r=document.getElementById(id); if(r) r.classList.remove('hl'); });
-      ri = (ri+1) % rows.length;
-      const active=document.getElementById(rows[ri]); if(active) active.classList.add('hl');
-    }, 1000);
+  // ── First-open tip: centered, no target — picking a theme/accent IS
+  // the tip. Reuses the real .theme-toggle/.swatch markup and the app's
+  // own applyTheme()/setAccent(), so tapping here updates the exact same
+  // state Settings reads; "Apply" just confirms and dismisses.
+  function showFirstOpenTip(){
+    if(_tipOpen) return;
+    _tipOpen = true;
+    const dim = _tipDim();
+    dim.classList.add('show');
+    document.body.classList.add('ob-lock');
+
+    const currentAccent = (document.getElementById('accent-sub') && document.getElementById('accent-sub').textContent) || 'Gold';
+    const card = document.createElement('div');
+    card.className = 'tip-first-card';
+    card.innerHTML = `
+      <div class="tip-first-title">Make It Yours</div>
+      <div class="tip-first-text">Pick a look. You can always change it later from Settings.</div>
+      <div class="tip-first-row">
+        <div class="theme-toggle" id="tip-theme-toggle"><div class="theme-toggle-track"><div class="theme-toggle-thumb"></div></div></div>
+      </div>
+      <div class="tip-first-swatches">
+        ${Object.keys(ACCENT_COLORS).map(name=>{
+          const c = ACCENT_COLORS[name];
+          return `<div class="swatch${name===currentAccent?' active':''}" data-name="${name}" onclick="setAccent(this)" style="background:linear-gradient(135deg,${c.gold2},${c.gold3});" title="${name}"></div>`;
+        }).join('')}
+      </div>
+      <div class="tip-first-note">Theme and accent color, right here.</div>
+      <button class="tip-card-btn" type="button">Apply</button>
+    `;
+    document.body.appendChild(card);
+    card.querySelector('#tip-theme-toggle').addEventListener('click', ()=>{
+      applyTheme(!document.body.classList.contains('light-mode'), true);
+    });
+    card.querySelector('.tip-card-btn').addEventListener('click', ()=>{
+      closeActiveTip();
+      try{ localStorage.setItem(OB_PWA_KEY,'1'); }catch(e){}
+    });
   }
 
-  function startStep4(){
-    const t = targetEls(); clearLit();
-       if(t.navBtns[1]) t.navBtns[1].classList.add('ob-lit');
-    positionArrow(document.getElementById('fa-schedule'), t.navBtns[1], 'down');
-    const pills = document.querySelectorAll('.sc-pill'); let pi = 2;
-    schedInterval = setInterval(()=>{
-      pills.forEach(p=> p.classList.remove('next','done'));
-      pi = (pi+1) % pills.length;
-      if(pills[pi]) pills[pi].classList.add('next');
-    }, 1100);
-  }
-
-  function startStep(n){
-    if(n===1) startStep1();
-    if(n===2) startStep2();
-    if(n===3) startStep3();
-    if(n===4) startStep4();
-  }
-
-  function maybeStart(){
-    if(started) return;
+  function tryStartFirstOpenTip(){
     if(!isStandalonePWA()) return;
-    try{ if(localStorage.getItem(OB_KEY)==='1') return; }catch(e){}
-    started = true;
-    if(typeof showScreen === 'function') showScreen('home');
-    setTimeout(()=>startStep(1), 180);
+    try{ if(localStorage.getItem(OB_PWA_KEY)==='1') return; }catch(e){}
+    setTimeout(showFirstOpenTip, 250);
   }
-
-  document.querySelectorAll('.ob-skip').forEach(btn=>btn.addEventListener('click', finishOnboarding));
-  const n1=document.getElementById('ob-next1'), n2=document.getElementById('ob-next2'), n3=document.getElementById('ob-next3'), nf=document.getElementById('ob-finish');
-  if(n1) n1.addEventListener('click', ()=>goStep(1));
-  if(n2) n2.addEventListener('click', ()=>goStep(2));
-  if(n3) n3.addEventListener('click', ()=>goStep(3));
-  if(nf) nf.addEventListener('click', finishOnboarding);
-  document.querySelectorAll('.ob-swatch').forEach(s=>s.addEventListener('click', ()=>{clearInterval(colorInterval); document.querySelectorAll('.ob-swatch').forEach(x=>x.classList.remove('sel')); s.classList.add('sel'); applyPreviewColor(s);}));
-  window.addEventListener('resize', ()=>{ if(started){ const visible=document.querySelector('.ob-card[data-visible="true"]'); if(!visible) return; const n=Number(visible.id.replace('ob-card','')); hideAllArrows(); startStep(n); }});
-
   // Exposed globally instead of auto-firing on a timer: the auth gate (see
   // the AUTH & CLOUD SYNC section) must decide whether the user is even
   // allowed into the home screen first — sign-in, guest choice, or a data
   // conflict prompt all take priority. Whichever auth path lets the user
-  // into the app calls this afterward; it's a no-op if onboarding was
-  // already seen or already started, so it's safe to call from anywhere.
-  window.__tryStartOnboarding = maybeStart;
+  // into the app calls this afterward; it's a no-op if already seen.
+  window.__tryStartFirstOpenTip = tryStartFirstOpenTip;
+
+  // Otherwise a sign-out followed by a different account signing in on the
+  // same device would keep reading the previous account's cached "seen"
+  // flags and wrongly stay silent for tips the new account never saw.
+  window.__resetOnboardingSeenCache = function(){ _onboardingSeenCache = null; };
+
+  // ── First Settings open: theme, then accent, then units — three small
+  // popups back to back (see showSpotlightSequence), one control at a
+  // time rather than three rings glowing at once.
+  window.__maybeShowSettingsTip = async function(){
+    if(_tipOpen || !currentUser) return;
+    if(await hasSeenTip('settings')) return;
+    showSpotlightSequence([
+      { target: document.getElementById('theme-toggle'), text: 'Switch between dark and light mode anytime.' },
+      { target: document.getElementById('accent-swatches'), text: 'Choose an accent color. It colors the whole app.' },
+      { target: document.querySelector('#weight-prefs-section-body .prog-time-pills'), text: 'Set kilograms or pounds. Every weight in the app follows this.' },
+    ], 'settings');
+  };
+
+  // ── First Program open: where workouts get built, where the rotation
+  // that drives Home's "Next Session" gets set.
+  window.__maybeShowProgramTip = async function(){
+    if(_tipOpen || !currentUser) return;
+    if(await hasSeenTip('program')) return;
+    showSpotlightTip({
+      targets: [document.querySelector('#screen-schedule .prog-subbtn'), document.querySelector('#screen-schedule .btn-new')],
+      text: 'Build your workouts here, then set your rotation with + Add. It loops automatically.',
+      tipId: 'program'
+    });
+  };
+
+  // ── First Home view once a rotation actually exists — before that,
+  // there's no "next session" to explain.
+  window.__maybeShowHomeNextTip = async function(){
+    if(_tipOpen || !currentUser) return;
+    if(!db || !db.schedule || !db.schedule.length) return;
+    if(await hasSeenTip('home_next')) return;
+    showSpotlightTip({
+      targets: [document.querySelector('.hero-card')],
+      text: 'This is your next session, based on your program. Save it and the rotation lines up what’s next.',
+      tipId: 'home_next'
+    });
+  };
+
+  // ── First time viewing someone else's profile — what the PING button does.
+  window.__maybeShowPingTip = async function(){
+    if(_tipOpen || !currentUser) return;
+    if(await hasSeenTip('other_profile_ping')) return;
+    showSpotlightTip({
+      targets: [document.getElementById('oprof-ping-btn')],
+      text: 'Send a daily ping to let them know you’re thinking of them. One per day.',
+      tipId: 'other_profile_ping'
+    });
+  };
+
+  // ── Trainer tab tip: deliberately disabled for now (see project memory
+  // project_trainer_tip_disabled) — Alan wants this held back until the
+  // actual Trainer feature exists, not just the "Coming Soon" placeholder.
+  // Re-enable by uncommenting once that feature is built.
+  window.__maybeShowTrainerTip = async function(){
+    return;
+    /* if(_tipOpen || !currentUser) return;
+    if(await hasSeenTip('trainer_tab')) return;
+    showSpotlightTip({
+      targets: [document.querySelector('.trainer-soon-icon')],
+      text: 'Your student roster and program tools are launching here soon.',
+      tipId: 'trainer_tab'
+    }); */
+  };
+
+  // ── First time opening Search.
+  window.__maybeShowSearchTip = async function(){
+    if(_tipOpen || !currentUser) return;
+    if(await hasSeenTip('search')) return;
+    showSpotlightTip({
+      targets: [document.querySelector('.search-pill-real')],
+      text: 'Connect with other athletes.',
+      tipId: 'search'
+    });
+  };
+
+  // ── First time your own PRs tab actually has a PR in it — nothing to
+  // point at before that.
+  window.__maybeShowPrsTip = async function(){
+    if(_tipOpen || !currentUser) return;
+    const firstOneRm = document.querySelector('#profile-tab-prs .pr-1rm');
+    if(!firstOneRm) return;
+    if(await hasSeenTip('profile_prs')) return;
+    showSpotlightTip({
+      targets: [firstOneRm],
+      text: 'Your 1RM is estimated from your PR set. Keep it accurate: set your bodyweight, units, and bar type in Settings.',
+      tipId: 'profile_prs'
+    });
+  };
 })();
 </script>
 
