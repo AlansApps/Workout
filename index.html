@@ -1493,6 +1493,12 @@ body.light-mode .auth-choice-title{color:#111;}
      Settings since Alan doesn't want PR/progress data visible to other
      users once profiles go public; Settings is always private. Sessions
      history moved to Profile's Log tab instead, see screen-profile.) -->
+<div id="screen-pr-visibility" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')">← Back</button></div>
+  <div class="pg-header"><div class="pg-title">PR Visibility</div></div>
+  <div id="pr-visibility-list" class="list-scroll"></div>
+</div>
+
 <div id="screen-analytics" class="screen">
   <div class="back-row"><button class="btn-back" onclick="showScreen('settings')">← Back</button></div>
   <div class="pg-header"><div class="pg-title">Analytics</div></div>
@@ -1739,13 +1745,23 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="settings-section-label">Account</div>
     <div id="account-section-body"></div>
 
-    <!-- PR VISIBILITY — per-exercise, not all-or-nothing: pick exactly
-         which tracked lifts show up on your profile for other people
-         (e.g. only Squat/Deadlift/Bench). You always see your own full
-         ledger regardless — see renderProfilePRsTab(). Filled in by
-         renderPrVisibilitySection(). -->
+    <!-- PR VISIBILITY — collapsed row, same "settings within settings"
+         drill-down pattern as Progress/Analytics above (and the future
+         Language screen) rather than an ever-growing inline list. Opens
+         #screen-pr-visibility, filled in by renderPrVisibilitySection(). -->
     <div class="settings-section-label">PR Visibility</div>
-    <div id="pr-visibility-section-body"></div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="showScreen('pr-visibility')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.5.6-4 3.8.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.8 5.5-.6z"/></svg></div>
+          <div>
+            <div class="settings-row-title">PR Visibility</div>
+            <div class="settings-row-sub">Choose which lifts show on your profile</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
 
     <!-- WEIGHT LOGGING — how to interpret the raw number typed into a
          weight field, so 1RM math (and every "true weight" display) is
@@ -2575,7 +2591,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -2588,7 +2604,8 @@ function showScreen(id){
   if(id==='routines') renderRoutines();
   if(id==='schedule') renderSchedule();
   if(id==='exercises') renderExercisesDB();
-  if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); renderPrVisibilitySection(); }
+  if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); }
+  if(id==='pr-visibility') renderPrVisibilitySection();
   if(id==='profile') renderProfile();
   if(id==='analytics') initProgressCharts();
   if(id==='search'){ _searchMode='search'; renderSearchScreen(); }
@@ -4238,17 +4255,12 @@ async function renderProfile(){
 async function renderProfilePRsTab(){
   const el=document.getElementById('profile-tab-prs');
   if(!el) return;
-  // You always see every one of your own PRs here regardless of what's
-  // hidden — the exclusion list only changes what OTHER viewers see (see
-  // buildPRsHiddenHtml/PR_TRACKED_EXERCISES filtering below). This note
-  // just makes sure you know some are hidden from them while you look at
-  // your own full ledger.
+  // Display-only, same filter as everyone else sees on your profile —
+  // turning an exercise back on in PR Visibility makes it reappear here
+  // instantly, nothing about the underlying workout data ever changes.
   const profile = await getMyProfile();
   const hiddenIds = (profile && profile.hidden_pr_exercise_ids) || [];
-  const hiddenNote = hiddenIds.length
-    ? `<div class="settings-row-sub" style="padding:12px 16px 0;">${hiddenIds.length} hidden from other people viewing your profile — see Settings to change this.</div>`
-    : '';
-  el.innerHTML = hiddenNote + buildPRsTabHtml(db.workoutLog);
+  el.innerHTML = buildPRsTabHtml(db.workoutLog, hiddenIds);
 }
 
 function switchProfileTab(tab){
@@ -6531,11 +6543,11 @@ const ICON_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 //  fetchUserWorkoutLog() (other profiles) — same shape (exercises[].id,
 //  exercises[].sets[].weight/reps), so one builder serves both.
 // ═══════════════════════════════════════════
-// hiddenIds excludes specific tracked exercises from the ledger — used
-// when rendering someone else's profile (their own choice of which PRs
-// to publish, see the "Choose which PRs to show" Settings section).
-// Omitted entirely (undefined) on your own profile, where you always see
-// every tracked exercise regardless of what's hidden from others.
+// hiddenIds excludes specific tracked exercises from the ledger — the
+// account's own choice of which PRs to display (see the "PR Visibility"
+// Settings screen). Applied the same way whether it's your own profile
+// or someone else's, so what you hide is what you see too — turning an
+// exercise back on there makes it reappear everywhere immediately.
 function buildPRsTabHtml(sessions, hiddenIds){
   const groupsHtml = PR_TRACKED_EXERCISES.map(group => {
     const visibleIds = hiddenIds ? group.ids.filter(id=>!hiddenIds.includes(id)) : group.ids;
@@ -7006,13 +7018,15 @@ async function togglePrivateAccount(){
 }
 
 // Per tracked exercise, not all-or-nothing — Alan's actual ask ("I want
-// to show only Squat/Deadlift/Bench, not everything"). Purely
-// presentational like the old show_prs toggle it replaces — nothing
-// server-side to enforce, since the underlying sessions are already
-// readable via the Log tab regardless (see buildPRsTabHtml/
-// renderOtherProfile for where the exclusion actually gets applied).
+// to show only Squat/Deadlift/Bench, not everything"). Its own screen
+// now (drill-down from a collapsed Settings row) rather than an
+// ever-growing inline list. Purely display-side — nothing here touches
+// the underlying workout data, so turning an exercise back on just makes
+// it reappear; see buildPRsTabHtml/renderProfilePRsTab/renderOtherProfile
+// for where the exclusion actually gets applied, identically whether
+// it's your own profile or someone else's.
 async function renderPrVisibilitySection(){
-  const el = document.getElementById('pr-visibility-section-body');
+  const el = document.getElementById('pr-visibility-list');
   if(!el) return;
   if(!currentUser){ el.innerHTML=''; return; }
   const profile = await getMyProfile();
@@ -7035,9 +7049,9 @@ async function renderPrVisibilitySection(){
     return `<div class="settings-row" style="padding:14px 16px 2px;"><div class="settings-row-sub" style="font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:9px;color:var(--gold);">${escapeHtml(group.muscle)}</div></div>${rows}`;
   }).join('');
   el.innerHTML = `
-    <div class="settings-group">
+    <div class="settings-group" style="margin:12px 14px;">
       <div class="settings-row" style="padding-bottom:2px;">
-        <div class="settings-row-sub">Choose which tracked lifts show up on your profile for other people. Your own view always shows everything.</div>
+        <div class="settings-row-sub">Choose which tracked lifts show up on your PRs tab, including your own.</div>
       </div>
       ${rowsHtml}
     </div>
