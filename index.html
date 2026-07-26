@@ -1114,7 +1114,18 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
 .tip-ring{position:fixed;z-index:601;pointer-events:none;box-shadow:0 0 0 3px var(--gold),0 0 22px 3px color-mix(in srgb,var(--gold) 55%,transparent);}
 .tip-card{position:fixed;z-index:610;background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.4);animation:tipPop .25s cubic-bezier(.16,1,.3,1) both;}
 @keyframes tipPop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
-.tip-card.tip-centered{left:50%;top:50%;transform:translate(-50%,-50%) !important;width:calc(100% - 48px);max-width:300px;text-align:center;}
+/* A CSS animation's keyframe values REPLACE the whole transform property
+   for as long as (and, with fill-mode "both"/"forwards", after) it runs —
+   they don't merge with a static transform declared elsewhere on the same
+   element. .tip-centered and .tip-first-card both need transform for
+   actual centering (translate(-50%,-50%)), not just the pop-in scale, so
+   they get their own keyframes that bake the translate into every frame —
+   reusing .tip-card's plain scale-only tipPop here silently dropped the
+   centering the instant the animation finished, pinning the card's LEFT
+   EDGE (not center) to the middle of the screen and pushing it off the
+   right side on any real phone. */
+@keyframes tipPopCentered{from{opacity:0;transform:translate(-50%,-50%) scale(.94);}to{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+.tip-card.tip-centered{left:50%;top:50%;transform:translate(-50%,-50%);width:calc(100% - 48px);max-width:300px;text-align:center;animation:tipPopCentered .25s cubic-bezier(.16,1,.3,1) both;}
 .tip-card-text{font-size:12.5px;color:var(--soft);line-height:1.6;letter-spacing:.2px;margin-bottom:12px;}
 .tip-card-btn{background:var(--gold);color:var(--void);border:none;border-radius:20px;padding:9px 20px;font-family:var(--body);font-size:12.5px;font-weight:600;letter-spacing:.3px;cursor:pointer;width:100%;}
 .light-mode .tip-card-btn{color:#000;}
@@ -1123,7 +1134,7 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
    picking one IS the tip (not just a demo you tap through). Reuses the
    real .theme-toggle/.swatch classes and applyTheme()/applyAccentByName()
    so tapping here updates the same state Settings reads, live. */
-.tip-first-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:610;background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:22px 20px;width:calc(100% - 48px);max-width:320px;text-align:center;animation:tipPop .3s cubic-bezier(.16,1,.3,1) both;}
+.tip-first-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:610;background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:22px 20px;width:calc(100% - 48px);max-width:320px;text-align:center;animation:tipPopCentered .3s cubic-bezier(.16,1,.3,1) both;}
 .tip-first-title{font-family:var(--hd);font-size:14px;font-weight:900;letter-spacing:2px;color:var(--bright);text-transform:uppercase;margin-bottom:8px;}
 .tip-first-text{font-size:12px;color:var(--soft);line-height:1.6;margin-bottom:4px;}
 .tip-first-row{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 0;border-top:1px solid var(--line);}
