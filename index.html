@@ -1739,6 +1739,14 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="settings-section-label">Account</div>
     <div id="account-section-body"></div>
 
+    <!-- PR VISIBILITY — per-exercise, not all-or-nothing: pick exactly
+         which tracked lifts show up on your profile for other people
+         (e.g. only Squat/Deadlift/Bench). You always see your own full
+         ledger regardless — see renderProfilePRsTab(). Filled in by
+         renderPrVisibilitySection(). -->
+    <div class="settings-section-label">PR Visibility</div>
+    <div id="pr-visibility-section-body"></div>
+
     <!-- WEIGHT LOGGING — how to interpret the raw number typed into a
          weight field, so 1RM math (and every "true weight" display) is
          correct for both barbell per-side loaders and dumbbell per-hand
@@ -2580,7 +2588,7 @@ function showScreen(id){
   if(id==='routines') renderRoutines();
   if(id==='schedule') renderSchedule();
   if(id==='exercises') renderExercisesDB();
-  if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); }
+  if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); renderPrVisibilitySection(); }
   if(id==='profile') renderProfile();
   if(id==='analytics') initProgressCharts();
   if(id==='search'){ _searchMode='search'; renderSearchScreen(); }
@@ -4230,13 +4238,15 @@ async function renderProfile(){
 async function renderProfilePRsTab(){
   const el=document.getElementById('profile-tab-prs');
   if(!el) return;
-  // You always see your own real PRs here regardless of the toggle — it
-  // only changes what OTHER viewers see (see buildPRsHiddenHtml). This
-  // banner just makes sure you know it's hidden from them while you look
-  // at your own data.
+  // You always see every one of your own PRs here regardless of what's
+  // hidden — the exclusion list only changes what OTHER viewers see (see
+  // buildPRsHiddenHtml/PR_TRACKED_EXERCISES filtering below). This note
+  // just makes sure you know some are hidden from them while you look at
+  // your own full ledger.
   const profile = await getMyProfile();
-  const hiddenNote = (profile && profile.show_prs===false)
-    ? `<div class="settings-row-sub" style="padding:12px 16px 0;">Hidden from other people viewing your profile — see Settings to change this.</div>`
+  const hiddenIds = (profile && profile.hidden_pr_exercise_ids) || [];
+  const hiddenNote = hiddenIds.length
+    ? `<div class="settings-row-sub" style="padding:12px 16px 0;">${hiddenIds.length} hidden from other people viewing your profile — see Settings to change this.</div>`
     : '';
   el.innerHTML = hiddenNote + buildPRsTabHtml(db.workoutLog);
 }
@@ -4283,7 +4293,7 @@ async function fetchMyProfile(){
   try{
     const { data }=await supabaseClient
       .from('profiles')
-      .select('username, full_name, verified, subscription_tier, is_admin, has_password, is_private, show_prs')
+      .select('username, full_name, verified, subscription_tier, is_admin, has_password, is_private, hidden_pr_exercise_ids')
       .eq('id', currentUser.id)
       .single();
     _myProfileCache=data;
@@ -4855,7 +4865,7 @@ async function renderOtherProfile(){
   body.innerHTML = _otherProfileHtmlCache[uid] || '<div class="empty-state"><p>Loading…</p></div>';
 
   const [{data:profile}, followState, counts, pingUsed] = await Promise.all([
-    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia, show_prs').eq('id', uid).maybeSingle(),
+    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia, hidden_pr_exercise_ids').eq('id', uid).maybeSingle(),
     getFollowState(uid),
     getFollowCounts(uid),
     hasPingedToday(),
@@ -4943,14 +4953,16 @@ async function renderOtherProfile(){
     fetchUserWorkoutLog(uid),
   ]);
   if(_otherProfileUserId!==uid) return; // navigated away again while these were in flight
-  // show_prs is a presentation choice, not a new privacy boundary — the
-  // same sessions are already visible in the Log tab below regardless
-  // (see the migration comment). Only false explicitly hides it; a
-  // missing/undefined value (e.g. a client that hasn't picked up this
-  // column yet) defaults to showing, matching the column's own default.
-  document.getElementById('oprof-tab-prs').innerHTML = (profile.show_prs===false)
+  // Per-exercise, not all-or-nothing — a presentation choice, not a new
+  // privacy boundary, since the same sessions are already visible in the
+  // Log tab below regardless (see the migration comment). Only shows the
+  // "declined to show any" state once every tracked exercise is hidden;
+  // otherwise renders the ledger with just the excluded ones missing.
+  const hiddenIds = profile.hidden_pr_exercise_ids || [];
+  const allHidden = PR_TRACKED_EXERCISES.every(g => g.ids.every(id => hiddenIds.includes(id)));
+  document.getElementById('oprof-tab-prs').innerHTML = allHidden
     ? buildPRsHiddenHtml(profile.full_name || profile.username || 'This user')
-    : buildPRsTabHtml(logEntries);
+    : buildPRsTabHtml(logEntries, hiddenIds);
   document.getElementById('oprof-tab-program').innerHTML=buildProgramRotationHtml(programData.schedule, programData.schedulePos, programData.routines);
   document.getElementById('oprof-log-list').innerHTML=buildLogListHtml(logEntries);
   _otherProfileHtmlCache[uid]=body.innerHTML;
@@ -6519,9 +6531,15 @@ const ICON_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 //  fetchUserWorkoutLog() (other profiles) — same shape (exercises[].id,
 //  exercises[].sets[].weight/reps), so one builder serves both.
 // ═══════════════════════════════════════════
-function buildPRsTabHtml(sessions){
+// hiddenIds excludes specific tracked exercises from the ledger — used
+// when rendering someone else's profile (their own choice of which PRs
+// to publish, see the "Choose which PRs to show" Settings section).
+// Omitted entirely (undefined) on your own profile, where you always see
+// every tracked exercise regardless of what's hidden from others.
+function buildPRsTabHtml(sessions, hiddenIds){
   const groupsHtml = PR_TRACKED_EXERCISES.map(group => {
-    const rowsHtml = group.ids.map(exId => {
+    const visibleIds = hiddenIds ? group.ids.filter(id=>!hiddenIds.includes(id)) : group.ids;
+    const rowsHtml = visibleIds.map(exId => {
       const def = db.exercises.find(e=>e.id===exId);
       if(!def) return ''; // catalog changed underneath a stale id — skip rather than show a blank row
       const best = bestSetForExercise(sessions, exId);
@@ -6835,7 +6853,6 @@ async function renderAccountSection(){
   const hasPassword = !!(profile && profile.has_password);
   const passwordLabel = hasPassword ? 'Change your password' : 'Add a password so you can sign in without Google';
   const isPrivate = !!(profile && profile.is_private);
-  const showPrs = !(profile && profile.show_prs===false);
 
   el.innerHTML = `
     <div class="settings-group">
@@ -6858,15 +6875,6 @@ async function renderAccountSection(){
         </div></div>
         <div class="switch" onclick="togglePrivateAccount()">
           <div class="switch-track ${isPrivate?'on':''}" id="private-toggle-track"><div class="switch-thumb"></div></div>
-        </div>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.5.6-4 3.8.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.8 5.5-.6z"/></svg></div><div>
-          <div class="settings-row-title">Show PRs on Profile</div>
-          <div class="settings-row-sub">Your Program and Log stay visible either way</div>
-        </div></div>
-        <div class="switch" onclick="toggleShowPrs()">
-          <div class="switch-track ${showPrs?'on':''}" id="show-prs-toggle-track"><div class="switch-thumb"></div></div>
         </div>
       </div>
       <div class="settings-row">
@@ -6997,18 +7005,59 @@ async function togglePrivateAccount(){
   }
 }
 
-// Unlike is_private, this is purely presentational — see the migration
-// comment for why there's no server-side enforcement to mirror here.
-async function toggleShowPrs(){
+// Per tracked exercise, not all-or-nothing — Alan's actual ask ("I want
+// to show only Squat/Deadlift/Bench, not everything"). Purely
+// presentational like the old show_prs toggle it replaces — nothing
+// server-side to enforce, since the underlying sessions are already
+// readable via the Log tab regardless (see buildPRsTabHtml/
+// renderOtherProfile for where the exclusion actually gets applied).
+async function renderPrVisibilitySection(){
+  const el = document.getElementById('pr-visibility-section-body');
+  if(!el) return;
+  if(!currentUser){ el.innerHTML=''; return; }
+  const profile = await getMyProfile();
+  const hiddenIds = (profile && profile.hidden_pr_exercise_ids) || [];
+  const rowsHtml = PR_TRACKED_EXERCISES.map(group => {
+    const rows = group.ids.map(exId=>{
+      const def = db.exercises.find(e=>e.id===exId);
+      if(!def) return ''; // catalog changed underneath a stale id — skip rather than show a blank toggle
+      const visible = !hiddenIds.includes(exId);
+      return `<div class="settings-row">
+        <div class="settings-row-left"><div>
+          <div class="settings-row-title" style="font-size:13px;">${escapeHtml(def.name)}</div>
+        </div></div>
+        <div class="switch" onclick="togglePrExerciseVisibility('${exId}')">
+          <div class="switch-track ${visible?'on':''}" data-pr-ex="${exId}"><div class="switch-thumb"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+    if(!rows) return '';
+    return `<div class="settings-row" style="padding:14px 16px 2px;"><div class="settings-row-sub" style="font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:9px;color:var(--gold);">${escapeHtml(group.muscle)}</div></div>${rows}`;
+  }).join('');
+  el.innerHTML = `
+    <div class="settings-group">
+      <div class="settings-row" style="padding-bottom:2px;">
+        <div class="settings-row-sub">Choose which tracked lifts show up on your profile for other people. Your own view always shows everything.</div>
+      </div>
+      ${rowsHtml}
+    </div>
+  `;
+}
+
+async function togglePrExerciseVisibility(exId){
   if(!currentUser) return;
-  const track = document.getElementById('show-prs-toggle-track');
+  const track = document.querySelector('.switch-track[data-pr-ex="'+exId+'"]');
+  if(!track) return;
   const wasOn = track.classList.contains('on');
-  const newVal = !wasOn;
+  const newVal = !wasOn; // newVal true = now visible
   track.classList.toggle('on', newVal); // optimistic
+  const profile = await getMyProfile();
+  const current = (profile && profile.hidden_pr_exercise_ids) || [];
+  const updated = newVal ? current.filter(id=>id!==exId) : [...new Set([...current, exId])];
   try{
-    const { error } = await supabaseClient.from('profiles').update({ show_prs: newVal }).eq('id', currentUser.id);
+    const { error } = await supabaseClient.from('profiles').update({ hidden_pr_exercise_ids: updated }).eq('id', currentUser.id);
     if(error) throw error;
-    if(_myProfileCache) _myProfileCache.show_prs = newVal;
+    if(_myProfileCache) _myProfileCache.hidden_pr_exercise_ids = updated;
   }catch(e){
     track.classList.toggle('on', wasOn); // revert
     alert('Could not update this setting. Try again.');
