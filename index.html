@@ -4206,7 +4206,7 @@ function moveSched(i,d){const j=i+d;if(j<0||j>=db.schedule.length)return;[db.sch
 // there's no local copy of someone else's device storage) — same visual
 // output either way.
 function buildLogListHtml(entries){
-  if(!entries.length) return '<div class="empty-state"><p>No sessions logged yet.<br>Get off this screen<br>and go lift something.</p></div>';
+  if(!entries.length) return `<div class="empty-state"><p>${t('log_empty_1')}<br>${t('log_empty_2')}<br>${t('log_empty_3')}</p></div>`;
   return entries.map(entry=>{
     const d=new Date(entry.date);
     const ds=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
@@ -4246,9 +4246,9 @@ async function renderProfile(){
     <div id="profile-sticky" class="profile-sticky">
       <div id="profile-header"></div>
       <div class="profile-tabs">
-        <button class="profile-tab active" id="ptab-prs" onclick="switchProfileTab('prs')">PRs</button>
-        <button class="profile-tab" id="ptab-program" onclick="switchProfileTab('program')">Program</button>
-        <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">Log</button>
+        <button class="profile-tab active" id="ptab-prs" onclick="switchProfileTab('prs')">${t('profile_tab_prs')}</button>
+        <button class="profile-tab" id="ptab-program" onclick="switchProfileTab('program')">${t('nav_program')}</button>
+        <button class="profile-tab" id="ptab-log" onclick="switchProfileTab('log')">${t('profile_tab_log')}</button>
       </div>
     </div>
     <div id="profile-tab-prs" class="profile-tab-content" style="padding:0;"></div>
@@ -5011,8 +5011,8 @@ function buildPrivateLockHtml(){
 function buildPRsHiddenHtml(displayName){
   return `<div class="oprof-lock">
     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A9.77 9.77 0 0 1 12 20c-6 0-9-6-9-6a17.6 17.6 0 0 1 3.6-4.5M9.9 4.6A9.6 9.6 0 0 1 12 4c6 0 9 6 9 6a17.5 17.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M2 2l20 20"/></svg>
-    <div class="oprof-lock-title">${escapeHtml(displayName)} decided not to show any PRs</div>
-    <div class="oprof-lock-sub">Their program and workout log are still visible below.</div>
+    <div class="oprof-lock-title">${t('pr_hidden_title').replace('{name}', escapeHtml(displayName))}</div>
+    <div class="oprof-lock-sub">${t('pr_hidden_sub')}</div>
   </div>`;
 }
 
@@ -6608,6 +6608,21 @@ const STRINGS = {
     toast_link_copied_one_student: 'Link copied — good for one student',
     toast_invite_link_error: 'Could not create an invite link',
     toast_connected_with_trainer: 'Connected with your trainer',
+    log_empty_1: 'No sessions logged yet.',
+    log_empty_2: 'Get off this screen',
+    log_empty_3: 'and go lift something.',
+    profile_tab_prs: 'PRs',
+    profile_tab_log: 'Log',
+    pr_add_bodyweight: 'Add your bodyweight in Settings →',
+    pr_needs_bodyweight: 'Needs bodyweight on file',
+    pr_not_logged_yet: 'Not logged yet',
+    pr_tick_tooltip: 'Hit — real set logged at this weight',
+    pr_col_set: 'PR SET',
+    pr_col_est_1rm: 'EST 1RM',
+    pr_formula_note: 'Estimated from your best set. A real single-rep set at or above this number earns the {tick}.',
+    pr_tick_word: 'tick',
+    pr_hidden_title: '{name} decided not to show any PRs',
+    pr_hidden_sub: 'Their program and workout log are still visible below.',
   },
   es: {
     back: '← Volver',
@@ -6823,6 +6838,21 @@ const STRINGS = {
     toast_link_copied_one_student: 'Enlace copiado — válido para un alumno',
     toast_invite_link_error: 'No se pudo crear el enlace de invitación',
     toast_connected_with_trainer: 'Conectado con tu entrenador',
+    log_empty_1: 'Todavía no hay sesiones registradas.',
+    log_empty_2: 'Salí de esta pantalla',
+    log_empty_3: 'y andá a entrenar.',
+    profile_tab_prs: 'Récords',
+    profile_tab_log: 'Registro',
+    pr_add_bodyweight: 'Agregá tu peso corporal en Ajustes →',
+    pr_needs_bodyweight: 'Necesita tu peso corporal registrado',
+    pr_not_logged_yet: 'Todavía no registrado',
+    pr_tick_tooltip: 'Logrado — serie real registrada con este peso',
+    pr_col_set: 'SERIE RÉCORD',
+    pr_col_est_1rm: '1RM EST',
+    pr_formula_note: 'Estimado a partir de tu mejor serie. Una serie real de una repetición igual o superior a este número obtiene el {tick}.',
+    pr_tick_word: 'tilde',
+    pr_hidden_title: '{name} decidió no mostrar sus récords',
+    pr_hidden_sub: 'Su programa y registro de entrenamientos siguen visibles abajo.',
   },
 };
 
@@ -7073,7 +7103,7 @@ function buildPRsTabHtml(sessions, hiddenIds){
         return `<div class="pr-row unset"${canFix?` onclick="showScreen('settings')" style="cursor:pointer;"`:''}>
           <div class="pr-main">
             <div class="pr-ex-name">${escapeHtml(def.name)}</div>
-            <div class="pr-ex-set">${canFix?'Add your bodyweight in Settings →':'Needs bodyweight on file'}</div>
+            <div class="pr-ex-set">${canFix?t('pr_add_bodyweight'):t('pr_needs_bodyweight')}</div>
           </div>
           <div class="pr-1rm-col"><div><div class="pr-1rm">—</div></div></div>
         </div>`;
@@ -7082,7 +7112,7 @@ function buildPRsTabHtml(sessions, hiddenIds){
         return `<div class="pr-row unset">
           <div class="pr-main">
             <div class="pr-ex-name">${escapeHtml(def.name)}</div>
-            <div class="pr-ex-set">Not logged yet</div>
+            <div class="pr-ex-set">${t('pr_not_logged_yet')}</div>
           </div>
           <div class="pr-1rm-col"><div><div class="pr-1rm">—</div></div></div>
         </div>`;
@@ -7094,7 +7124,7 @@ function buildPRsTabHtml(sessions, hiddenIds){
       // proposed, Alan's pick (2026-07-25).
       const setLabel = (dispW===0?'BW':dispW+unitLabel())+' × '+best.reps+' <span class="pr-date">· '+fmtPRDate(best.date)+'</span>';
       const tickHtml = best.verified
-        ? `<div class="pr-tick" onclick="this.classList.toggle('tapped')">${ICON_TICK}<div class="pr-tip">Hit — real set logged at this weight</div></div>`
+        ? `<div class="pr-tick" onclick="this.classList.toggle('tapped')">${ICON_TICK}<div class="pr-tip">${t('pr_tick_tooltip')}</div></div>`
         : '';
       return `<div class="pr-row">
         <div class="pr-main">
@@ -7108,17 +7138,17 @@ function buildPRsTabHtml(sessions, hiddenIds){
       </div>`;
     }).join('');
     if(!rowsHtml) return '';
-    return `<div class="pr-mg-hd"><span class="mg-name">${escapeHtml(group.muscle)}</span></div>${rowsHtml}`;
+    return `<div class="pr-mg-hd"><span class="mg-name">${t('muscle_'+group.muscle.toLowerCase())}</span></div>${rowsHtml}`;
   }).join('');
 
   return `<div class="pr-list">
     <div class="pr-col-headers">
-      <span class="pr-main pr-col-lbl">PR SET</span>
-      <span class="pr-col-1rm pr-col-lbl">EST 1RM</span>
+      <span class="pr-main pr-col-lbl">${t('pr_col_set')}</span>
+      <span class="pr-col-1rm pr-col-lbl">${t('pr_col_est_1rm')}</span>
       <span class="pr-col-tick-spacer"></span>
     </div>
     ${groupsHtml}
-    <div class="pr-formula-strip">${ICON_1RM_FORMULA}<span>Estimated from your best set. A real single-rep set at or above this number earns the <b style="color:var(--pr);font-weight:600;">tick</b>.</span></div>
+    <div class="pr-formula-strip">${ICON_1RM_FORMULA}<span>${t('pr_formula_note').replace('{tick}', '<b style="color:var(--pr);font-weight:600;">'+t('pr_tick_word')+'</b>')}</span></div>
   </div>`;
 }
 
