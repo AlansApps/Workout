@@ -3727,36 +3727,36 @@ function delRoutine(id){
 //  "clean" default back.
 // ═══════════════════════════════════════════
 function openBrowseRoutines(){
-  document.getElementById('modal-title').textContent='Browse Workouts';
+  document.getElementById('modal-title').textContent=t('browse_workouts_title');
   document.getElementById('modal-body').innerHTML=`
-    <div class="form-lbl" style="margin-bottom:10px">Shared workouts you can add to your own list</div>
+    <div class="form-lbl" style="margin-bottom:10px">${t('browse_workouts_subtitle')}</div>
     <div style="display:flex;flex-direction:column;gap:7px;">
       ${DEFAULT_ROUTINES.map(r=>`
         <div class="browse-row">
-          <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
+          <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} ${t('routines_meta_exercises')} · ${r.exercises.reduce((a,e)=>a+e.sets,0)} ${t('routines_meta_sets')}</div></div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            <button class="btn-ico" onclick="shareRoutine(DEFAULT_ROUTINES.find(x=>x.id==='${r.id}'))" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
-            <button class="browse-dl-btn" onclick="openDownloadRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14"/></svg>Add</button>
+            <button class="btn-ico" onclick="shareRoutine(DEFAULT_ROUTINES.find(x=>x.id==='${r.id}'))" title="Share" data-i18n-title="share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+            <button class="browse-dl-btn" onclick="openDownloadRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14"/></svg>${t('add')}</button>
           </div>
         </div>`).join('')}
     </div>`;
-  document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">Close</button>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">${t('close')}</button>`;
   document.getElementById('modal-overlay').classList.add('active');
 }
 
 function openDownloadRoutineModal(defId){
   const def=DEFAULT_ROUTINES.find(r=>r.id===defId);
   if(!def) return;
-  document.getElementById('modal-title').textContent='Add to My Workouts';
+  document.getElementById('modal-title').textContent=t('browse_add_to_my_workouts_title');
   document.getElementById('modal-body').innerHTML=`
     <div class="form-grp">
-      <label class="form-lbl">Workout Name</label>
+      <label class="form-lbl">${t('builder_workout_name_label')}</label>
       <input class="form-inp" id="dl-name-inp" value="${def.name.replace(/"/g,'&quot;')}" maxlength="60">
     </div>
-    <div style="font-size:11px;color:var(--muted);line-height:1.5;">This adds your own copy — it'll track your sets and weights independently from here on.</div>`;
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('browse_add_copy_note')}</div>`;
   document.getElementById('modal-footer').innerHTML=`
-    <button class="btn-ghost" onclick="openBrowseRoutines()">Cancel</button>
-    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmDownloadRoutine('${defId}')">Add</button>`;
+    <button class="btn-ghost" onclick="openBrowseRoutines()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmDownloadRoutine('${defId}')">${t('add')}</button>`;
   const inp=document.getElementById('dl-name-inp');
   inp.focus(); inp.select();
 }
@@ -3857,13 +3857,13 @@ async function shareRoutine(routine){
   if(!routine) return;
   const url=location.origin+location.pathname+'?share='+encodeRoutineForShare(routine);
   if(navigator.share){
-    try{ await navigator.share({ title:routine.name, text:`Check out this workout: ${routine.name}`, url }); }
+    try{ await navigator.share({ title:routine.name, text:`${t('share_check_out_workout')} ${routine.name}`, url }); }
     catch(e){ /* user cancelled the share sheet — nothing to do */ }
   } else if(navigator.clipboard && navigator.clipboard.writeText){
-    try{ await navigator.clipboard.writeText(url); showToast('Link copied'); }
-    catch(e){ showToast('Could not copy link'); }
+    try{ await navigator.clipboard.writeText(url); showToast(t('toast_link_copied')); }
+    catch(e){ showToast(t('toast_copy_link_error')); }
   } else {
-    showToast('Sharing not supported on this device');
+    showToast(t('toast_sharing_not_supported'));
   }
 }
 
@@ -3877,23 +3877,23 @@ function checkIncomingSharedRoutine(){
   if(!encoded) return;
   history.replaceState(null,'',location.pathname);
   const shared=decodeSharedRoutine(encoded);
-  if(!shared){ showToast('This workout link looks broken'); return; }
+  if(!shared){ showToast(t('toast_workout_link_broken')); return; }
   openImportSharedRoutineModal(shared);
 }
 
 let _pendingSharedRoutine=null;
 function openImportSharedRoutineModal(shared){
   _pendingSharedRoutine=shared;
-  document.getElementById('modal-title').textContent='Add Shared Workout';
+  document.getElementById('modal-title').textContent=t('import_shared_workout_title');
   document.getElementById('modal-body').innerHTML=`
     <div class="form-grp">
-      <label class="form-lbl">Workout Name</label>
+      <label class="form-lbl">${t('builder_workout_name_label')}</label>
       <input class="form-inp" id="dl-name-inp" value="${escapeHtml(shared.name)}" maxlength="60">
     </div>
-    <div style="font-size:11px;color:var(--muted);line-height:1.5;">Someone shared this workout with you — ${shared.exercises.length} exercise${shared.exercises.length===1?'':'s'}. Adding it makes your own copy that tracks your own sets and weights independently from here on.</div>`;
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('import_shared_workout_note')} — ${shared.exercises.length} ${shared.exercises.length===1?t('builder_exercise_singular').toLowerCase():t('routines_meta_exercises')}. ${t('import_shared_workout_copy_note')}</div>`;
   document.getElementById('modal-footer').innerHTML=`
-    <button class="btn-ghost" onclick="_pendingSharedRoutine=null;closeModal();">Cancel</button>
-    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmImportSharedRoutine()">Add</button>`;
+    <button class="btn-ghost" onclick="_pendingSharedRoutine=null;closeModal();">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmImportSharedRoutine()">${t('add')}</button>`;
   document.getElementById('modal-overlay').classList.add('active');
   const inp=document.getElementById('dl-name-inp'); inp.focus(); inp.select();
 }
@@ -3907,7 +3907,7 @@ function confirmImportSharedRoutine(){
   saveDB(); closeModal(); renderRoutines();
   syncOfflineVideoCache();
   _pendingSharedRoutine=null;
-  showToast('Workout added');
+  showToast(t('toast_workout_added'));
 }
 
 function openRoutineModal(editId){
@@ -3976,13 +3976,13 @@ function openRoutineModal(editId){
       <div class="eb-set-row time-row" id="ebr-${i}-${si}">
         <span class="eb-set-num">${si+1}</span>
         <input class="eb-set-inp" type="text" inputmode="numeric" placeholder="mm:ss" value="${sr.reps?fmtDuration(sr.reps):''}" onchange="mItems[${i}].setRows[${si}].reps=parseDuration(this.value); mItems[${i}].setRows[${si}].kg=0;">
-        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set" data-i18n-title="builder_remove_set"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>`:`
       <div class="eb-set-row" id="ebr-${i}-${si}">
         <span class="eb-set-num">${si+1}</span>
         <input class="eb-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg?toDisplayWeight(sr.kg):''}" onchange="mItems[${i}].setRows[${si}].kg=fromDisplayUnit(parseKg(this.value))">
         <input class="eb-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].setRows[${si}].reps=parseInt(this.value)||0">
-        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button class="eb-set-del" onclick="rmSet(${i},${si})" title="Remove set" data-i18n-title="builder_remove_set"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>`).join('');
     return `
       <div class="ex-builder" id="exb-${i}">
@@ -3994,17 +3994,17 @@ function openRoutineModal(editId){
           <button class="btn-ico del" onclick="rmItem(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         <div class="eb-sets-head ${isTimed?'time-head':''}">
-          ${isTimed?'<span>Set</span><span>Target duration</span><span></span>':`<span>Set</span><span>${unitLabel().toUpperCase()}</span><span>Reps</span><span></span>`}
+          ${isTimed?`<span>${t('builder_col_set')}</span><span>${t('builder_col_target_duration')}</span><span></span>`:`<span>${t('builder_col_set')}</span><span>${unitLabel().toUpperCase()}</span><span>${t('builder_col_reps')}</span><span></span>`}
         </div>
         ${setRowsHtml}
         <button class="eb-add-set" onclick="addSet(${i})">
           <span class="eb-add-icon">+</span>
-          <span class="eb-add-lbl">Add Set</span>
+          <span class="eb-add-lbl">${t('builder_add_set')}</span>
         </button>
         <div class="eb-rest-row">
-          <span class="eb-rest-lbl">Rest</span>
+          <span class="eb-rest-lbl">${t('builder_rest')}</span>
           <input class="eb-rest-inp" id="ebrest-${i}" type="number" inputmode="numeric" value="${re.rest}" onchange="mItems[${i}].rest=parseInt(this.value)||60; this._userEdited=true;">
-          <span class="eb-rest-lbl">sec</span>
+          <span class="eb-rest-lbl">${t('builder_sec')}</span>
         </div>
       </div>`;
   }
@@ -4012,7 +4012,7 @@ function openRoutineModal(editId){
   function buildSSBlock(ss, i){
     const rounds=ss.sets.length, exCount=ss.exercises.length;
     let rowsHtml=`<div class="eb-sets-head" style="border-color:color-mix(in srgb,var(--gold) 20%,transparent);">
-      <span>Rnd</span><span>${unitLabel().toUpperCase()}</span><span>Reps</span><span></span>
+      <span>${t('builder_col_round')}</span><span>${unitLabel().toUpperCase()}</span><span>${t('builder_col_reps')}</span><span></span>
     </div>`;
     for(let r=0;r<rounds;r++){
       rowsHtml+=`<div class="ss-round-sep">
@@ -4026,7 +4026,7 @@ function openRoutineModal(editId){
           <span class="ss-set-exlbl">${String.fromCharCode(65+e)}</span>
           <input class="ss-set-inp" type="text" inputmode="decimal" placeholder="—" value="${sr.kg?toDisplayWeight(sr.kg):''}" onchange="mItems[${i}].sets[${r}][${e}].kg=fromDisplayUnit(parseKg(this.value))">
           <input class="ss-set-inp" type="number" inputmode="numeric" placeholder="—" value="${sr.reps||''}" onchange="mItems[${i}].sets[${r}][${e}].reps=parseInt(this.value)||0">
-          ${canDel?`<button class="eb-set-del" onclick="rmSSRound(${i},${r})" title="Remove round"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:'<span></span>'}
+          ${canDel?`<button class="eb-set-del" onclick="rmSSRound(${i},${r})" title="Remove round" data-i18n-title="builder_remove_round"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:'<span></span>'}
         </div>`;
       }
     }
@@ -4039,40 +4039,40 @@ function openRoutineModal(editId){
     return `
       <div class="ss-builder" id="exb-${i}">
         <div class="ss-builder-hd">
-          <span class="ss-builder-lbl">Superset</span>
+          <span class="ss-builder-lbl">${t('builder_superset_label')}</span>
           <button class="btn-ico" onclick="moveItem(${i},-1)" ${i===0?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
           <button class="btn-ico" onclick="moveItem(${i},1)" ${i===items.length-1?"style='visibility:hidden'":''}><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-          <button class="ss-builder-add-ex" onclick="addSSEx(${i})">+ Exercise</button>
+          <button class="ss-builder-add-ex" onclick="addSSEx(${i})">+ ${t('builder_exercise_singular')}</button>
           <button class="ss-builder-rm" onclick="rmItem(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         ${exSelects}
         ${rowsHtml}
         <button class="ss-add-round" onclick="addSSRound(${i})">
           <span class="ss-add-icon">+</span>
-          <span class="ss-add-lbl">Add Round</span>
+          <span class="ss-add-lbl">${t('builder_add_round')}</span>
         </button>
         <div class="ss-rest-row">
-          <span class="eb-rest-lbl" style="color:var(--gold3)">Rest</span>
+          <span class="eb-rest-lbl" style="color:var(--gold3)">${t('builder_rest')}</span>
           <input class="eb-rest-inp" id="ebrest-${i}" type="number" inputmode="numeric" value="${ss.rest||90}" style="border-color:var(--gold3)" onchange="mItems[${i}].rest=parseInt(this.value)||60; this._userEdited=true;">
-          <span class="eb-rest-lbl" style="color:var(--gold3)">sec</span>
+          <span class="eb-rest-lbl" style="color:var(--gold3)">${t('builder_sec')}</span>
         </div>
       </div>`;
   }
 
   function rdr(){
-    document.getElementById('modal-title').textContent=editing?'Edit Workout':'New Workout';
+    document.getElementById('modal-title').textContent=editing?t('builder_edit_workout_title'):t('builder_new_workout_title');
     const builders=items.map((re,i)=>re.type==='ss'?buildSSBlock(re,i):buildExBlock(re,i)).join('');
     document.getElementById('modal-body').innerHTML=`
-      <div class="form-grp"><label class="form-lbl">Workout Name</label><input class="form-inp" id="rn-inp" placeholder="e.g. Leg Day 1" value="${editing?editing.name:''}"></div>
-      <div class="form-lbl" style="margin-bottom:7px">Exercises</div>
+      <div class="form-grp"><label class="form-lbl">${t('builder_workout_name_label')}</label><input class="form-inp" id="rn-inp" placeholder="${t('builder_workout_name_placeholder')}" value="${editing?editing.name:''}"></div>
+      <div class="form-lbl" style="margin-bottom:7px">${t('exercises_title')}</div>
       <div id="ex-bldrs">${builders}</div>
       <div style="display:flex;gap:8px;margin-top:6px;">
-        <button class="btn-new" style="flex:1;text-align:center;padding:9px" onclick="addEx()">+ Add Exercise</button>
-        <button class="btn-new" style="flex:1;text-align:center;padding:9px;" onclick="addSS()">+ Superset</button>
+        <button class="btn-new" style="flex:1;text-align:center;padding:9px" onclick="addEx()">+ ${t('builder_add_exercise_btn')}</button>
+        <button class="btn-new" style="flex:1;text-align:center;padding:9px;" onclick="addSS()">+ ${t('builder_superset_label')}</button>
       </div>`;
     document.getElementById('modal-footer').innerHTML=`
-      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveRoutine()">Save</button>`;
+      <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+      <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveRoutine()">${t('save')}</button>`;
   }
 
   window.mItems=items;
@@ -4742,7 +4742,7 @@ async function confirmAssignRoutine(connectionId){
     const { error } = await supabaseClient.from('trainer_assignments').insert({ connection_id:connectionId, routine_name:routine.name, exercises });
     if(error) throw error;
     closeModal();
-    showToast('Routine assigned');
+    showToast(t('toast_routine_assigned'));
     renderTrainerStudentDetail(connectionId);
   }catch(e){
     alert(e.message || t('alert_assign_routine_error'));
@@ -4764,16 +4764,16 @@ async function addTrainerStudent(){
     if(error) throw error;
     const url=location.origin+location.pathname+'?trainer_invite='+encodeURIComponent(data.token);
     if(navigator.share){
-      try{ await navigator.share({ title:'Connect with me as your trainer', text:'Connect with me as your trainer', url }); }
+      try{ await navigator.share({ title:t('trainer_invite_share_text'), text:t('trainer_invite_share_text'), url }); }
       catch(e){ /* user cancelled the share sheet */ }
     } else if(navigator.clipboard && navigator.clipboard.writeText){
-      try{ await navigator.clipboard.writeText(url); showToast('Link copied — good for one student'); }
-      catch(e){ showToast('Could not copy link'); }
+      try{ await navigator.clipboard.writeText(url); showToast(t('toast_link_copied_one_student')); }
+      catch(e){ showToast(t('toast_copy_link_error')); }
     } else {
-      showToast('Sharing not supported on this device');
+      showToast(t('toast_sharing_not_supported'));
     }
   }catch(e){
-    showToast('Could not create an invite link');
+    showToast(t('toast_invite_link_error'));
   }
 }
 
@@ -4816,7 +4816,7 @@ async function confirmClaimTrainerInvite(token){
     const { error } = await supabaseClient.rpc('claim_trainer_invite', { invite_token: token });
     if(error) throw error;
     closeModal();
-    showToast('Connected with your trainer');
+    showToast(t('toast_connected_with_trainer'));
   }catch(e){
     closeModal();
     alert(e.message || t('alert_connect_error'));
@@ -6573,6 +6573,41 @@ const STRINGS = {
     ex_db_pr_label: 'PR',
     ex_db_held_suffix: 'held',
     ex_db_last_label: 'Last',
+    builder_remove_set: 'Remove set',
+    builder_col_set: 'Set',
+    builder_col_target_duration: 'Target duration',
+    builder_col_reps: 'Reps',
+    builder_add_set: 'Add Set',
+    builder_rest: 'Rest',
+    builder_sec: 'sec',
+    builder_col_round: 'Rnd',
+    builder_remove_round: 'Remove round',
+    builder_superset_label: 'Superset',
+    builder_exercise_singular: 'Exercise',
+    builder_add_round: 'Add Round',
+    builder_edit_workout_title: 'Edit Workout',
+    builder_new_workout_title: 'New Workout',
+    builder_workout_name_label: 'Workout Name',
+    builder_workout_name_placeholder: 'e.g. Leg Day 1',
+    builder_add_exercise_btn: 'Add Exercise',
+    browse_add_to_my_workouts_title: 'Add to My Workouts',
+    browse_add_copy_note: "This adds your own copy — it'll track your sets and weights independently from here on.",
+    browse_workouts_title: 'Browse Workouts',
+    browse_workouts_subtitle: 'Shared workouts you can add to your own list',
+    share_check_out_workout: 'Check out this workout:',
+    toast_link_copied: 'Link copied',
+    toast_copy_link_error: 'Could not copy link',
+    toast_sharing_not_supported: 'Sharing not supported on this device',
+    toast_workout_link_broken: 'This workout link looks broken',
+    import_shared_workout_title: 'Add Shared Workout',
+    import_shared_workout_note: 'Someone shared this workout with you',
+    import_shared_workout_copy_note: 'Adding it makes your own copy that tracks your own sets and weights independently from here on.',
+    toast_workout_added: 'Workout added',
+    toast_routine_assigned: 'Routine assigned',
+    trainer_invite_share_text: 'Connect with me as your trainer',
+    toast_link_copied_one_student: 'Link copied — good for one student',
+    toast_invite_link_error: 'Could not create an invite link',
+    toast_connected_with_trainer: 'Connected with your trainer',
   },
   es: {
     back: '← Volver',
@@ -6753,6 +6788,41 @@ const STRINGS = {
     ex_db_pr_label: 'Récord',
     ex_db_held_suffix: 'sostenido',
     ex_db_last_label: 'Último',
+    builder_remove_set: 'Eliminar serie',
+    builder_col_set: 'Serie',
+    builder_col_target_duration: 'Duración objetivo',
+    builder_col_reps: 'Reps',
+    builder_add_set: 'Agregar Serie',
+    builder_rest: 'Descanso',
+    builder_sec: 'seg',
+    builder_col_round: 'Rda',
+    builder_remove_round: 'Eliminar ronda',
+    builder_superset_label: 'Superserie',
+    builder_exercise_singular: 'Ejercicio',
+    builder_add_round: 'Agregar Ronda',
+    builder_edit_workout_title: 'Editar Rutina',
+    builder_new_workout_title: 'Nueva Rutina',
+    builder_workout_name_label: 'Nombre de la Rutina',
+    builder_workout_name_placeholder: 'ej. Día de Pierna 1',
+    builder_add_exercise_btn: 'Agregar Ejercicio',
+    browse_add_to_my_workouts_title: 'Agregar a Mis Rutinas',
+    browse_add_copy_note: 'Esto agrega tu propia copia — a partir de ahora registrará tus series y pesos de forma independiente.',
+    browse_workouts_title: 'Explorar Rutinas',
+    browse_workouts_subtitle: 'Rutinas compartidas que podés agregar a tu propia lista',
+    share_check_out_workout: 'Mirá esta rutina:',
+    toast_link_copied: 'Enlace copiado',
+    toast_copy_link_error: 'No se pudo copiar el enlace',
+    toast_sharing_not_supported: 'Compartir no es compatible con este dispositivo',
+    toast_workout_link_broken: 'Este enlace de rutina parece estar roto',
+    import_shared_workout_title: 'Agregar Rutina Compartida',
+    import_shared_workout_note: 'Alguien compartió esta rutina con vos',
+    import_shared_workout_copy_note: 'Al agregarla, se crea tu propia copia que registra tus series y pesos de forma independiente a partir de ahora.',
+    toast_workout_added: 'Rutina agregada',
+    toast_routine_assigned: 'Rutina asignada',
+    trainer_invite_share_text: 'Conectate conmigo como tu entrenador',
+    toast_link_copied_one_student: 'Enlace copiado — válido para un alumno',
+    toast_invite_link_error: 'No se pudo crear el enlace de invitación',
+    toast_connected_with_trainer: 'Conectado con tu entrenador',
   },
 };
 
