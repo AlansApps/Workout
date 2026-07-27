@@ -4629,13 +4629,13 @@ async function renderTrainerScreen(){
   const el=document.getElementById('trainer-body');
   if(!el || !currentUser) return;
   if(_trainerDetailConnectionId){ renderTrainerStudentDetail(_trainerDetailConnectionId); return; }
-  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  el.innerHTML=`<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
   const { data, error } = await supabaseClient
     .from('trainer_connections')
     .select('id, status, expires_at, connected_at, student:profiles!trainer_connections_student_id_fkey(id, username, full_name)')
     .eq('trainer_id', currentUser.id)
     .order('connected_at', {ascending:false});
-  if(error){ el.innerHTML='<div class="empty-state"><p>Could not load your roster.</p></div>'; return; }
+  if(error){ el.innerHTML=`<div class="empty-state"><p>${t('trainer_roster_load_error')}</p></div>`; return; }
   el.innerHTML=buildTrainerRosterHtml(data||[]);
 }
 
@@ -4652,7 +4652,7 @@ function buildTrainerRosterHtml(connections){
     const expired = c.status!=='active' || new Date(c.expires_at)<new Date();
     const displayName=(c.student&&(c.student.full_name||c.student.username))||'—';
     const name=escapeHtml(displayName);
-    const statusLabel = expired ? 'Access expired' : ('Active until '+new Date(c.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+    const statusLabel = expired ? t('trainer_access_expired') : (t('trainer_active_until')+' '+new Date(c.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
     return `<div class="trainer-roster-row" onclick="openTrainerStudentDetail('${c.id}')">
       <div class="trainer-roster-avatar">${trainerAvatarInitial(displayName)}</div>
       <div style="flex:1;min-width:0;">
@@ -4663,8 +4663,8 @@ function buildTrainerRosterHtml(connections){
     </div>`;
   }).join('');
   return `
-    <div class="trainer-header-row"><div class="trainer-header-title">Your Students</div><button class="btn-new" onclick="addTrainerStudent()">+ Add Student</button></div>
-    ${connections.length ? `<div class="trainer-roster-list">${rows}</div>` : '<div class="empty-state"><p>No students yet.<br>Share your invite link to connect one.</p></div>'}
+    <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_your_students')}</div><button class="btn-new" onclick="addTrainerStudent()">+ ${t('trainer_add_student')}</button></div>
+    ${connections.length ? `<div class="trainer-roster-list">${rows}</div>` : `<div class="empty-state"><p>${t('trainer_no_students_1')}<br>${t('trainer_no_students_2')}</p></div>`}
   `;
 }
 
@@ -4673,12 +4673,12 @@ function closeTrainerStudentDetail(){ _trainerDetailConnectionId=null; renderTra
 
 async function renderTrainerStudentDetail(connectionId){
   const el=document.getElementById('trainer-body');
-  el.innerHTML='<div class="empty-state"><p>Loading…</p></div>';
+  el.innerHTML=`<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
   const { data:connection } = await supabaseClient
     .from('trainer_connections')
     .select('id, status, expires_at, student:profiles!trainer_connections_student_id_fkey(id, username, full_name)')
     .eq('id', connectionId).maybeSingle();
-  if(!connection){ el.innerHTML='<div class="empty-state"><p>This connection no longer exists.</p></div>'; return; }
+  if(!connection){ el.innerHTML=`<div class="empty-state"><p>${t('trainer_connection_gone')}</p></div>`; return; }
   const [{data:assignments}, logEntries] = await Promise.all([
     supabaseClient.from('trainer_assignments').select('id, routine_name, exercises, assigned_at').eq('connection_id', connectionId).order('assigned_at',{ascending:false}),
     fetchUserWorkoutLog(connection.student.id),
@@ -4691,18 +4691,18 @@ function buildTrainerStudentDetailHtml(connection, assignments, logEntries){
   const name=escapeHtml(displayName);
   const handle=connection.student&&connection.student.username ? '@'+escapeHtml(connection.student.username) : '';
   const expired = connection.status!=='active' || new Date(connection.expires_at)<new Date();
-  const statusLine = expired ? 'Access expired' : ('Active until '+new Date(connection.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}));
+  const statusLine = expired ? t('trainer_access_expired') : (t('trainer_active_until')+' '+new Date(connection.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}));
   const assignmentsHtml = assignments.length ? assignments.map(a=>`
     <div class="trainer-assign-row">
       <div class="trainer-assign-name">${escapeHtml(a.routine_name)}</div>
-      <div class="trainer-assign-meta">${a.exercises.length} exercise${a.exercises.length===1?'':'s'} · assigned ${new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
-    </div>`).join('') : '<div class="empty-state" style="padding:20px 0;"><p>No routines assigned yet.</p></div>';
+      <div class="trainer-assign-meta">${a.exercises.length} ${a.exercises.length===1?t('builder_exercise_singular').toLowerCase():t('routines_meta_exercises')} · ${t('trainer_assigned_on')} ${new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
+    </div>`).join('') : `<div class="empty-state" style="padding:20px 0;"><p>${t('trainer_no_routines_assigned')}</p></div>`;
   const recentLogs = logEntries.slice(0,6);
   const logsHtml = recentLogs.length ? recentLogs.map(l=>`
-    <div class="trainer-log-row"><span>${escapeHtml(l.routineName||'Workout')}</span><span class="trainer-log-date">${new Date(l.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span></div>`).join('') : '<div class="empty-state" style="padding:20px 0;"><p>No sessions logged yet.</p></div>';
+    <div class="trainer-log-row"><span>${escapeHtml(l.routineName||t('trainer_workout_fallback_name'))}</span><span class="trainer-log-date">${new Date(l.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span></div>`).join('') : `<div class="empty-state" style="padding:20px 0;"><p>${t('log_empty_1')}</p></div>`;
 
   return `
-    <div class="back-row"><button class="btn-back" onclick="closeTrainerStudentDetail()">← Back</button></div>
+    <div class="back-row"><button class="btn-back" onclick="closeTrainerStudentDetail()">${t('back')}</button></div>
     <div class="trainer-detail-hd">
       <div class="trainer-roster-avatar" style="width:52px;height:52px;font-size:18px;">${trainerAvatarInitial(displayName)}</div>
       <div>
@@ -4711,22 +4711,22 @@ function buildTrainerStudentDetailHtml(connection, assignments, logEntries){
         <div class="trainer-roster-status ${expired?'expired':''}">${statusLine}</div>
       </div>
     </div>
-    <div class="trainer-header-row"><div class="trainer-header-title">Assigned Routines</div><button class="btn-new" onclick="openAssignRoutineModal('${connection.id}')">+ Assign</button></div>
+    <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_assigned_routines')}</div><button class="btn-new" onclick="openAssignRoutineModal('${connection.id}')">+ ${t('assign')}</button></div>
     <div class="trainer-assign-list">${assignmentsHtml}</div>
-    <div class="trainer-header-row"><div class="trainer-header-title">Recent Sessions</div></div>
+    <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_recent_sessions')}</div></div>
     <div class="trainer-log-list">${logsHtml}</div>
   `;
 }
 
 function openAssignRoutineModal(connectionId){
   if(!db.routines.length){ alert(t('alert_create_routine_first_assign')); return; }
-  document.getElementById('modal-title').textContent='Assign Routine';
+  document.getElementById('modal-title').textContent=t('trainer_assign_routine_title');
   document.getElementById('modal-body').innerHTML=`
-    <div class="form-grp"><label class="form-lbl">Select Routine</label><select class="form-inp" id="assign-routine-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>
-    <div style="font-size:11px;color:var(--muted);line-height:1.5;">This sends a copy with today's sets, reps, and weights. Later changes to your own routine won't affect what they see.</div>`;
+    <div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="assign-routine-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('trainer_assign_routine_note')}</div>`;
   document.getElementById('modal-footer').innerHTML=`
-    <button class="btn-ghost" onclick="closeModal()">Cancel</button>
-    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmAssignRoutine('${connectionId}')">Assign</button>`;
+    <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmAssignRoutine('${connectionId}')">${t('assign')}</button>`;
   document.getElementById('modal-overlay').classList.add('active');
 }
 
@@ -4803,11 +4803,11 @@ async function maybeShowPendingTrainerInvite(){
 }
 
 function openTrainerInviteConfirmModal(token){
-  document.getElementById('modal-title').textContent='Connect with Trainer';
-  document.getElementById('modal-body').innerHTML=`<div style="font-size:13px;color:var(--soft);line-height:1.6;">Someone invited you to connect as their student. They'll be able to assign you routines and see your logged workouts.</div>`;
+  document.getElementById('modal-title').textContent=t('trainer_invite_confirm_title');
+  document.getElementById('modal-body').innerHTML=`<div style="font-size:13px;color:var(--soft);line-height:1.6;">${t('trainer_invite_confirm_note')}</div>`;
   document.getElementById('modal-footer').innerHTML=`
-    <button class="btn-ghost" onclick="closeModal()">Not now</button>
-    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmClaimTrainerInvite('${token}')">Connect</button>`;
+    <button class="btn-ghost" onclick="closeModal()">${t('trainer_invite_not_now')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmClaimTrainerInvite('${token}')">${t('trainer_invite_connect')}</button>`;
   document.getElementById('modal-overlay').classList.add('active');
 }
 
@@ -6688,6 +6688,25 @@ const STRINGS = {
     loading_setting_up_account: 'Setting up your account…',
     error_username_maybe_taken: 'That username may already be taken.',
     error_sync_failed: 'Something went wrong syncing your data. Check your connection and try again.',
+    trainer_roster_load_error: 'Could not load your roster.',
+    trainer_access_expired: 'Access expired',
+    trainer_active_until: 'Active until',
+    trainer_your_students: 'Your Students',
+    trainer_add_student: 'Add Student',
+    trainer_no_students_1: 'No students yet.',
+    trainer_no_students_2: 'Share your invite link to connect one.',
+    trainer_connection_gone: 'This connection no longer exists.',
+    trainer_assigned_on: 'assigned',
+    trainer_no_routines_assigned: 'No routines assigned yet.',
+    trainer_workout_fallback_name: 'Workout',
+    trainer_assigned_routines: 'Assigned Routines',
+    trainer_recent_sessions: 'Recent Sessions',
+    trainer_assign_routine_title: 'Assign Routine',
+    trainer_assign_routine_note: "This sends a copy with today's sets, reps, and weights. Later changes to your own routine won't affect what they see.",
+    trainer_invite_confirm_title: 'Connect with Trainer',
+    trainer_invite_confirm_note: "Someone invited you to connect as their student. They'll be able to assign you routines and see your logged workouts.",
+    trainer_invite_not_now: 'Not now',
+    trainer_invite_connect: 'Connect',
   },
   es: {
     back: '← Volver',
@@ -6983,6 +7002,25 @@ const STRINGS = {
     loading_setting_up_account: 'Configurando tu cuenta…',
     error_username_maybe_taken: 'Ese nombre de usuario ya puede estar en uso.',
     error_sync_failed: 'Algo salió mal al sincronizar tus datos. Verificá tu conexión e intentá de nuevo.',
+    trainer_roster_load_error: 'No se pudo cargar tu lista de alumnos.',
+    trainer_access_expired: 'Acceso vencido',
+    trainer_active_until: 'Activo hasta',
+    trainer_your_students: 'Tus Alumnos',
+    trainer_add_student: 'Agregar Alumno',
+    trainer_no_students_1: 'Todavía no tenés alumnos.',
+    trainer_no_students_2: 'Compartí tu enlace de invitación para conectar uno.',
+    trainer_connection_gone: 'Esta conexión ya no existe.',
+    trainer_assigned_on: 'asignada el',
+    trainer_no_routines_assigned: 'Todavía no hay rutinas asignadas.',
+    trainer_workout_fallback_name: 'Rutina',
+    trainer_assigned_routines: 'Rutinas Asignadas',
+    trainer_recent_sessions: 'Sesiones Recientes',
+    trainer_assign_routine_title: 'Asignar Rutina',
+    trainer_assign_routine_note: 'Esto envía una copia con las series, repeticiones y pesos de hoy. Los cambios posteriores a tu propia rutina no afectan lo que ellos ven.',
+    trainer_invite_confirm_title: 'Conectar con Entrenador',
+    trainer_invite_confirm_note: 'Alguien te invitó a conectarte como su alumno. Va a poder asignarte rutinas y ver tus entrenamientos registrados.',
+    trainer_invite_not_now: 'Ahora no',
+    trainer_invite_connect: 'Conectar',
   },
 };
 
