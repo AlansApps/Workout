@@ -3498,7 +3498,7 @@ function startElapsed(){
 // Reuses the single #confirm-overlay element; only one confirm can be
 // open at a time, which matches every current call site.
 let _confirmOnOk=null;
-function showConfirm({title, message, cancelLabel='Cancel', okLabel='OK', danger=false, onOk}){
+function showConfirm({title, message, cancelLabel=t('cancel'), okLabel=t('confirm_ok_default'), danger=false, onOk}){
   document.getElementById('confirm-title').textContent=title;
   document.getElementById('confirm-msg').textContent=message;
   const cancelBtn=document.getElementById('confirm-cancel-btn');
@@ -3518,10 +3518,10 @@ function _confirmResolve(yes){
 
 function cancelWorkout(){
   showConfirm({
-    title:'Quit Workout?',
-    message:'Progress will not be saved.',
-    cancelLabel:'Keep going',
-    okLabel:'Quit',
+    title:t('confirm_quit_workout_title'),
+    message:t('confirm_quit_workout_msg'),
+    cancelLabel:t('confirm_quit_workout_keep_going'),
+    okLabel:t('confirm_quit_workout_ok'),
     danger:true,
     onOk:()=>{
       clearInterval(elTimer);
@@ -3703,10 +3703,10 @@ function renderRoutines(){
 
 function delRoutine(id){
   showConfirm({
-    title:'Delete Workout?',
-    message:'This can\'t be undone.',
-    cancelLabel:'Cancel',
-    okLabel:'Delete',
+    title:t('confirm_delete_workout_title'),
+    message:t('confirm_cannot_be_undone'),
+    cancelLabel:t('cancel'),
+    okLabel:t('delete'),
     danger:true,
     onOk:()=>{
       db.routines=db.routines.filter(r=>r.id!==id);
@@ -4385,9 +4385,9 @@ async function renderProfileHeader(){
       </div>
       <div class="profile-divider"></div>
       <div class="profile-stats">
-        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
-        <span class="profile-stat-link" onclick="openFollowListPopup('${currentUser.id}','followers')"><span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers</span> &nbsp;·&nbsp;
-        <span class="profile-stat-link" onclick="openFollowListPopup('${currentUser.id}','following')"><span style="color:var(--text);font-weight:600;">${counts.following}</span> Following</span>
+        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> ${t('profile_stat_workouts')} &nbsp;·&nbsp;
+        <span class="profile-stat-link" onclick="openFollowListPopup('${currentUser.id}','followers')"><span style="color:var(--text);font-weight:600;">${counts.followers}</span> ${t('follow_list_followers')}</span> &nbsp;·&nbsp;
+        <span class="profile-stat-link" onclick="openFollowListPopup('${currentUser.id}','following')"><span style="color:var(--text);font-weight:600;">${counts.following}</span> ${t('follow_list_following')}</span>
       </div>
     `;
   };
@@ -4483,11 +4483,20 @@ async function getFollowState(targetUserId){
   }catch(e){ return {mine:null, theirs:null}; }
 }
 
+// Returns a stable state key, never display text — followButtonText()
+// below is the only place that turns it into something shown on screen.
+// Keeping these separate (rather than returning 'Follow'/'Following'/etc
+// directly, as this used to) is what lets the button be translated: every
+// call site below compares against this key, so retranslating the label
+// can never change what the button DOES.
 function followButtonLabel(state){
-  if(state.mine && state.mine.status==='accepted') return 'Following';
-  if(state.mine && state.mine.status==='pending') return 'Requested';
-  if(state.theirs && state.theirs.status==='accepted') return 'Follow back';
-  return 'Follow';
+  if(state.mine && state.mine.status==='accepted') return 'following';
+  if(state.mine && state.mine.status==='pending') return 'requested';
+  if(state.theirs && state.theirs.status==='accepted') return 'follow_back';
+  return 'follow';
+}
+function followButtonText(stateKey){
+  return t('follow_state_'+stateKey);
 }
 
 async function createFollow(targetUserId, targetIsPrivate){
@@ -4515,27 +4524,27 @@ async function acceptFollow(followerId){
 async function handleFollowClick(targetUserId, targetIsPrivate, onChanged){
   const state=await getFollowState(targetUserId);
   const label=followButtonLabel(state);
-  if(label==='Follow' || label==='Follow back'){
+  if(label==='follow' || label==='follow_back'){
     try{ await createFollow(targetUserId, targetIsPrivate); onChanged&&onChanged(); }
     catch(e){ alert(t('alert_follow_error')); }
-  } else if(label==='Requested'){
+  } else if(label==='requested'){
     showConfirm({
-      title:'Cancel Request?',
-      message:'This withdraws your follow request.',
-      cancelLabel:'Keep waiting',
-      okLabel:'Cancel request',
+      title:t('confirm_cancel_request_title'),
+      message:t('confirm_cancel_request_msg'),
+      cancelLabel:t('confirm_cancel_request_keep'),
+      okLabel:t('confirm_cancel_request_ok'),
       danger:true,
       onOk: async ()=>{
         try{ await removeFollow(currentUser.id, targetUserId); onChanged&&onChanged(); }
         catch(e){ alert(t('alert_cancel_error')); }
       }
     });
-  } else if(label==='Following'){
+  } else if(label==='following'){
     showConfirm({
-      title:'Unfollow?',
-      message:'You can follow them again later.',
-      cancelLabel:'Cancel',
-      okLabel:'Unfollow',
+      title:t('confirm_unfollow_title'),
+      message:t('confirm_unfollow_msg'),
+      cancelLabel:t('cancel'),
+      okLabel:t('confirm_unfollow_ok'),
       danger:true,
       onOk: async ()=>{
         try{ await removeFollow(currentUser.id, targetUserId); onChanged&&onChanged(); }
@@ -4907,7 +4916,7 @@ async function renderOtherProfile(){
   // routines yet" rather than "this is private").
   const canView = !profile.is_private || (followState.mine && followState.mine.status==='accepted');
   const label = followButtonLabel(followState);
-  const isPrimary = (label==='Follow' || label==='Follow back');
+  const isPrimary = (label==='follow' || label==='follow_back');
 
   let equippedInsignia=null, workoutCount='—';
   if(canView){
@@ -4942,12 +4951,12 @@ async function renderOtherProfile(){
       </div>
       <div class="profile-divider"></div>
       <div class="profile-stats">
-        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> Workouts &nbsp;·&nbsp;
-        <span class="profile-stat-link" onclick="openFollowListPopup('${uid}','followers')"><span style="color:var(--text);font-weight:600;">${counts.followers}</span> Followers</span> &nbsp;·&nbsp;
-        <span class="profile-stat-link" onclick="openFollowListPopup('${uid}','following')"><span style="color:var(--text);font-weight:600;">${counts.following}</span> Following</span>
+        <span style="color:var(--text);font-weight:600;">${workoutCount}</span> ${t('profile_stat_workouts')} &nbsp;·&nbsp;
+        <span class="profile-stat-link" onclick="openFollowListPopup('${uid}','followers')"><span style="color:var(--text);font-weight:600;">${counts.followers}</span> ${t('follow_list_followers')}</span> &nbsp;·&nbsp;
+        <span class="profile-stat-link" onclick="openFollowListPopup('${uid}','following')"><span style="color:var(--text);font-weight:600;">${counts.following}</span> ${t('follow_list_following')}</span>
       </div>
       <div class="oprof-followbtn-row">
-        <button class="oprof-followbtn ${isPrimary?'primary':'secondary'}" id="oprof-follow-btn" onclick="onOtherProfileFollowClick()">${label}</button>
+        <button class="oprof-followbtn ${isPrimary?'primary':'secondary'}" id="oprof-follow-btn" onclick="onOtherProfileFollowClick()">${followButtonText(label)}</button>
         <button class="oprof-ping-btn ${pingUsed?'used':''}" id="oprof-ping-btn" onclick="openPingPicker('${uid}')" aria-label="Ping">${PING_ICON_SVG}</button>
       </div>
       <div class="profile-tabs">
@@ -5275,20 +5284,20 @@ async function openFollowListPopup(userId, kind){
     underlyingScreen: (userId===currentUser.id) ? 'profile' : 'other-profile',
     underlyingOtherProfileUserId: (userId===currentUser.id) ? null : _otherProfileUserId,
   };
-  document.getElementById('modal-title').textContent = kind==='followers' ? 'Followers' : 'Following';
-  document.getElementById('modal-body').innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
-  document.getElementById('modal-footer').innerHTML = `<button class="btn-ghost" onclick="closeModal()">Close</button>`;
+  document.getElementById('modal-title').textContent = kind==='followers' ? t('follow_list_followers') : t('follow_list_following');
+  document.getElementById('modal-body').innerHTML = `<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
+  document.getElementById('modal-footer').innerHTML = `<button class="btn-ghost" onclick="closeModal()">${t('close')}</button>`;
   document.getElementById('modal-overlay').classList.add('active');
   const list = await fetchFollowList(userId, kind);
   const tierMap = await getTierIconsForUsers(list.map(p=>p.id));
   document.getElementById('modal-body').innerHTML = list.length
     ? `<div class="list-scroll" style="max-height:55vh;padding:0;">${list.map(p=>buildFollowListRowHtml(p, tierMap[p.id])).join('')}</div>`
-    : `<div class="empty-state"><p>${kind==='followers' ? 'No followers yet.' : 'Not following anyone yet.'}</p></div>`;
+    : `<div class="empty-state"><p>${kind==='followers' ? t('follow_list_empty_followers') : t('follow_list_empty_following')}</p></div>`;
 }
 
 function buildSearchResultRowHtml(p, state, tierIconHtml){
   const label=followButtonLabel(state);
-  const isPrimary=(label==='Follow' || label==='Follow back');
+  const isPrimary=(label==='follow' || label==='follow_back');
   const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
   return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
     ${buildListRowTierHtml(tierIconHtml)}
@@ -5296,7 +5305,7 @@ function buildSearchResultRowHtml(p, state, tierIconHtml){
       <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
       <div class="search-result-handle">@${escapeHtml(p.username||'—')}</div>
     </div>
-    <button class="oprof-followbtn small ${isPrimary?'primary':'secondary'}" onclick="event.stopPropagation();handleFollowClick('${p.id}', ${!!p.is_private}, ()=>runSearch(document.getElementById('search-input').value))">${label}</button>
+    <button class="oprof-followbtn small ${isPrimary?'primary':'secondary'}" onclick="event.stopPropagation();handleFollowClick('${p.id}', ${!!p.is_private}, ()=>runSearch(document.getElementById('search-input').value))">${followButtonText(label)}</button>
   </div>`;
 }
 
@@ -5360,14 +5369,14 @@ async function renderInteractionsFeed(el){
       }
       const state = { mine: (myOutgoing||[]).find(x=>x.following_id===ev.userId)||null, theirs:{status:'accepted'} };
       const label=followButtonLabel(state);
-      const isPrimary=(label==='Follow' || label==='Follow back');
+      const isPrimary=(label==='follow' || label==='follow_back');
       return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
         ${buildListRowTierHtml(tierIcons[p.id])}
         <div class="search-result-id">
           <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
-          <div class="search-result-handle">is now following you</div>
+          <div class="search-result-handle">${t('interactions_now_following_you')}</div>
         </div>
-        <button class="oprof-followbtn small ${isPrimary?'primary':'secondary'}" onclick="event.stopPropagation();handleFollowClick('${p.id}', ${!!p.is_private}, ()=>renderInteractionsFeed())">${label}</button>
+        <button class="oprof-followbtn small ${isPrimary?'primary':'secondary'}" onclick="event.stopPropagation();handleFollowClick('${p.id}', ${!!p.is_private}, ()=>renderInteractionsFeed())">${followButtonText(label)}</button>
       </div>`;
     }).join('');
     if(_searchMode!=='interactions') return; // switched away while this was in flight
@@ -5442,14 +5451,14 @@ async function respondToRequest(followerId, accept, targetIsPrivate){
       await acceptFollow(followerId);
       await refreshPendingBadge();
       const actionsEl=document.querySelector('#req-row-'+followerId+' .req-actions');
-      if(actionsEl) actionsEl.innerHTML=`<button class="oprof-followbtn small secondary" onclick="event.stopPropagation();handleFollowClick('${followerId}', ${!!targetIsPrivate}, ()=>renderRequestsScreen())">Follow back</button>`;
+      if(actionsEl) actionsEl.innerHTML=`<button class="oprof-followbtn small secondary" onclick="event.stopPropagation();handleFollowClick('${followerId}', ${!!targetIsPrivate}, ()=>renderRequestsScreen())">${followButtonText('follow_back')}</button>`;
     }catch(e){ alert(t('alert_confirm_error')); }
   } else {
     showConfirm({
-      title:'Delete Request?',
-      message:'This removes their follow request.',
-      cancelLabel:'Cancel',
-      okLabel:'Delete',
+      title:t('confirm_delete_request_title'),
+      message:t('confirm_delete_request_msg'),
+      cancelLabel:t('cancel'),
+      okLabel:t('delete'),
       danger:true,
       onOk: async ()=>{
         try{
@@ -6512,6 +6521,37 @@ const STRINGS = {
     alert_follow_error: 'Could not follow. Try again.',
     alert_cancel_error: 'Could not cancel. Try again.',
     alert_unfollow_error: 'Could not unfollow. Try again.',
+    follow_state_following: 'Following',
+    follow_state_requested: 'Requested',
+    follow_state_follow_back: 'Follow back',
+    follow_state_follow: 'Follow',
+    confirm_cancel_request_title: 'Cancel Request?',
+    confirm_cancel_request_msg: 'This withdraws your follow request.',
+    confirm_cancel_request_keep: 'Keep waiting',
+    confirm_cancel_request_ok: 'Cancel request',
+    confirm_unfollow_title: 'Unfollow?',
+    confirm_unfollow_msg: 'You can follow them again later.',
+    confirm_unfollow_ok: 'Unfollow',
+    confirm_ok_default: 'OK',
+    confirm_quit_workout_title: 'Quit Workout?',
+    confirm_quit_workout_msg: 'Progress will not be saved.',
+    confirm_quit_workout_keep_going: 'Keep going',
+    confirm_quit_workout_ok: 'Quit',
+    confirm_delete_workout_title: 'Delete Workout?',
+    confirm_cannot_be_undone: "This can't be undone.",
+    confirm_delete_request_title: 'Delete Request?',
+    confirm_delete_request_msg: 'This removes their follow request.',
+    error_update_password: 'Could not update your password.',
+    confirm_signout_title: 'Sign Out?',
+    confirm_signout_msg: 'Everything stays saved in the cloud — signing back in brings it all back.',
+    confirm_signout_ok: 'Sign out',
+    interactions_now_following_you: 'is now following you',
+    follow_list_followers: 'Followers',
+    follow_list_following: 'Following',
+    follow_list_empty_followers: 'No followers yet.',
+    follow_list_empty_following: 'Not following anyone yet.',
+    loading_ellipsis: 'Loading…',
+    profile_stat_workouts: 'Workouts',
   },
   es: {
     back: '← Volver',
@@ -6640,6 +6680,37 @@ const STRINGS = {
     alert_follow_error: 'No se pudo seguir. Intentá de nuevo.',
     alert_cancel_error: 'No se pudo cancelar. Intentá de nuevo.',
     alert_unfollow_error: 'No se pudo dejar de seguir. Intentá de nuevo.',
+    follow_state_following: 'Siguiendo',
+    follow_state_requested: 'Solicitado',
+    follow_state_follow_back: 'Seguir de vuelta',
+    follow_state_follow: 'Seguir',
+    confirm_cancel_request_title: '¿Cancelar Solicitud?',
+    confirm_cancel_request_msg: 'Esto retira tu solicitud de seguimiento.',
+    confirm_cancel_request_keep: 'Seguir esperando',
+    confirm_cancel_request_ok: 'Cancelar solicitud',
+    confirm_unfollow_title: '¿Dejar de Seguir?',
+    confirm_unfollow_msg: 'Podés volver a seguirlo más adelante.',
+    confirm_unfollow_ok: 'Dejar de seguir',
+    confirm_ok_default: 'Aceptar',
+    confirm_quit_workout_title: '¿Salir del Entrenamiento?',
+    confirm_quit_workout_msg: 'El progreso no se guardará.',
+    confirm_quit_workout_keep_going: 'Seguir entrenando',
+    confirm_quit_workout_ok: 'Salir',
+    confirm_delete_workout_title: '¿Eliminar Rutina?',
+    confirm_cannot_be_undone: 'Esto no se puede deshacer.',
+    confirm_delete_request_title: '¿Eliminar Solicitud?',
+    confirm_delete_request_msg: 'Esto elimina su solicitud de seguimiento.',
+    error_update_password: 'No se pudo actualizar tu contraseña.',
+    confirm_signout_title: '¿Cerrar Sesión?',
+    confirm_signout_msg: 'Todo se mantiene guardado en la nube — al volver a iniciar sesión, todo vuelve a aparecer.',
+    confirm_signout_ok: 'Cerrar sesión',
+    interactions_now_following_you: 'ahora te sigue',
+    follow_list_followers: 'Seguidores',
+    follow_list_following: 'Siguiendo',
+    follow_list_empty_followers: 'Todavía no tenés seguidores.',
+    follow_list_empty_following: 'Todavía no seguís a nadie.',
+    loading_ellipsis: 'Cargando…',
+    profile_stat_workouts: 'Entrenamientos',
   },
 };
 
@@ -7469,17 +7540,17 @@ async function submitAccountPassword(){
     closeModal();
     await renderAccountSection();
   }catch(e){
-    errEl.textContent = e.message || 'Could not update your password.';
+    errEl.textContent = e.message || t('error_update_password');
     btn.disabled = false;
   }
 }
 
 function confirmSignOut(){
   showConfirm({
-    title:'Sign Out?',
-    message:'Everything stays saved in the cloud — signing back in brings it all back.',
-    cancelLabel:'Cancel',
-    okLabel:'Sign out',
+    title:t('confirm_signout_title'),
+    message:t('confirm_signout_msg'),
+    cancelLabel:t('cancel'),
+    okLabel:t('confirm_signout_ok'),
     danger:true,
     onOk:()=>{
       authSignOut();
