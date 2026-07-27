@@ -1399,14 +1399,14 @@ body.light-mode .auth-choice-title{color:#111;}
       <div class="home-streak" id="streak-block">
         <div id="streak-notier">
           <div class="streak-val" id="streak-val">0</div>
-          <div class="streak-label">Sessions</div>
+          <div class="streak-label" data-i18n="home_sessions_label">Sessions</div>
         </div>
         <div id="streak-tier" style="display:none;" class="streak-tier-wrap">
           <div class="streak-val-row">
             <div class="tier-icon-inline" id="tier-icon-el"></div>
             <div class="streak-val" id="streak-val2"></div>
           </div>
-          <div class="streak-label">Sessions</div>
+          <div class="streak-label" data-i18n="home_sessions_label">Sessions</div>
           <div class="tier-name-lbl" id="tier-name-el"></div>
         </div>
       </div>
@@ -1415,26 +1415,26 @@ body.light-mode .auth-choice-title{color:#111;}
   <div class="home-body">
     <div class="hero-card" onclick="startWorkout()">
       <div class="hero-inner">
-        <div class="hero-eyebrow">Next Session</div>
+        <div class="hero-eyebrow" data-i18n="hero_next_session">Next Session</div>
         <div id="next-name" class="hero-name">—</div>
         <div id="next-meta" class="hero-meta"></div>
       </div>
       <span class="hero-arrow">›</span>
     </div>
     <div id="last-card" class="last-card" style="display:none">
-      <div><div class="lc-label">Last Session</div><div id="last-name" class="lc-val">—</div></div>
-      <div style="text-align:right"><div class="lc-label">Date</div><div id="last-date" class="lc-val">—</div></div>
+      <div><div class="lc-label" data-i18n="lc_last_session">Last Session</div><div id="last-name" class="lc-val">—</div></div>
+      <div style="text-align:right"><div class="lc-label" data-i18n="lc_date">Date</div><div id="last-date" class="lc-val">—</div></div>
     </div>
   </div>
 
-  <button id="btn-cta" class="btn-cta" onclick="openWorkoutPicker()" disabled>Start workout</button>
+  <button id="btn-cta" class="btn-cta" onclick="openWorkoutPicker()" disabled data-i18n="btn_start_workout">Start workout</button>
 </div>
 
 <!-- ══ WORKOUT ══ -->
 <div id="screen-workout" class="screen">
   <div class="wo-topbar">
     <div class="wo-left"><div id="wo-name" class="wo-name">—</div><div id="wo-elapsed" class="wo-elapsed">00:00</div></div>
-    <button class="btn-quit" onclick="cancelWorkout()">✕ Quit</button>
+    <button class="btn-quit" onclick="cancelWorkout()" data-i18n="btn_quit_workout">✕ Quit</button>
   </div>
   <div id="prev-note-bar" style="display:none;padding:7px 18px;background:var(--deep);border-bottom:1px solid var(--line);font-size:10px;color:#888;letter-spacing:1px;font-style:italic;line-height:1.5;"></div>
   <div class="wo-progress">
@@ -1443,33 +1443,33 @@ body.light-mode .auth-choice-title{color:#111;}
   </div>
   <div id="wo-body" class="wo-body"></div>
   <div class="finish-bar">
-    <button id="btn-finish" class="btn-finish" onclick="finishWorkout()">Finish &amp; save workout</button>
+    <button id="btn-finish" class="btn-finish" onclick="finishWorkout()" data-i18n="btn_finish_workout">Finish &amp; save workout</button>
   </div>
 </div>
 
 <!-- ══ FINISH SCREEN ══ -->
 <div id="screen-finish" class="screen">
   <div class="finish-logo"><svg viewBox="0 0 40 32" fill="none"><path d="M2 4 L20 26 L38 4" stroke="#d4a843" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><path d="M2 13 L20 35 L38 13" stroke="#d4a843" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none" opacity="0.35"/></svg></div>
-  <div id="fin-headline" class="finish-headline">Session Complete</div>
-  <div id="fin-sub" class="finish-sub">Workout saved</div>
+  <div id="fin-headline" class="finish-headline" data-i18n="fin_headline">Session Complete</div>
+  <div id="fin-sub" class="finish-sub" data-i18n="fin_sub">Workout saved</div>
   <div class="finish-grid">
-    <div class="stat-tile"><div id="st-sets" class="stat-n">0</div><div class="stat-l">Sets</div></div>
-    <div class="stat-tile"><div id="st-time" class="stat-n">0:00</div><div class="stat-l">Time</div></div>
-    <div class="stat-tile"><div id="st-vol" class="stat-n">0</div><div class="stat-l">Volume <span id="st-vol-unit">kg</span></div></div>
-    <div class="stat-tile"><div id="st-exs" class="stat-n">0</div><div class="stat-l">Exercises</div></div>
+    <div class="stat-tile"><div id="st-sets" class="stat-n">0</div><div class="stat-l" data-i18n="fin_stat_sets">Sets</div></div>
+    <div class="stat-tile"><div id="st-time" class="stat-n">0:00</div><div class="stat-l" data-i18n="fin_stat_time">Time</div></div>
+    <div class="stat-tile"><div id="st-vol" class="stat-n">0</div><div class="stat-l"><span data-i18n="fin_stat_volume">Volume</span> <span id="st-vol-unit">kg</span></div></div>
+    <div class="stat-tile"><div id="st-exs" class="stat-n">0</div><div class="stat-l" data-i18n="fin_stat_exercises">Exercises</div></div>
   </div>
   <div class="finish-note-wrap">
-    <label class="finish-note-lbl">Session Notes (optional)</label>
-    <textarea class="finish-note-inp" id="finish-note" placeholder="How did it feel? Any PRs? Anything hurt?"></textarea>
+    <label class="finish-note-lbl" data-i18n="fin_notes_label">Session Notes (optional)</label>
+    <textarea class="finish-note-inp" id="finish-note" placeholder="How did it feel? Any PRs? Anything hurt?" data-i18n-placeholder="fin_notes_placeholder"></textarea>
   </div>
   <div id="finish-save-status" class="finish-save-status"></div>
-  <button class="btn-main" id="btn-go-home" onclick="goHome()">Back to home</button>
+  <button class="btn-main" id="btn-go-home" onclick="goHome()" data-i18n="fin_back_home">Back to home</button>
 </div>
 
 <!-- ══ ROUTINES ══ (reached from Program's "Workouts" sub-button) -->
 <div id="screen-routines" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">Workouts</div><div style="display:flex;gap:8px;"><button class="btn-browse" onclick="openBrowseRoutines()">Browse</button><button class="btn-new" onclick="openRoutineModal()">+ New</button></div></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="routines_title">Workouts</div><div style="display:flex;gap:8px;"><button class="btn-browse" onclick="openBrowseRoutines()" data-i18n="btn_browse">Browse</button><button class="btn-new" onclick="openRoutineModal()" data-i18n="btn_new_routine">+ New</button></div></div>
   <div id="routines-list" class="list-scroll"></div>
 </div>
 
@@ -1478,15 +1478,15 @@ body.light-mode .auth-choice-title{color:#111;}
      nav items) -->
 <div id="screen-schedule" class="screen">
   <div class="prog-subrow">
-    <button class="prog-subbtn" onclick="showScreen('routines')">Workouts</button>
-    <button class="prog-subbtn" onclick="showScreen('exercises')">Exercises</button>
+    <button class="prog-subbtn" onclick="showScreen('routines')" data-i18n="routines_title">Workouts</button>
+    <button class="prog-subbtn" onclick="showScreen('exercises')" data-i18n="exercises_title">Exercises</button>
   </div>
   <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
-    <span>Rotation</span>
-    <button class="btn-new" onclick="openScheduleModal()">+ Add</button>
+    <span data-i18n="schedule_rotation_label">Rotation</span>
+    <button class="btn-new" onclick="openScheduleModal()" data-i18n="btn_add_short">+ Add</button>
   </div>
   <div id="schedule-list" class="list-scroll"></div>
-  <div class="notice">Loops automatically · Advances after each saved session</div>
+  <div class="notice" data-i18n="schedule_notice">Loops automatically · Advances after each saved session</div>
 </div>
 
 <!-- ══ ANALYTICS ══ (was the Log screen's "Progress" tab — moved into
@@ -1494,19 +1494,28 @@ body.light-mode .auth-choice-title{color:#111;}
      users once profiles go public; Settings is always private. Sessions
      history moved to Profile's Log tab instead, see screen-profile.) -->
 <div id="screen-pr-visibility" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">PR Visibility</div></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="settings_pr_visibility_title">PR Visibility</div></div>
   <div id="pr-visibility-list" class="list-scroll"></div>
 </div>
 
+<!-- LANGUAGE — same drill-down pattern as PR Visibility. English/Español
+     only for now, English always the default; filled in by
+     renderLanguageSection(). -->
+<div id="screen-language" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="settings_language_row_title">Language</div></div>
+  <div id="language-list" class="list-scroll"></div>
+</div>
+
 <div id="screen-analytics" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">Analytics</div></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="analytics_title">Analytics</div></div>
   <div style="flex:1;overflow-y:auto;padding:14px;">
 
     <!-- Exercise Progress -->
     <div style="margin-bottom:20px;">
-      <div style="font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:8px;">Progress by Exercise</div>
+      <div style="font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:8px;" data-i18n="analytics_progress_by_exercise">Progress by Exercise</div>
       <select id="prog-ex-sel" class="form-inp" onchange="drawExChart()" style="margin-bottom:8px;"></select>
       <div class="prog-time-pills" id="ex-pills">
         <button class="prog-pill active" onclick="setExRange(this,'1m')">1M</button>
@@ -1526,16 +1535,16 @@ body.light-mode .auth-choice-title{color:#111;}
           <svg id="ex-svg" style="width:100%;display:block;"></svg>
         </div>
         <div class="prog-stats-row">
-          <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-gain">—</div><div class="prog-stat-lbl">Gain</div></div>
+          <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-gain">—</div><div class="prog-stat-lbl" data-i18n="analytics_stat_gain">Gain</div></div>
           <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-pr">—</div><div class="prog-stat-lbl" id="ex-stat-pr-lbl">PR (kg)</div></div>
-          <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-sess">—</div><div class="prog-stat-lbl">Sessions</div></div>
+          <div class="prog-stat"><div class="prog-stat-val" id="ex-stat-sess">—</div><div class="prog-stat-lbl" data-i18n="analytics_stat_sessions">Sessions</div></div>
         </div>
       </div>
     </div>
 
     <!-- Routine Progress -->
     <div>
-      <div style="font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:8px;">Progress by Routine</div>
+      <div style="font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:8px;" data-i18n="analytics_progress_by_routine">Progress by Routine</div>
       <select id="prog-rt-sel" class="form-inp" onchange="drawRtChart()" style="margin-bottom:8px;"></select>
       <div class="prog-time-pills" id="rt-pills">
         <button class="prog-pill active" onclick="setRtRange(this,'1m')">1M</button>
@@ -1555,7 +1564,7 @@ body.light-mode .auth-choice-title{color:#111;}
           <svg id="rt-svg" style="width:100%;display:block;"></svg>
         </div>
         <div id="rt-legend" class="prog-legend"></div>
-        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;padding:8px 14px;border-top:1px solid var(--line);font-style:italic;">Center = 0% (first session baseline). Tap dots for kg detail.</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;padding:8px 14px;border-top:1px solid var(--line);font-style:italic;" data-i18n="analytics_routine_footnote">Center = 0% (first session baseline). Tap dots for kg detail.</div>
       </div>
     </div>
 
@@ -1564,8 +1573,8 @@ body.light-mode .auth-choice-title{color:#111;}
 
 <!-- ══ EXERCISES ══ (reached from Program's "Exercises" sub-button) -->
 <div id="screen-exercises" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">Exercises</div></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="exercises_title">Exercises</div></div>
   <div id="exercises-list" class="list-scroll"></div>
 </div>
 
@@ -1574,7 +1583,7 @@ body.light-mode .auth-choice-title{color:#111;}
   <div onclick="event.stopPropagation()" style="background:var(--panel);border:1px solid var(--line2);border-bottom:none;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column;">
     <div style="padding:20px 22px 14px;border-bottom:1px solid #272727;display:flex;justify-content:space-between;align-items:center;">
       <div>
-        <div style="font-family:var(--hd);font-size:16px;font-weight:700;letter-spacing:4px;color:var(--text);text-transform:uppercase;">Choose Workout</div>
+        <div style="font-family:var(--hd);font-size:16px;font-weight:700;letter-spacing:4px;color:var(--text);text-transform:uppercase;" data-i18n="picker_choose_workout">Choose Workout</div>
       </div>
       <button onclick="closePicker()" style="background:none;border:1px solid var(--line2);color:var(--dim);width:28px;height:28px;cursor:pointer;font-size:13px;border-radius:2px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
@@ -1585,12 +1594,12 @@ body.light-mode .auth-choice-title{color:#111;}
 <!-- ══ TIER MODAL ══ -->
 <div id="tier-modal">
   <div class="tier-modal-box">
-    <div class="tier-modal-eyebrow">New Tier Unlocked</div>
+    <div class="tier-modal-eyebrow" data-i18n="tier_modal_eyebrow">New Tier Unlocked</div>
     <div class="tier-modal-icon" id="tier-modal-icon"></div>
     <div class="tier-modal-divider"></div>
     <div class="tier-modal-name" id="tier-modal-name"></div>
     <div class="tier-modal-msg" id="tier-modal-msg"></div>
-    <button class="tier-modal-btn" onclick="closeTierModal()">Let's keep going</button>
+    <button class="tier-modal-btn" onclick="closeTierModal()" data-i18n="tier_modal_btn">Let's keep going</button>
   </div>
 </div>
 
@@ -1650,19 +1659,19 @@ body.light-mode .auth-choice-title{color:#111;}
       </div>
       <div id="exd-video-btn"></div>
     </div>
-    <button class="btn-back" onclick="showScreen('exercises')" style="padding:0;color:var(--dim);">← Back</button>
+    <button class="btn-back" onclick="showScreen('exercises')" style="padding:0;color:var(--dim);" data-i18n="back">← Back</button>
   </div>
   <div class="ex-detail-body" id="exd-body"></div>
 </div>
 
 <!-- ══ SETTINGS ══ -->
 <div id="screen-settings" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('profile')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">Settings</div></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('profile')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="settings_title">Settings</div></div>
   <div class="list-scroll" style="gap:0;padding:12px 14px;">
 
     <!-- APPEARANCE -->
-    <div class="settings-section-label">Appearance</div>
+    <div class="settings-section-label" data-i18n="settings_appearance_label">Appearance</div>
     <div class="settings-group">
 
       <!-- DARK / LIGHT MODE -->
@@ -1670,7 +1679,7 @@ body.light-mode .auth-choice-title{color:#111;}
         <div class="settings-row-left">
           <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M20 14.1A8.5 8.5 0 1 1 9.9 4a7 7 0 0 0 10.1 10.1z"/></svg></div>
           <div>
-            <div class="settings-row-title">Theme</div>
+            <div class="settings-row-title" data-i18n="settings_theme_title">Theme</div>
             <div class="settings-row-sub" id="theme-sub">Dark mode</div>
           </div>
         </div>
@@ -1687,7 +1696,7 @@ body.light-mode .auth-choice-title{color:#111;}
         <div class="settings-row-left" style="margin-bottom:12px;">
           <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.5c-4.7 0-8.5 3.6-8.5 8 0 3 2 4.3 3.7 4.3.9 0 1.3-.5 1.3-1.1 0-.6-.4-.9-.4-1.7 0-1 .8-1.8 2-1.8h2.3c2.6 0 4.6-1.7 4.6-4.3 0-3.5-3.6-3.4-5-3.4z"/><circle cx="8" cy="10" r=".9" fill="currentColor" stroke="none"/><circle cx="11.5" cy="7.3" r=".9" fill="currentColor" stroke="none"/><circle cx="15.2" cy="8.6" r=".9" fill="currentColor" stroke="none"/></svg></div>
           <div>
-            <div class="settings-row-title">Accent Color</div>
+            <div class="settings-row-title" data-i18n="settings_accent_title">Accent Color</div>
             <div class="settings-row-sub" id="accent-sub">Gold</div>
           </div>
         </div>
@@ -1705,15 +1714,16 @@ body.light-mode .auth-choice-title{color:#111;}
 
     </div>
 
-    <!-- LANGUAGE -->
-    <div class="settings-section-label">Language</div>
+    <!-- LANGUAGE — same collapsed-row drill-down as PR Visibility above.
+         Opens #screen-language, filled in by renderLanguageSection(). -->
+    <div class="settings-section-label" data-i18n="settings_language_label">Language</div>
     <div class="settings-group">
-      <div class="settings-row disabled">
+      <div class="settings-row" onclick="showScreen('language')" style="cursor:pointer;">
         <div class="settings-row-left">
           <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.3 3.8 5.4 3.8 8.5s-1.3 6.2-3.8 8.5c-2.5-2.3-3.8-5.4-3.8-8.5S9.5 5.8 12 3.5z"/></svg></div>
           <div>
-            <div class="settings-row-title">Language</div>
-            <div class="settings-row-sub">English (default)</div>
+            <div class="settings-row-title" data-i18n="settings_language_row_title">Language</div>
+            <div class="settings-row-sub" id="language-sub">English</div>
           </div>
         </div>
         <div class="settings-row-arrow">›</div>
@@ -1724,14 +1734,14 @@ body.light-mode .auth-choice-title{color:#111;}
          Kept private in Settings rather than a Profile tab since Alan
          doesn't want PRs/progress visible to other users once profiles
          go public. -->
-    <div class="settings-section-label">Analytics</div>
+    <div class="settings-section-label" data-i18n="settings_analytics_label">Analytics</div>
     <div class="settings-group">
       <div class="settings-row" onclick="showScreen('analytics')" style="cursor:pointer;">
         <div class="settings-row-left">
           <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div>
           <div>
-            <div class="settings-row-title">Progress</div>
-            <div class="settings-row-sub">PRs, charts by exercise and routine</div>
+            <div class="settings-row-title" data-i18n="settings_progress_title">Progress</div>
+            <div class="settings-row-sub" data-i18n="settings_progress_sub">PRs, charts by exercise and routine</div>
           </div>
         </div>
         <div class="settings-row-arrow">›</div>
@@ -1742,21 +1752,21 @@ body.light-mode .auth-choice-title{color:#111;}
          (Profile now owns the public-facing identity view; this is the
          private account-management surface). Filled in by
          renderAccountSection(). -->
-    <div class="settings-section-label">Account</div>
+    <div class="settings-section-label" data-i18n="settings_account_label">Account</div>
     <div id="account-section-body"></div>
 
     <!-- PR VISIBILITY — collapsed row, same "settings within settings"
          drill-down pattern as Progress/Analytics above (and the future
          Language screen) rather than an ever-growing inline list. Opens
          #screen-pr-visibility, filled in by renderPrVisibilitySection(). -->
-    <div class="settings-section-label">PR Visibility</div>
+    <div class="settings-section-label" data-i18n="settings_pr_visibility_label">PR Visibility</div>
     <div class="settings-group">
       <div class="settings-row" onclick="showScreen('pr-visibility')" style="cursor:pointer;">
         <div class="settings-row-left">
           <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.5.6-4 3.8.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.8 5.5-.6z"/></svg></div>
           <div>
-            <div class="settings-row-title">PR Visibility</div>
-            <div class="settings-row-sub">Choose which lifts show on your profile</div>
+            <div class="settings-row-title" data-i18n="settings_pr_visibility_title">PR Visibility</div>
+            <div class="settings-row-sub" data-i18n="settings_pr_visibility_sub">Choose which lifts show on your profile</div>
           </div>
         </div>
         <div class="settings-row-arrow">›</div>
@@ -1769,18 +1779,18 @@ body.light-mode .auth-choice-title{color:#111;}
          loggers. Local-first (works for guests too, not gated on
          sign-in like Account above) — see getTrueWeight(). Filled in by
          renderWeightPrefsSection(). -->
-    <div class="settings-section-label">Weight Logging</div>
+    <div class="settings-section-label" data-i18n="settings_weight_logging_label">Weight Logging</div>
     <div id="weight-prefs-section-body"></div>
 
     <!-- DATA -->
-    <div class="settings-section-label">Data</div>
+    <div class="settings-section-label" data-i18n="settings_data_label">Data</div>
     <div class="settings-group">
       <div class="settings-row" onclick="exportData()" style="cursor:pointer;">
         <div class="settings-row-left">
           <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.5v11m0 0l-3.8-3.8M12 14.5l3.8-3.8"/><path d="M4.5 16.5v2a2.5 2.5 0 002.5 2.5h10a2.5 2.5 0 002.5-2.5v-2"/></svg></div>
           <div>
-            <div class="settings-row-title">Export Backup</div>
-            <div class="settings-row-sub">Download your data as JSON</div>
+            <div class="settings-row-title" data-i18n="settings_export_title">Export Backup</div>
+            <div class="settings-row-sub" data-i18n="settings_export_sub">Download your data as JSON</div>
           </div>
         </div>
         <div class="settings-row-arrow">›</div>
@@ -1817,8 +1827,8 @@ body.light-mode .auth-choice-title{color:#111;}
 
 <!-- ══ CONNECTION REQUESTS ══ -->
 <div id="screen-requests" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('search')">← Back</button></div>
-  <div class="pg-header"><div class="pg-title">Requests</div></div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('search')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="requests_title">Requests</div></div>
   <div id="requests-list" class="list-scroll"></div>
 </div>
 
@@ -1844,7 +1854,7 @@ body.light-mode .auth-choice-title{color:#111;}
      here. Roster + connect + assign/view MVP — see renderTrainerScreen().
      Progressive-overload nudges are a deliberately separate future pass. -->
 <div id="screen-trainer" class="screen">
-  <div class="pg-header"><div class="pg-title">Trainer</div></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="nav_trainer">Trainer</div></div>
   <div id="trainer-body" class="list-scroll"></div>
 </div>
 
@@ -1858,7 +1868,7 @@ body.light-mode .auth-choice-title{color:#111;}
         <svg class="ol" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>
         <svg class="fl" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>
       </span>
-      <span class="float-nav-label">Home</span>
+      <span class="float-nav-label" data-i18n="nav_home">Home</span>
     </span>
   </button>
   <button class="float-nav-item" data-screen="schedule" onclick="showScreen('schedule')">
@@ -1867,7 +1877,7 @@ body.light-mode .auth-choice-title{color:#111;}
         <svg class="ol" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 9.5h16"/><path d="M8 3v4M16 3v4"/></svg>
         <svg class="fl" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 9.5h16" stroke="var(--void)" stroke-width="1.7" fill="none"/></svg>
       </span>
-      <span class="float-nav-label">Program</span>
+      <span class="float-nav-label" data-i18n="nav_program">Program</span>
     </span>
   </button>
   <button class="float-nav-item" data-screen="search" onclick="showScreen('search')">
@@ -1880,7 +1890,7 @@ body.light-mode .auth-choice-title{color:#111;}
              request/ping is visible from the nav before ever opening Search. -->
         <span class="nav-search-badge" id="nav-search-badge" style="display:none;"></span>
       </span>
-      <span class="float-nav-label">Search</span>
+      <span class="float-nav-label" data-i18n="nav_search">Search</span>
     </span>
   </button>
   <!-- Trainer-tier only (see updateTrainerNavVisibility()) — hidden by
@@ -1893,7 +1903,7 @@ body.light-mode .auth-choice-title{color:#111;}
         <svg class="ol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="10" width="4" height="4" rx="1"/><rect x="17.5" y="10" width="4" height="4" rx="1"/><path d="M6.5 12h11"/></svg>
         <svg class="fl" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 9a1 1 0 0 0-1 1v4a1 1 0 0 0 2 0v-1h1v1a1 1 0 0 0 2 0v-8a1 1 0 0 0-2 0v1h-1v-1a1 1 0 0 0-1-1zM17.5 9a1 1 0 0 1 1 1v4a1 1 0 0 1-2 0v-1h-1v1a1 1 0 0 1-2 0v-8a1 1 0 0 1 2 0v1h1v-1a1 1 0 0 1 1-1z"/></svg>
       </span>
-      <span class="float-nav-label">Trainer</span>
+      <span class="float-nav-label" data-i18n="nav_trainer">Trainer</span>
     </span>
   </button>
   <button class="float-nav-item" data-screen="profile" onclick="showScreen('profile')">
@@ -1902,7 +1912,7 @@ body.light-mode .auth-choice-title{color:#111;}
         <svg class="ol" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg>
         <svg class="fl" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7z"/></svg>
       </span>
-      <span class="float-nav-label">Profile</span>
+      <span class="float-nav-label" data-i18n="nav_profile">Profile</span>
     </span>
   </button>
 </div>
@@ -1919,11 +1929,11 @@ body.light-mode .auth-choice-title{color:#111;}
   <!-- ── WELCOME / PROVIDER CHOICE ── -->
   <div class="auth-view active" id="auth-view-welcome">
     <div class="auth-logo">Alan's Workout</div>
-    <div class="auth-tagline">Sign in to keep your history safe across devices.</div>
+    <div class="auth-tagline" data-i18n="auth_tagline_welcome">Sign in to keep your history safe across devices.</div>
     <div class="auth-actions">
-      <button class="btn-cta" onclick="showAuthView('signin')">Sign in</button>
-      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signup')">Create account</button>
-      <div class="auth-divider">or</div>
+      <button class="btn-cta" onclick="showAuthView('signin')" data-i18n="auth_btn_signin">Sign in</button>
+      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signup')" data-i18n="auth_btn_create_account">Create account</button>
+      <div class="auth-divider" data-i18n="auth_divider_or">or</div>
       <button class="btn-provider" onclick="authSignInWithGoogle()">
         <svg class="provider-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
           <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
@@ -1931,105 +1941,105 @@ body.light-mode .auth-choice-title{color:#111;}
           <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
           <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
         </svg>
-        Continue with Google
+        <span data-i18n="auth_btn_google">Continue with Google</span>
       </button>
-      <button class="btn-provider" disabled title="Coming soon">
+      <button class="btn-provider" disabled title="Coming soon" data-i18n-title="auth_coming_soon">
         <svg class="provider-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
           <path fill="#1877F2" d="M18 9a9 9 0 1 0-10.406 8.89v-6.288H5.309V9h2.285V7.017c0-2.256 1.344-3.503 3.403-3.503.986 0 2.017.176 2.017.176v2.219h-1.136c-1.119 0-1.469.694-1.469 1.406V9h2.5l-.4 2.602h-2.1v6.288A9.002 9.002 0 0 0 18 9z"/>
         </svg>
-        Continue with Facebook <span class="soon-badge">Coming soon</span>
+        <span data-i18n="auth_btn_facebook">Continue with Facebook</span> <span class="soon-badge" data-i18n="auth_coming_soon">Coming soon</span>
       </button>
-      <button class="btn-provider" disabled title="Coming soon">
+      <button class="btn-provider" disabled title="Coming soon" data-i18n-title="auth_coming_soon">
         <svg class="provider-icon" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true" fill="currentColor">
           <path d="M13.213 9.532c-.024-2.42 1.98-3.583 2.07-3.64-1.13-1.65-2.884-1.877-3.507-1.902-1.49-.152-2.912.877-3.668.877-.756 0-1.926-.855-3.166-.832-1.628.024-3.13.946-3.968 2.404-1.693 2.937-.433 7.287 1.216 9.67.807 1.166 1.767 2.475 3.026 2.428 1.216-.048 1.674-.786 3.144-.786 1.47 0 1.882.786 3.166.762 1.31-.024 2.14-1.19 2.94-2.36.928-1.354 1.31-2.664 1.334-2.73-.03-.012-2.56-.983-2.587-3.89z"/>
           <path d="M11.02 2.56c.67-.812 1.122-1.94.998-3.06-.965.04-2.133.643-2.826 1.454-.62.72-1.163 1.876-1.016 2.98 1.078.084 2.174-.548 2.844-1.374z"/>
         </svg>
-        Continue with Apple <span class="soon-badge">Coming soon</span>
+        <span data-i18n="auth_btn_apple">Continue with Apple</span> <span class="soon-badge" data-i18n="auth_coming_soon">Coming soon</span>
       </button>
-      <div class="auth-guest-link" id="auth-guest-link" onclick="continueAsGuest()">Continue as guest</div>
+      <div class="auth-guest-link" id="auth-guest-link" onclick="continueAsGuest()" data-i18n="auth_guest_link">Continue as guest</div>
     </div>
   </div>
 
   <!-- ── SIGN IN ── -->
   <div class="auth-view" id="auth-view-signin">
-    <div class="back-row auth-back"><button class="btn-back" onclick="showAuthView('welcome')">← Back</button></div>
-    <div class="pg-title" style="text-align:center;margin-bottom:24px;">Sign In</div>
+    <div class="back-row auth-back"><button class="btn-back" onclick="showAuthView('welcome')" data-i18n="back">← Back</button></div>
+    <div class="pg-title" style="text-align:center;margin-bottom:24px;" data-i18n="auth_signin_title">Sign In</div>
     <div class="form-grp">
-      <label class="form-lbl">Email</label>
+      <label class="form-lbl" data-i18n="auth_label_email">Email</label>
       <input class="form-inp" type="email" id="signin-email" autocomplete="email" placeholder="you@example.com">
     </div>
     <div class="form-grp">
-      <label class="form-lbl">Password</label>
+      <label class="form-lbl" data-i18n="auth_label_password">Password</label>
       <input class="form-inp" type="password" id="signin-password" autocomplete="current-password" placeholder="••••••••">
     </div>
     <div class="auth-error" id="signin-error"></div>
-    <button class="btn-cta" id="signin-submit" onclick="authSignInWithEmail()">Sign in</button>
-    <div class="auth-link" onclick="authSendPasswordReset()">Forgot your password?</div>
+    <button class="btn-cta" id="signin-submit" onclick="authSignInWithEmail()" data-i18n="auth_btn_signin">Sign in</button>
+    <div class="auth-link" onclick="authSendPasswordReset()" data-i18n="auth_forgot_password">Forgot your password?</div>
   </div>
 
   <!-- ── CREATE ACCOUNT ── -->
   <div class="auth-view" id="auth-view-signup">
-    <div class="back-row auth-back"><button class="btn-back" onclick="showAuthView('welcome')">← Back</button></div>
-    <div class="pg-title" style="text-align:center;margin-bottom:24px;">Create Account</div>
+    <div class="back-row auth-back"><button class="btn-back" onclick="showAuthView('welcome')" data-i18n="back">← Back</button></div>
+    <div class="pg-title" style="text-align:center;margin-bottom:24px;" data-i18n="auth_signup_title">Create Account</div>
     <div class="form-grp">
-      <label class="form-lbl">Full Name</label>
+      <label class="form-lbl" data-i18n="auth_label_full_name">Full Name</label>
       <input class="form-inp" type="text" id="signup-name" autocomplete="name" placeholder="Alan Albrecht" maxlength="100">
     </div>
     <div class="form-grp">
-      <label class="form-lbl">Username</label>
+      <label class="form-lbl" data-i18n="auth_label_username">Username</label>
       <input class="form-inp" type="text" id="signup-username" autocomplete="username" placeholder="@handle" maxlength="30" oninput="this.value=this.value.toLowerCase();">
     </div>
     <div class="form-grp">
-      <label class="form-lbl">Email</label>
+      <label class="form-lbl" data-i18n="auth_label_email">Email</label>
       <input class="form-inp" type="email" id="signup-email" autocomplete="email" placeholder="you@example.com">
     </div>
     <div class="form-grp">
-      <label class="form-lbl">Password</label>
-      <input class="form-inp" type="password" id="signup-password" autocomplete="new-password" placeholder="At least 8 characters">
+      <label class="form-lbl" data-i18n="auth_label_password">Password</label>
+      <input class="form-inp" type="password" id="signup-password" autocomplete="new-password" placeholder="At least 8 characters" data-i18n-placeholder="auth_placeholder_min_chars">
     </div>
     <div class="auth-error" id="signup-error"></div>
-    <button class="btn-cta" id="signup-submit" onclick="authSignUpWithEmail()">Create account</button>
+    <button class="btn-cta" id="signup-submit" onclick="authSignUpWithEmail()" data-i18n="auth_btn_create_account">Create account</button>
   </div>
 
   <!-- ── COMPLETE PROFILE (OAuth signups land here if they have no username yet) ── -->
   <div class="auth-view" id="auth-view-profile">
-    <div class="pg-title" style="text-align:center;margin-bottom:8px;">One Last Thing</div>
-    <div class="auth-tagline">Pick a username so people can find you later.</div>
+    <div class="pg-title" style="text-align:center;margin-bottom:8px;" data-i18n="auth_profile_title">One Last Thing</div>
+    <div class="auth-tagline" data-i18n="auth_profile_tagline">Pick a username so people can find you later.</div>
     <div class="form-grp">
-      <label class="form-lbl">Full Name</label>
+      <label class="form-lbl" data-i18n="auth_label_full_name">Full Name</label>
       <input class="form-inp" type="text" id="profile-name" maxlength="100">
     </div>
     <div class="form-grp">
-      <label class="form-lbl">Username</label>
+      <label class="form-lbl" data-i18n="auth_label_username">Username</label>
       <input class="form-inp" type="text" id="profile-username" placeholder="@handle" maxlength="30" oninput="this.value=this.value.toLowerCase();">
     </div>
     <div class="auth-error" id="profile-error"></div>
-    <button class="btn-cta" id="profile-submit" onclick="authCompleteProfile()">Continue</button>
+    <button class="btn-cta" id="profile-submit" onclick="authCompleteProfile()" data-i18n="auth_btn_continue">Continue</button>
   </div>
 
   <!-- ── LOCAL/CLOUD DATA CONFLICT ── -->
   <div class="auth-view" id="auth-view-conflict">
-    <div class="pg-title" style="text-align:center;margin-bottom:8px;">Two Sets of Data Found</div>
-    <div class="auth-tagline">This device already has workout data that isn't part of your account yet. Choose which one to keep — nothing is deleted permanently either way.</div>
+    <div class="pg-title" style="text-align:center;margin-bottom:8px;" data-i18n="auth_conflict_title">Two Sets of Data Found</div>
+    <div class="auth-tagline" data-i18n="auth_conflict_tagline">This device already has workout data that isn't part of your account yet. Choose which one to keep — nothing is deleted permanently either way.</div>
     <div class="auth-choice-card" onclick="resolveDataConflict('cloud')">
-      <div class="auth-choice-title">Use My Account's Data</div>
-      <div class="auth-choice-sub">Replace this device's local data with what's already saved to your account. This device's local data is backed up first.</div>
+      <div class="auth-choice-title" data-i18n="auth_conflict_cloud_title">Use My Account's Data</div>
+      <div class="auth-choice-sub" data-i18n="auth_conflict_cloud_sub">Replace this device's local data with what's already saved to your account. This device's local data is backed up first.</div>
     </div>
     <div class="auth-choice-card" onclick="resolveDataConflict('device')">
-      <div class="auth-choice-title">Use This Device's Data</div>
-      <div class="auth-choice-sub">Upload what's on this device to your account, replacing its previous cloud data. Your account's previous data is backed up first.</div>
+      <div class="auth-choice-title" data-i18n="auth_conflict_device_title">Use This Device's Data</div>
+      <div class="auth-choice-sub" data-i18n="auth_conflict_device_sub">Upload what's on this device to your account, replacing its previous cloud data. Your account's previous data is backed up first.</div>
     </div>
     <div class="auth-error" id="conflict-error"></div>
   </div>
 
   <!-- ── GUEST SESSION LIMIT REACHED ── -->
   <div class="auth-view" id="auth-view-guest-limit">
-    <div class="auth-logo">5 Sessions In</div>
-    <div class="auth-tagline">You've used up the guest sessions on this device. Create a free account to keep your history and keep training — everything you've logged so far comes with you.</div>
+    <div class="auth-logo" data-i18n="auth_guest_limit_headline">5 Sessions In</div>
+    <div class="auth-tagline" data-i18n="auth_guest_limit_tagline">You've used up the guest sessions on this device. Create a free account to keep your history and keep training — everything you've logged so far comes with you.</div>
     <div class="auth-actions">
-      <button class="btn-cta" onclick="showAuthView('signup')">Create account</button>
-      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signin')">I already have an account</button>
-      <div class="auth-divider">or</div>
+      <button class="btn-cta" onclick="showAuthView('signup')" data-i18n="auth_btn_create_account">Create account</button>
+      <button class="btn-ghost" style="text-align:center;" onclick="showAuthView('signin')" data-i18n="auth_already_have_account">I already have an account</button>
+      <div class="auth-divider" data-i18n="auth_divider_or">or</div>
       <button class="btn-provider" onclick="authSignInWithGoogle()">
         <svg class="provider-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
           <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
@@ -2037,38 +2047,38 @@ body.light-mode .auth-choice-title{color:#111;}
           <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
           <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
         </svg>
-        Continue with Google
+        <span data-i18n="auth_btn_google">Continue with Google</span>
       </button>
-      <button class="btn-provider" disabled title="Coming soon">
+      <button class="btn-provider" disabled title="Coming soon" data-i18n-title="auth_coming_soon">
         <svg class="provider-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
           <path fill="#1877F2" d="M18 9a9 9 0 1 0-10.406 8.89v-6.288H5.309V9h2.285V7.017c0-2.256 1.344-3.503 3.403-3.503.986 0 2.017.176 2.017.176v2.219h-1.136c-1.119 0-1.469.694-1.469 1.406V9h2.5l-.4 2.602h-2.1v6.288A9.002 9.002 0 0 0 18 9z"/>
         </svg>
-        Continue with Facebook <span class="soon-badge">Coming soon</span>
+        <span data-i18n="auth_btn_facebook">Continue with Facebook</span> <span class="soon-badge" data-i18n="auth_coming_soon">Coming soon</span>
       </button>
-      <button class="btn-provider" disabled title="Coming soon">
+      <button class="btn-provider" disabled title="Coming soon" data-i18n-title="auth_coming_soon">
         <svg class="provider-icon" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true" fill="currentColor">
           <path d="M13.213 9.532c-.024-2.42 1.98-3.583 2.07-3.64-1.13-1.65-2.884-1.877-3.507-1.902-1.49-.152-2.912.877-3.668.877-.756 0-1.926-.855-3.166-.832-1.628.024-3.13.946-3.968 2.404-1.693 2.937-.433 7.287 1.216 9.67.807 1.166 1.767 2.475 3.026 2.428 1.216-.048 1.674-.786 3.144-.786 1.47 0 1.882.786 3.166.762 1.31-.024 2.14-1.19 2.94-2.36.928-1.354 1.31-2.664 1.334-2.73-.03-.012-2.56-.983-2.587-3.89z"/>
           <path d="M11.02 2.56c.67-.812 1.122-1.94.998-3.06-.965.04-2.133.643-2.826 1.454-.62.72-1.163 1.876-1.016 2.98 1.078.084 2.174-.548 2.844-1.374z"/>
         </svg>
-        Continue with Apple <span class="soon-badge">Coming soon</span>
+        <span data-i18n="auth_btn_apple">Continue with Apple</span> <span class="soon-badge" data-i18n="auth_coming_soon">Coming soon</span>
       </button>
     </div>
   </div>
 
   <!-- ── SET NEW PASSWORD (reached only via the emailed reset link) ── -->
   <div class="auth-view" id="auth-view-reset-password">
-    <div class="pg-title" style="text-align:center;margin-bottom:8px;">Set a New Password</div>
-    <div class="auth-tagline">Choose a new password for your account.</div>
+    <div class="pg-title" style="text-align:center;margin-bottom:8px;" data-i18n="auth_reset_title">Set a New Password</div>
+    <div class="auth-tagline" data-i18n="auth_reset_tagline">Choose a new password for your account.</div>
     <div class="form-grp">
-      <label class="form-lbl">New Password</label>
-      <input class="form-inp" type="password" id="reset-password-1" autocomplete="new-password" placeholder="At least 8 characters">
+      <label class="form-lbl" data-i18n="auth_label_new_password">New Password</label>
+      <input class="form-inp" type="password" id="reset-password-1" autocomplete="new-password" placeholder="At least 8 characters" data-i18n-placeholder="auth_placeholder_min_chars">
     </div>
     <div class="form-grp">
-      <label class="form-lbl">Confirm Password</label>
-      <input class="form-inp" type="password" id="reset-password-2" autocomplete="new-password" placeholder="Re-enter password">
+      <label class="form-lbl" data-i18n="auth_label_confirm_password">Confirm Password</label>
+      <input class="form-inp" type="password" id="reset-password-2" autocomplete="new-password" placeholder="Re-enter password" data-i18n-placeholder="auth_placeholder_reenter">
     </div>
     <div class="auth-error" id="reset-password-error"></div>
-    <button class="btn-cta" id="reset-password-submit" onclick="authCompletePasswordReset()">Update password</button>
+    <button class="btn-cta" id="reset-password-submit" onclick="authCompletePasswordReset()" data-i18n="auth_btn_update_password">Update password</button>
   </div>
 
 </div>
@@ -2077,13 +2087,13 @@ body.light-mode .auth-choice-title{color:#111;}
 <div id="rest-overlay">
   <!-- Full content (expanded state) -->
   <div id="rest-full">
-    <div class="rest-lbl">Rest</div>
+    <div class="rest-lbl" data-i18n="rest_label">Rest</div>
     <div id="rest-time" class="rest-time">0:00</div>
     <div class="rest-btns">
       <button class="btn-ghost hi" onclick="addRestTime(-15)">-15s</button>
       <button class="btn-ghost hi" onclick="addRestTime(15)">+15s</button>
     </div>
-    <button class="rest-skip-btn" id="rest-skip-btn" onclick="skipRest()">Skip</button>
+    <button class="rest-skip-btn" id="rest-skip-btn" onclick="skipRest()" data-i18n="rest_skip">Skip</button>
     <!-- Slide hint at bottom -->
     <div class="rest-slide-hint">
       <div class="rest-hint-line"></div>
@@ -2111,8 +2121,8 @@ body.light-mode .auth-choice-title{color:#111;}
      reads as "you're working" instead of "you're waiting". -->
 <div id="active-overlay">
   <div id="active-full">
-    <button class="active-close-btn" onclick="activeCancel()" title="Cancel"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    <div class="active-lbl" id="active-ex-name">Active</div>
+    <button class="active-close-btn" onclick="activeCancel()" title="Cancel" data-i18n-title="cancel"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="active-lbl" id="active-ex-name" data-i18n="active_label">Active</div>
     <div id="active-time" class="active-time">0:00</div>
     <div class="active-target" id="active-target-lbl"></div>
     <button class="active-min-btn" onclick="activeMinimizeToggle()">Minimize</button>
@@ -2591,7 +2601,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -2606,6 +2616,7 @@ function showScreen(id){
   if(id==='exercises') renderExercisesDB();
   if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); }
   if(id==='pr-visibility') renderPrVisibilitySection();
+  if(id==='language') renderLanguageSection();
   if(id==='profile') renderProfile();
   if(id==='analytics') initProgressCharts();
   if(id==='search'){ _searchMode='search'; renderSearchScreen(); }
@@ -6358,6 +6369,279 @@ function toggleRtDim(i){
 
 
 // ═══════════════════════════════════════════
+//  i18n — English / Español. English is always the fallback and the
+//  default for a brand-new install. This is a DISPLAY-ONLY layer: it
+//  never renames a data field, an object key, an exercise id, or an
+//  accent-color name (those stay in English internally regardless of
+//  the display language — see the exerciseDisplayName()/ACCENT_COLORS
+//  comments below for exactly why). Every translated string lives in
+//  STRINGS, looked up by t(key); static HTML marks translatable text
+//  with data-i18n="key" (or data-i18n-placeholder="key" for inputs),
+//  applied by applyTranslations(). JS-rendered screens call t() directly
+//  inside their own template strings, so they pick up the current
+//  language the next time they render — no separate sweep needed for
+//  those.
+// ═══════════════════════════════════════════
+let currentLang = 'en';
+
+const STRINGS = {
+  en: {
+    back: '← Back',
+    cancel: 'Cancel',
+    save: 'Save',
+    close: 'Close',
+    done: 'Done',
+    delete: 'Delete',
+    confirm: 'Confirm',
+    add: 'Add',
+    share: 'Share',
+    assign: 'Assign',
+    got_it: 'Got it',
+    nav_home: 'Home',
+    nav_program: 'Program',
+    nav_search: 'Search',
+    nav_trainer: 'Trainer',
+    nav_profile: 'Profile',
+    settings_title: 'Settings',
+    settings_appearance_label: 'Appearance',
+    settings_theme_title: 'Theme',
+    settings_accent_title: 'Accent Color',
+    settings_language_label: 'Language',
+    settings_language_row_title: 'Language',
+    settings_analytics_label: 'Analytics',
+    settings_progress_title: 'Progress',
+    settings_progress_sub: 'PRs, charts by exercise and routine',
+    settings_account_label: 'Account',
+    settings_pr_visibility_label: 'PR Visibility',
+    settings_pr_visibility_title: 'PR Visibility',
+    settings_pr_visibility_sub: 'Choose which lifts show on your profile',
+    settings_weight_logging_label: 'Weight Logging',
+    settings_data_label: 'Data',
+    settings_export_title: 'Export Backup',
+    settings_export_sub: 'Download your data as JSON',
+    language_en: 'English',
+    language_es: 'Español',
+    home_sessions_label: 'Sessions',
+    hero_next_session: 'Next Session',
+    lc_last_session: 'Last Session',
+    lc_date: 'Date',
+    btn_start_workout: 'Start workout',
+    btn_quit_workout: '✕ Quit',
+    btn_finish_workout: 'Finish & save workout',
+    fin_headline: 'Session Complete',
+    fin_sub: 'Workout saved',
+    fin_stat_sets: 'Sets',
+    fin_stat_time: 'Time',
+    fin_stat_volume: 'Volume',
+    fin_stat_exercises: 'Exercises',
+    fin_notes_label: 'Session Notes (optional)',
+    fin_notes_placeholder: 'How did it feel? Any PRs? Anything hurt?',
+    fin_back_home: 'Back to home',
+    routines_title: 'Workouts',
+    btn_browse: 'Browse',
+    btn_new_routine: '+ New',
+    exercises_title: 'Exercises',
+    schedule_rotation_label: 'Rotation',
+    btn_add_short: '+ Add',
+    schedule_notice: 'Loops automatically · Advances after each saved session',
+    analytics_title: 'Analytics',
+    analytics_progress_by_exercise: 'Progress by Exercise',
+    analytics_stat_gain: 'Gain',
+    analytics_stat_sessions: 'Sessions',
+    analytics_progress_by_routine: 'Progress by Routine',
+    analytics_routine_footnote: 'Center = 0% (first session baseline). Tap dots for kg detail.',
+    picker_choose_workout: 'Choose Workout',
+    tier_modal_eyebrow: 'New Tier Unlocked',
+    tier_modal_btn: "Let's keep going",
+    requests_title: 'Requests',
+    auth_tagline_welcome: 'Sign in to keep your history safe across devices.',
+    auth_btn_signin: 'Sign in',
+    auth_btn_create_account: 'Create account',
+    auth_divider_or: 'or',
+    auth_btn_google: 'Continue with Google',
+    auth_btn_facebook: 'Continue with Facebook',
+    auth_btn_apple: 'Continue with Apple',
+    auth_coming_soon: 'Coming soon',
+    auth_guest_link: 'Continue as guest',
+    auth_signin_title: 'Sign In',
+    auth_label_email: 'Email',
+    auth_label_password: 'Password',
+    auth_forgot_password: 'Forgot your password?',
+    auth_signup_title: 'Create Account',
+    auth_label_full_name: 'Full Name',
+    auth_label_username: 'Username',
+    auth_placeholder_min_chars: 'At least 8 characters',
+    auth_profile_title: 'One Last Thing',
+    auth_profile_tagline: 'Pick a username so people can find you later.',
+    auth_btn_continue: 'Continue',
+    auth_conflict_title: 'Two Sets of Data Found',
+    auth_conflict_tagline: "This device already has workout data that isn't part of your account yet. Choose which one to keep — nothing is deleted permanently either way.",
+    auth_conflict_cloud_title: "Use My Account's Data",
+    auth_conflict_cloud_sub: "Replace this device's local data with what's already saved to your account. This device's local data is backed up first.",
+    auth_conflict_device_title: "Use This Device's Data",
+    auth_conflict_device_sub: "Upload what's on this device to your account, replacing its previous cloud data. Your account's previous data is backed up first.",
+    auth_guest_limit_headline: '5 Sessions In',
+    auth_guest_limit_tagline: "You've used up the guest sessions on this device. Create a free account to keep your history and keep training — everything you've logged so far comes with you.",
+    auth_already_have_account: 'I already have an account',
+    auth_reset_title: 'Set a New Password',
+    auth_reset_tagline: 'Choose a new password for your account.',
+    auth_label_new_password: 'New Password',
+    auth_label_confirm_password: 'Confirm Password',
+    auth_placeholder_reenter: 'Re-enter password',
+    auth_btn_update_password: 'Update password',
+    rest_label: 'Rest',
+    rest_skip: 'Skip',
+    active_label: 'Active',
+  },
+  es: {
+    back: '← Volver',
+    cancel: 'Cancelar',
+    save: 'Guardar',
+    close: 'Cerrar',
+    done: 'Listo',
+    delete: 'Eliminar',
+    confirm: 'Confirmar',
+    add: 'Agregar',
+    share: 'Compartir',
+    assign: 'Asignar',
+    got_it: 'Entendido',
+    nav_home: 'Inicio',
+    nav_program: 'Programa',
+    nav_search: 'Buscar',
+    nav_trainer: 'Entrenador',
+    nav_profile: 'Perfil',
+    settings_title: 'Ajustes',
+    settings_appearance_label: 'Apariencia',
+    settings_theme_title: 'Tema',
+    settings_accent_title: 'Color de Acento',
+    settings_language_label: 'Idioma',
+    settings_language_row_title: 'Idioma',
+    settings_analytics_label: 'Análisis',
+    settings_progress_title: 'Progreso',
+    settings_progress_sub: 'Récords, gráficos por ejercicio y rutina',
+    settings_account_label: 'Cuenta',
+    settings_pr_visibility_label: 'Visibilidad de Récords',
+    settings_pr_visibility_title: 'Visibilidad de Récords',
+    settings_pr_visibility_sub: 'Elegí qué levantamientos se ven en tu perfil',
+    settings_weight_logging_label: 'Registro de Peso',
+    settings_data_label: 'Datos',
+    settings_export_title: 'Exportar Copia de Seguridad',
+    settings_export_sub: 'Descargá tus datos como JSON',
+    language_en: 'Inglés',
+    language_es: 'Español',
+    home_sessions_label: 'Sesiones',
+    hero_next_session: 'Próxima Sesión',
+    lc_last_session: 'Última Sesión',
+    lc_date: 'Fecha',
+    btn_start_workout: 'Iniciar entrenamiento',
+    btn_quit_workout: '✕ Salir',
+    btn_finish_workout: 'Finalizar y guardar entrenamiento',
+    fin_headline: 'Sesión Completa',
+    fin_sub: 'Entrenamiento guardado',
+    fin_stat_sets: 'Series',
+    fin_stat_time: 'Tiempo',
+    fin_stat_volume: 'Volumen',
+    fin_stat_exercises: 'Ejercicios',
+    fin_notes_label: 'Notas de la Sesión (opcional)',
+    fin_notes_placeholder: '¿Cómo te sentiste? ¿Algún récord? ¿Te dolió algo?',
+    fin_back_home: 'Volver al inicio',
+    routines_title: 'Rutinas',
+    btn_browse: 'Explorar',
+    btn_new_routine: '+ Nueva',
+    exercises_title: 'Ejercicios',
+    schedule_rotation_label: 'Rotación',
+    btn_add_short: '+ Agregar',
+    schedule_notice: 'Se repite automáticamente · Avanza después de cada sesión guardada',
+    analytics_title: 'Análisis',
+    analytics_progress_by_exercise: 'Progreso por Ejercicio',
+    analytics_stat_gain: 'Ganancia',
+    analytics_stat_sessions: 'Sesiones',
+    analytics_progress_by_routine: 'Progreso por Rutina',
+    analytics_routine_footnote: 'Centro = 0% (línea base de la primera sesión). Tocá los puntos para ver el detalle en kg.',
+    picker_choose_workout: 'Elegir Entrenamiento',
+    tier_modal_eyebrow: 'Nuevo Nivel Desbloqueado',
+    tier_modal_btn: 'Sigamos así',
+    requests_title: 'Solicitudes',
+    auth_tagline_welcome: 'Iniciá sesión para mantener tu historial seguro en todos tus dispositivos.',
+    auth_btn_signin: 'Iniciar sesión',
+    auth_btn_create_account: 'Crear cuenta',
+    auth_divider_or: 'o',
+    auth_btn_google: 'Continuar con Google',
+    auth_btn_facebook: 'Continuar con Facebook',
+    auth_btn_apple: 'Continuar con Apple',
+    auth_coming_soon: 'Próximamente',
+    auth_guest_link: 'Continuar como invitado',
+    auth_signin_title: 'Iniciar Sesión',
+    auth_label_email: 'Correo electrónico',
+    auth_label_password: 'Contraseña',
+    auth_forgot_password: '¿Olvidaste tu contraseña?',
+    auth_signup_title: 'Crear Cuenta',
+    auth_label_full_name: 'Nombre Completo',
+    auth_label_username: 'Nombre de Usuario',
+    auth_placeholder_min_chars: 'Al menos 8 caracteres',
+    auth_profile_title: 'Una Última Cosa',
+    auth_profile_tagline: 'Elegí un nombre de usuario para que la gente te encuentre después.',
+    auth_btn_continue: 'Continuar',
+    auth_conflict_title: 'Se Encontraron Dos Conjuntos de Datos',
+    auth_conflict_tagline: 'Este dispositivo ya tiene datos de entrenamiento que todavía no forman parte de tu cuenta. Elegí cuál conservar — no se elimina nada de forma permanente en ningún caso.',
+    auth_conflict_cloud_title: 'Usar los Datos de Mi Cuenta',
+    auth_conflict_cloud_sub: 'Reemplaza los datos locales de este dispositivo con lo que ya está guardado en tu cuenta. Los datos locales de este dispositivo se respaldan primero.',
+    auth_conflict_device_title: 'Usar los Datos de Este Dispositivo',
+    auth_conflict_device_sub: 'Sube lo que hay en este dispositivo a tu cuenta, reemplazando sus datos en la nube anteriores. Los datos anteriores de tu cuenta se respaldan primero.',
+    auth_guest_limit_headline: '5 Sesiones Cumplidas',
+    auth_guest_limit_tagline: 'Ya usaste las sesiones de invitado disponibles en este dispositivo. Creá una cuenta gratis para conservar tu historial y seguir entrenando — todo lo que registraste hasta ahora viene con vos.',
+    auth_already_have_account: 'Ya tengo una cuenta',
+    auth_reset_title: 'Establecer una Nueva Contraseña',
+    auth_reset_tagline: 'Elegí una nueva contraseña para tu cuenta.',
+    auth_label_new_password: 'Nueva Contraseña',
+    auth_label_confirm_password: 'Confirmar Contraseña',
+    auth_placeholder_reenter: 'Volvé a escribir la contraseña',
+    auth_btn_update_password: 'Actualizar contraseña',
+    rest_label: 'Descanso',
+    rest_skip: 'Saltar',
+    active_label: 'Activo',
+  },
+};
+
+// Falls back to English, then to the raw key itself (a visible "missing
+// translation" beats a crash) — so an incomplete STRINGS entry never
+// breaks the page, it just shows the wrong language for that one string.
+function t(key){
+  const dict = STRINGS[currentLang] || STRINGS.en;
+  if(dict[key]!=null) return dict[key];
+  if(STRINGS.en[key]!=null) return STRINGS.en[key];
+  return key;
+}
+
+// Sweeps every already-in-the-DOM static element carrying a data-i18n
+// marker and re-applies its text — covers static HTML instantly on
+// every language change, regardless of which screen is currently
+// visible (hidden screens still have real DOM nodes, just display:none).
+// JS-rendered sections (Account, Weight Logging, Profile, etc.) are
+// NOT swept here — they call t() directly in their own render
+// functions, so they pick up the new language the next time they
+// render, which happens naturally on every screen navigation.
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+    el.setAttribute('title', t(el.dataset.i18nTitle));
+  });
+  const langSub = document.getElementById('language-sub');
+  if(langSub) langSub.textContent = currentLang==='es' ? t('language_es') : t('language_en');
+}
+
+function setLang(lang, save){
+  currentLang = (lang==='es') ? 'es' : 'en';
+  applyTranslations();
+  if(save) saveSettings();
+}
+
+// ═══════════════════════════════════════════
 //  SETTINGS — Theme & Accent
 // ═══════════════════════════════════════════
 
@@ -6387,15 +6671,17 @@ function loadSettings() {
   // swatch, etc.) in sync with whatever that script decided.
   const lightMode = s ? !!s.lightMode : true;
   const accent = (s && s.accent) || 'Navy';
+  currentLang = (s && s.lang==='es') ? 'es' : 'en'; // English default, matches every other lang read site in this file
 
   applyTheme(lightMode, false);
   applyAccentByName(accent, false);
+  applyTranslations();
 }
 
 function saveSettings() {
   const isLight = document.body.classList.contains('light-mode');
   const accentName = document.getElementById('accent-sub')?.textContent || 'Gold';
-  localStorage.setItem('alans_settings', JSON.stringify({lightMode: isLight, accent: accentName}));
+  localStorage.setItem('alans_settings', JSON.stringify({lightMode: isLight, accent: accentName, lang: currentLang}));
 }
 
 function toggleTheme() {
@@ -7076,6 +7362,27 @@ async function togglePrExerciseVisibility(exId){
     track.classList.toggle('on', wasOn); // revert
     alert('Could not update this setting. Try again.');
   }
+}
+
+// Local-only, like theme/accent — not a per-account Supabase field, just
+// a display preference stored the same way dark/light mode already is
+// (see saveSettings()). English and Español only for now, English is
+// always the default for a brand-new install.
+function renderLanguageSection(){
+  const el = document.getElementById('language-list');
+  if(!el) return;
+  el.innerHTML = `
+    <div class="settings-group" style="margin:12px 14px;">
+      <div class="settings-row" onclick="setLang('en', true); renderLanguageSection();" style="cursor:pointer;">
+        <div class="settings-row-left"><div class="settings-row-title">${t('language_en')}</div></div>
+        ${currentLang==='en' ? '<div class="settings-row-arrow" style="color:var(--gold);font-size:16px;">✓</div>' : ''}
+      </div>
+      <div class="settings-row" onclick="setLang('es', true); renderLanguageSection();" style="cursor:pointer;">
+        <div class="settings-row-left"><div class="settings-row-title">${t('language_es')}</div></div>
+        ${currentLang==='es' ? '<div class="settings-row-arrow" style="color:var(--gold);font-size:16px;">✓</div>' : ''}
+      </div>
+    </div>
+  `;
 }
 
 // Reuses the app's generic modal system for the password form. "Back"
