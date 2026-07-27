@@ -3854,6 +3854,7 @@ function confirmDownloadRoutine(defId){
   if(!def) return;
   const name=document.getElementById('dl-name-inp').value.trim();
   if(!name){ alert(t('alert_name_routine')); return; }
+  if(containsProfanity(name)){ alert(t('alert_profanity_routine_name')); return; }
   db.routines.push({id:genId(), name, exercises:JSON.parse(JSON.stringify(def.exercises))});
   saveDB(); closeModal(); renderRoutines();
   syncOfflineVideoCache(); // the downloaded routine may reference exercises with cached videos
@@ -3991,6 +3992,7 @@ function confirmImportSharedRoutine(){
   if(!shared) return;
   const name=document.getElementById('dl-name-inp').value.trim();
   if(!name){ alert(t('alert_name_routine')); return; }
+  if(containsProfanity(name)){ alert(t('alert_profanity_routine_name')); return; }
   db.routines.push({id:genId(), name, exercises:JSON.parse(JSON.stringify(shared.exercises))});
   saveDB(); closeModal(); renderRoutines();
   syncOfflineVideoCache();
@@ -4228,6 +4230,7 @@ function openRoutineModal(editId){
   window.saveRoutine=function(){
     const name=document.getElementById('rn-inp').value.trim();
     if(!name){alert(t('alert_name_routine'));return;}
+    if(containsProfanity(name)){alert(t('alert_profanity_routine_name'));return;}
     if(!items.length){alert(t('alert_add_one_exercise'));return;}
     const exercises=[];
     items.forEach(re=>{
@@ -6830,6 +6833,8 @@ const STRINGS = {
     tip_trainer_tab: 'Your student roster and program tools are launching here soon.',
     tip_search: 'Connect with other athletes.',
     tip_profile_prs: 'Your 1RM is estimated from your PR set. Keep it accurate: set your bodyweight, units, and bar type in Settings.',
+    error_profanity_name: 'That name contains language that is not allowed. Please use a different name.',
+    alert_profanity_routine_name: 'That workout name contains language that is not allowed. Please use a different name.',
   },
   es: {
     back: '← Volver',
@@ -7178,6 +7183,8 @@ const STRINGS = {
     tip_trainer_tab: 'Tu lista de alumnos y herramientas de programa se lanzan acá pronto.',
     tip_search: 'Conectate con otros atletas.',
     tip_profile_prs: 'Tu 1RM se estima a partir de tu serie récord. Mantenelo preciso: configurá tu peso corporal, unidades y tipo de barra en Ajustes.',
+    error_profanity_name: 'Ese nombre contiene lenguaje no permitido. Por favor usá otro nombre.',
+    alert_profanity_routine_name: 'Ese nombre de rutina contiene lenguaje no permitido. Por favor usá otro nombre.',
   },
 };
 
@@ -8245,6 +8252,47 @@ async function isUsernameAllowedRemote(u){
   }catch(e){ return true; }
 }
 
+// ═══════════════════════════════════════════
+//  PROFANITY FILTER — client-side only, EN + ES. Distinct from the
+//  reserved-usernames mechanism above (that one blocks impersonation
+//  terms like "admin"; this one blocks actual bad words) and from
+//  isUsernameAllowedRemote (server-enforced). This filter has no server
+//  backstop — it only guards the fields that don't already have one
+//  (full name, routine name), so unlike username validation it's the
+//  only line of defense for those fields, not just a fast pre-check.
+//  Scope is deliberately limited to fields OTHER people can see: full
+//  name (shown on every profile) and routine names (visible to anyone
+//  a routine is shared with, or a trainer's students). Private-only
+//  free text — session notes, exercise notes — is NOT filtered; nobody
+//  else ever reads those, so blocking them would just be patronizing.
+// ═══════════════════════════════════════════
+const PROFANITY_WORDS = [
+  // English
+  'fuck','fucker','fucking','motherfucker','shit','bullshit','bitch','asshole',
+  'ass','bastard','cunt','dick','pussy','whore','slut','nigger','nigga',
+  'faggot','fag','retard','retarded','cock','wanker','twat','douchebag',
+  // Spanish
+  'mierda','puta','puto','putos','putas','pendejo','pendeja','cabron',
+  'verga','pinche','marica','maricon','maricona','cono','joder','jodete',
+  'gilipollas','pelotudo','boludo','carajo','concha','chinga','chingar',
+  'chingada','forro','pajero','pajera','culero','culera','gonorrea',
+];
+// Common leetspeak/accent substitutions collapsed before matching, so
+// "m1erd@" or "cabrón" both hit the same plain-ASCII word list above.
+function _normalizeForProfanityCheck(text){
+  return text.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'') // strip accents (á->a, ñ->n, etc)
+    .replace(/[04]/g,m=>m==='0'?'o':'a')
+    .replace(/1/g,'i').replace(/3/g,'e').replace(/5/g,'s')
+    .replace(/@/g,'a').replace(/\$/g,'s')
+    .replace(/[^a-z\s]/g,' '); // collapse remaining punctuation/digits to spaces
+}
+function containsProfanity(text){
+  if(!text) return false;
+  const norm = _normalizeForProfanityCheck(text);
+  return PROFANITY_WORDS.some(w=>new RegExp('\\b'+w+'\\b','i').test(norm));
+}
+
 async function authSignInWithEmail(){
   const email = document.getElementById('signin-email').value.trim();
   const password = document.getElementById('signin-password').value;
@@ -8274,6 +8322,7 @@ async function authSignUpWithEmail(){
 
   if(!validateUsername(username)){ errEl.textContent=t('error_username_format'); return; }
   if(!email || password.length < 8){ errEl.textContent=t('error_valid_email_password'); return; }
+  if(containsProfanity(fullName)){ errEl.textContent=t('error_profanity_name'); return; }
 
   const btn = document.getElementById('signup-submit'); setBtnLoading(btn,true,t('loading_checking_username'));
   if(!(await isUsernameAllowedRemote(username))){
@@ -8373,6 +8422,7 @@ async function authCompleteProfile(){
   const errEl = document.getElementById('profile-error');
   errEl.textContent='';
   if(!validateUsername(username)){ errEl.textContent=t('error_username_format'); return; }
+  if(containsProfanity(fullName)){ errEl.textContent=t('error_profanity_name'); return; }
 
   const btn = document.getElementById('profile-submit'); setBtnLoading(btn,true,t('loading_checking_username'));
   if(!(await isUsernameAllowedRemote(username))){
