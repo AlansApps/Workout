@@ -6817,6 +6817,19 @@ const STRINGS = {
     analytics_not_enough_data: 'Not enough data for this range',
     analytics_overall_trend: 'Overall',
     analytics_vs_first_session: 'vs first session',
+    tip_first_open_title: 'Make It Yours',
+    tip_first_open_text: 'Pick a look. You can always change it later from Settings.',
+    tip_first_open_note: 'Theme and accent color, right here.',
+    tip_first_open_apply: 'Apply',
+    tip_settings_theme: 'Switch between dark and light mode anytime.',
+    tip_settings_accent: 'Choose an accent color. It colors the whole app.',
+    tip_settings_units: 'Set kilograms or pounds. Every weight in the app follows this.',
+    tip_program: 'Build your workouts here, then set your rotation with + Add. It loops automatically.',
+    tip_home_next: 'This is your next session, based on your program. Save it and the rotation lines up what’s next.',
+    tip_ping: 'Send a daily ping to let them know you’re thinking of them. One per day.',
+    tip_trainer_tab: 'Your student roster and program tools are launching here soon.',
+    tip_search: 'Connect with other athletes.',
+    tip_profile_prs: 'Your 1RM is estimated from your PR set. Keep it accurate: set your bodyweight, units, and bar type in Settings.',
   },
   es: {
     back: '← Volver',
@@ -7152,6 +7165,19 @@ const STRINGS = {
     analytics_not_enough_data: 'No hay suficientes datos para este rango',
     analytics_overall_trend: 'General',
     analytics_vs_first_session: 'vs. primera sesión',
+    tip_first_open_title: 'Hacelo Tuyo',
+    tip_first_open_text: 'Elegí un estilo. Siempre podés cambiarlo después desde Ajustes.',
+    tip_first_open_note: 'Tema y color de acento, justo acá.',
+    tip_first_open_apply: 'Aplicar',
+    tip_settings_theme: 'Cambiá entre modo oscuro y claro cuando quieras.',
+    tip_settings_accent: 'Elegí un color de acento. Colorea toda la app.',
+    tip_settings_units: 'Elegí kilogramos o libras. Todos los pesos de la app siguen esto.',
+    tip_program: 'Armá tus rutinas acá y después configurá tu rotación con + Agregar. Se repite automáticamente.',
+    tip_home_next: 'Esta es tu próxima sesión, según tu programa. Guardala y la rotación avanza a la siguiente.',
+    tip_ping: 'Mandale un ping diario para que sepa que estás pensando en él/ella. Uno por día.',
+    tip_trainer_tab: 'Tu lista de alumnos y herramientas de programa se lanzan acá pronto.',
+    tip_search: 'Conectate con otros atletas.',
+    tip_profile_prs: 'Tu 1RM se estima a partir de tu serie récord. Mantenelo preciso: configurá tu peso corporal, unidades y tipo de barra en Ajustes.',
   },
 };
 
@@ -9064,7 +9090,7 @@ function restExpand() {
 
     const card = document.createElement('div');
     card.className = 'tip-card';
-    card.innerHTML = `<div class="tip-card-text">${text}</div><button class="tip-card-btn" type="button">Got it</button>`;
+    card.innerHTML = `<div class="tip-card-text">${text}</div><button class="tip-card-btn" type="button">${t('got_it')}</button>`;
     document.body.appendChild(card);
     _positionCardNearTarget(card, liveTargets[0]);
 
@@ -9093,7 +9119,7 @@ function restExpand() {
 
     const card = document.createElement('div');
     card.className = 'tip-card';
-    card.innerHTML = `<div class="tip-card-text">${step.text}</div><button class="tip-card-btn" type="button">Got it</button>`;
+    card.innerHTML = `<div class="tip-card-text">${step.text}</div><button class="tip-card-btn" type="button">${t('got_it')}</button>`;
     document.body.appendChild(card);
     _positionCardNearTarget(card, step.target);
 
@@ -9130,8 +9156,8 @@ function restExpand() {
     const card = document.createElement('div');
     card.className = 'tip-first-card';
     card.innerHTML = `
-      <div class="tip-first-title">Make It Yours</div>
-      <div class="tip-first-text">Pick a look. You can always change it later from Settings.</div>
+      <div class="tip-first-title">${t('tip_first_open_title')}</div>
+      <div class="tip-first-text">${t('tip_first_open_text')}</div>
       <div class="tip-first-row">
         <div class="theme-toggle" id="tip-theme-toggle"><div class="theme-toggle-track"><div class="theme-toggle-thumb"></div></div></div>
       </div>
@@ -9141,8 +9167,8 @@ function restExpand() {
           return `<div class="swatch${name===currentAccent?' active':''}" data-name="${name}" onclick="setAccent(this)" style="background:linear-gradient(135deg,${c.gold2},${c.gold3});" title="${name}"></div>`;
         }).join('')}
       </div>
-      <div class="tip-first-note">Theme and accent color, right here.</div>
-      <button class="tip-card-btn" type="button">Apply</button>
+      <div class="tip-first-note">${t('tip_first_open_note')}</div>
+      <button class="tip-card-btn" type="button">${t('tip_first_open_apply')}</button>
     `;
     document.body.appendChild(card);
     card.querySelector('#tip-theme-toggle').addEventListener('click', ()=>{
@@ -9178,9 +9204,9 @@ function restExpand() {
     if(_tipOpen || !currentUser) return;
     if(await hasSeenTip('settings')) return;
     showSpotlightSequence([
-      { target: document.getElementById('theme-toggle'), text: 'Switch between dark and light mode anytime.' },
-      { target: document.getElementById('accent-swatches'), text: 'Choose an accent color. It colors the whole app.' },
-      { target: document.querySelector('#weight-prefs-section-body .prog-time-pills'), text: 'Set kilograms or pounds. Every weight in the app follows this.' },
+      { target: document.getElementById('theme-toggle'), text: t('tip_settings_theme') },
+      { target: document.getElementById('accent-swatches'), text: t('tip_settings_accent') },
+      { target: document.querySelector('#weight-prefs-section-body .prog-time-pills'), text: t('tip_settings_units') },
     ], 'settings');
   };
 
@@ -9191,7 +9217,7 @@ function restExpand() {
     if(await hasSeenTip('program')) return;
     showSpotlightTip({
       targets: [document.querySelector('#screen-schedule .prog-subbtn'), document.querySelector('#screen-schedule .btn-new')],
-      text: 'Build your workouts here, then set your rotation with + Add. It loops automatically.',
+      text: t('tip_program'),
       tipId: 'program'
     });
   };
@@ -9204,7 +9230,7 @@ function restExpand() {
     if(await hasSeenTip('home_next')) return;
     showSpotlightTip({
       targets: [document.querySelector('.hero-card')],
-      text: 'This is your next session, based on your program. Save it and the rotation lines up what’s next.',
+      text: t('tip_home_next'),
       tipId: 'home_next'
     });
   };
@@ -9215,7 +9241,7 @@ function restExpand() {
     if(await hasSeenTip('other_profile_ping')) return;
     showSpotlightTip({
       targets: [document.getElementById('oprof-ping-btn')],
-      text: 'Send a daily ping to let them know you’re thinking of them. One per day.',
+      text: t('tip_ping'),
       tipId: 'other_profile_ping'
     });
   };
@@ -9230,7 +9256,7 @@ function restExpand() {
     if(await hasSeenTip('trainer_tab')) return;
     showSpotlightTip({
       targets: [document.querySelector('.trainer-soon-icon')],
-      text: 'Your student roster and program tools are launching here soon.',
+      text: t('tip_trainer_tab'),
       tipId: 'trainer_tab'
     }); */
   };
@@ -9241,7 +9267,7 @@ function restExpand() {
     if(await hasSeenTip('search')) return;
     showSpotlightTip({
       targets: [document.querySelector('.search-pill-real')],
-      text: 'Connect with other athletes.',
+      text: t('tip_search'),
       tipId: 'search'
     });
   };
@@ -9255,7 +9281,7 @@ function restExpand() {
     if(await hasSeenTip('profile_prs')) return;
     showSpotlightTip({
       targets: [firstOneRm],
-      text: 'Your 1RM is estimated from your PR set. Keep it accurate: set your bodyweight, units, and bar type in Settings.',
+      text: t('tip_profile_prs'),
       tipId: 'profile_prs'
     });
   };
