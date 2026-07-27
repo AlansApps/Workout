@@ -4446,17 +4446,17 @@ async function renderProfileHeader(){
     // isGuestExempt() — so that line only shows when it's actually accurate.
     const used=getGuestSessionCount();
     const usageLine=isGuestExempt()
-      ? `<span style="color:var(--text);font-weight:600;">${workoutCount}</span> workouts logged on this device`
-      : `${used} of ${GUEST_SESSION_LIMIT} free workouts used`;
+      ? `<span style="color:var(--text);font-weight:600;">${workoutCount}</span> ${t('guest_workouts_logged_device')}`
+      : `${used} ${t('guest_of')} ${GUEST_SESSION_LIMIT} ${t('guest_free_workouts_used')}`;
     el.innerHTML=`
       <div class="profile-id-row">
         ${badgeHtml}
-        <div style="flex:1;"><div class="profile-name">Guest session</div><div class="profile-handle">${usageLine}</div></div>
+        <div style="flex:1;"><div class="profile-name">${t('guest_session_label')}</div><div class="profile-handle">${usageLine}</div></div>
         ${gearBtnHtml}
       </div>
       <div class="profile-guest-card">
-        Create a free account to get a profile, follow other lifters, and keep your history safe.
-        <button class="btn-cta" style="margin-top:10px;" onclick="showAuthScreen('signup')">Create account</button>
+        ${t('guest_create_account_note')}
+        <button class="btn-cta" style="margin-top:10px;" onclick="showAuthScreen('signup')">${t('auth_btn_create_account')}</button>
       </div>
     `;
     return;
@@ -6839,6 +6839,15 @@ const STRINGS = {
     oprof_private_title: 'This account is private',
     oprof_private_sub: 'Follow to see their program and workout history.',
     analytics_avg_label: 'Avg',
+    guest_session_label: 'Guest session',
+    guest_workouts_logged_device: 'workouts logged on this device',
+    guest_of: 'of',
+    guest_free_workouts_used: 'free workouts used',
+    guest_create_account_note: 'Create a free account to get a profile, follow other lifters, and keep your history safe.',
+    theme_light_short: 'LIGHT',
+    theme_dark_short: 'DARK',
+    theme_light_mode: 'Light mode',
+    theme_dark_mode: 'Dark mode',
   },
   es: {
     back: '← Volver',
@@ -7193,6 +7202,15 @@ const STRINGS = {
     oprof_private_title: 'Esta cuenta es privada',
     oprof_private_sub: 'Seguí a esta persona para ver su programa e historial de entrenamientos.',
     analytics_avg_label: 'Prom',
+    guest_session_label: 'Sesión de invitado',
+    guest_workouts_logged_device: 'entrenamientos registrados en este dispositivo',
+    guest_of: 'de',
+    guest_free_workouts_used: 'entrenamientos gratis usados',
+    guest_create_account_note: 'Creá una cuenta gratis para tener un perfil, seguir a otros atletas y mantener tu historial a salvo.',
+    theme_light_short: 'CLARO',
+    theme_dark_short: 'OSCURO',
+    theme_light_mode: 'Modo claro',
+    theme_dark_mode: 'Modo oscuro',
   },
 };
 
@@ -7286,8 +7304,8 @@ function applyTheme(light, save) {
   document.body.classList.toggle('light-mode', light);
   const label = document.getElementById('theme-label');
   const sub = document.getElementById('theme-sub');
-  if (label) label.textContent = light ? 'LIGHT' : 'DARK';
-  if (sub) sub.textContent = light ? 'Light mode' : 'Dark mode';
+  if (label) label.textContent = light ? t('theme_light_short') : t('theme_dark_short');
+  if (sub) sub.textContent = light ? t('theme_light_mode') : t('theme_dark_mode');
   if (save) saveSettings();
 }
 
