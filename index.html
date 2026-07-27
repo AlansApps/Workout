@@ -4424,7 +4424,7 @@ async function renderProfileHeader(){
 // is global/shared, not per-user.
 function buildProgramRotationHtml(schedule, schedulePos, routines, exercisesCatalog){
   exercisesCatalog=exercisesCatalog||db.exercises;
-  if(!schedule.length) return '<div class="empty-state"><p>No program set up yet.</p></div>';
+  if(!schedule.length) return `<div class="empty-state"><p>${t('program_empty_state')}</p></div>`;
   const cur=schedulePos%schedule.length;
   return schedule.map((rId,i)=>{
     const r=routines.find(x=>x.id===rId);
@@ -5180,7 +5180,7 @@ async function runSearch(query){
       .limit(20);
     if(_searchMode!=='search') return; // user switched away while this was in flight
     if(!data || !data.length){
-      el.innerHTML='<div class="search-empty"><div class="search-empty-title">No results</div><div class="search-empty-sub">Try a different name or handle.</div></div>';
+      el.innerHTML=`<div class="search-empty"><div class="search-empty-title">${t('search_no_results')}</div><div class="search-empty-sub">${t('search_no_results_sub')}</div></div>`;
       return;
     }
     const ids=data.map(p=>p.id);
@@ -5341,7 +5341,7 @@ async function renderInteractionsFeed(el){
     ].sort((a,b)=>new Date(b.at)-new Date(a.at));
     if(!events.length){
       if(_searchMode!=='interactions') return; // switched away while this was in flight
-      const html=requestsBannerHtml+'<div class="empty-state"><p>No activity yet.<br>When people follow or ping you,<br>it\'ll show up here.</p></div>';
+      const html=requestsBannerHtml+`<div class="empty-state"><p>${t('interactions_empty_1')}<br>${t('interactions_empty_2')}<br>${t('interactions_empty_3')}</p></div>`;
       el.innerHTML=html;
       _interactionsFeedHtmlCache=html;
       return;
@@ -5413,7 +5413,7 @@ async function renderRequestsScreen(){
       .eq('status', 'pending')
       .order('created_at', {ascending:false});
     if(!pending || !pending.length){
-      el.innerHTML='<div class="empty-state"><p>No pending requests.</p></div>';
+      el.innerHTML=`<div class="empty-state"><p>${t('requests_empty_state')}</p></div>`;
       _requestsScreenHtmlCache=el.innerHTML;
       return;
     }
@@ -6707,6 +6707,13 @@ const STRINGS = {
     trainer_invite_confirm_note: "Someone invited you to connect as their student. They'll be able to assign you routines and see your logged workouts.",
     trainer_invite_not_now: 'Not now',
     trainer_invite_connect: 'Connect',
+    program_empty_state: 'No program set up yet.',
+    search_no_results: 'No results',
+    search_no_results_sub: 'Try a different name or handle.',
+    interactions_empty_1: 'No activity yet.',
+    interactions_empty_2: 'When people follow or ping you,',
+    interactions_empty_3: "it'll show up here.",
+    requests_empty_state: 'No pending requests.',
   },
   es: {
     back: '← Volver',
@@ -7021,6 +7028,13 @@ const STRINGS = {
     trainer_invite_confirm_note: 'Alguien te invitó a conectarte como su alumno. Va a poder asignarte rutinas y ver tus entrenamientos registrados.',
     trainer_invite_not_now: 'Ahora no',
     trainer_invite_connect: 'Conectar',
+    program_empty_state: 'Todavía no hay un programa configurado.',
+    search_no_results: 'Sin resultados',
+    search_no_results_sub: 'Probá con otro nombre o usuario.',
+    interactions_empty_1: 'Todavía no hay actividad.',
+    interactions_empty_2: 'Cuando alguien te siga o te mande un ping,',
+    interactions_empty_3: 'va a aparecer acá.',
+    requests_empty_state: 'No hay solicitudes pendientes.',
   },
 };
 
