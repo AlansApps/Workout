@@ -5803,19 +5803,19 @@ function renderExDetail(exId){
       </div>`;
     }).join('');
 
-  const noHistory=!history?`<div style="font-size:11px;color:var(--dim);letter-spacing:1px;font-style:italic;padding:4px 0;">No sessions logged yet.</div>`:'';
+  const noHistory=!history?`<div style="font-size:11px;color:var(--dim);letter-spacing:1px;font-style:italic;padding:4px 0;">${t('log_empty_1')}</div>`:'';
 
   document.getElementById('exd-body').innerHTML=`
 
     <!-- NOTES / MACHINE SETUP -->
     <div class="ex-section">
       <div class="ex-section-hd">
-        <span class="ex-section-title">Exercise Notes</span>
-        <span class="save-flash" id="notes-flash">Saved</span>
+        <span class="ex-section-title">${t('exd_notes_title')}</span>
+        <span class="save-flash" id="notes-flash">${t('exd_saved')}</span>
       </div>
       <div class="ex-section-body">
         <input class="ex-edit-field" id="exd-notes-inp"
-          placeholder="e.g. Position: 11 · Elbows: OUT"
+          placeholder="${t('exd_notes_placeholder')}"
           value="${ex.notes||''}"
           oninput="saveExNotes('${exId}',this.value)">
       </div>
@@ -5824,19 +5824,19 @@ function renderExDetail(exId){
     <!-- LAST WEIGHT/REPS, or LAST DURATION for time-tracked exercises — editable -->
     <div class="ex-section">
       <div class="ex-section-hd">
-        <span class="ex-section-title">${timed?'Starting Duration':'Starting Weight'}</span>
-        <span class="save-flash" id="weight-flash">Saved</span>
+        <span class="ex-section-title">${timed?t('exd_starting_duration'):t('exd_starting_weight')}</span>
+        <span class="save-flash" id="weight-flash">${t('exd_saved')}</span>
       </div>
       <div class="ex-section-body">
         <div style="font-size:10px;color:#666;letter-spacing:1px;margin-bottom:10px;">
-          This is what will pre-fill next time you do this exercise.
+          ${t('exd_prefill_note')}
         </div>
         ${timed ? ((lw.sets&&lw.sets.length>0)?
           lw.sets.map((s,i)=>`
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:9px;color:#666;letter-spacing:1px;width:36px;">Set ${i+1}</span>
+              <span style="font-size:9px;color:#666;letter-spacing:1px;width:36px;">${t('builder_col_set')} ${i+1}</span>
               <div style="flex:1;">
-                <div class="ex-weight-label">DURATION</div>
+                <div class="ex-weight-label">${t('exd_duration_label')}</div>
                 <input class="ex-edit-field" type="text" inputmode="numeric"
                   value="${s.reps?fmtDuration(s.reps):''}" placeholder="mm:ss"
                   onchange="saveExSetWeight('${exId}',${i},'r',this.value)">
@@ -5844,7 +5844,7 @@ function renderExDetail(exId){
             </div>`).join('')
           :`
             <div>
-              <div class="ex-weight-label">DURATION</div>
+              <div class="ex-weight-label">${t('exd_duration_label')}</div>
               <input class="ex-edit-field" type="text" inputmode="numeric"
                 value="${lw.reps?fmtDuration(lw.reps):''}" placeholder="mm:ss"
                 onchange="saveExWeight('${exId}','r',this.value)">
@@ -5852,7 +5852,7 @@ function renderExDetail(exId){
         ) : ((lw.sets&&lw.sets.length>0)?
           lw.sets.map((s,i)=>`
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:9px;color:#666;letter-spacing:1px;width:36px;">Set ${i+1}</span>
+              <span style="font-size:9px;color:#666;letter-spacing:1px;width:36px;">${t('builder_col_set')} ${i+1}</span>
               <div style="flex:1;">
                 <div class="ex-weight-label">${unitLabel().toUpperCase()}</div>
                 <input class="ex-edit-field" type="number" inputmode="decimal"
@@ -5860,7 +5860,7 @@ function renderExDetail(exId){
                   onchange="saveExSetWeight('${exId}',${i},'w',this.value)">
               </div>
               <div style="flex:1;">
-                <div class="ex-weight-label">REPS</div>
+                <div class="ex-weight-label">${t('builder_col_reps')}</div>
                 <input class="ex-edit-field" type="number" inputmode="numeric"
                   value="${s.reps}" placeholder="0"
                   onchange="saveExSetWeight('${exId}',${i},'r',this.value)">
@@ -5875,21 +5875,21 @@ function renderExDetail(exId){
                   onchange="saveExWeight('${exId}','w',this.value)">
               </div>
               <div style="flex:1;">
-                <div class="ex-weight-label">REPS</div>
+                <div class="ex-weight-label">${t('builder_col_reps')}</div>
                 <input class="ex-edit-field" type="number" inputmode="numeric"
                   value="${lw.reps||''}" placeholder="0"
                   onchange="saveExWeight('${exId}','r',this.value)">
               </div>
             </div>`
         )}
-        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} All-time PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr,exId)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
+        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} ${t('exd_alltime_pr')}: ${timed?fmtDuration(pr.reps)+' '+t('ex_db_held_suffix'):fmtPRWeight(pr,exId)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
       </div>
     </div>
 
     <!-- SESSION HISTORY -->
     <div class="ex-section">
       <div class="ex-section-hd">
-        <span class="ex-section-title">Recent Sessions</span>
+        <span class="ex-section-title">${t('trainer_recent_sessions')}</span>
       </div>
       <div class="ex-section-body">
         ${history||noHistory}
@@ -6714,6 +6714,14 @@ const STRINGS = {
     interactions_empty_2: 'When people follow or ping you,',
     interactions_empty_3: "it'll show up here.",
     requests_empty_state: 'No pending requests.',
+    exd_notes_title: 'Exercise Notes',
+    exd_saved: 'Saved',
+    exd_notes_placeholder: 'e.g. Position: 11 · Elbows: OUT',
+    exd_starting_duration: 'Starting Duration',
+    exd_starting_weight: 'Starting Weight',
+    exd_prefill_note: 'This is what will pre-fill next time you do this exercise.',
+    exd_duration_label: 'DURATION',
+    exd_alltime_pr: 'All-time PR',
   },
   es: {
     back: '← Volver',
@@ -7035,6 +7043,14 @@ const STRINGS = {
     interactions_empty_2: 'Cuando alguien te siga o te mande un ping,',
     interactions_empty_3: 'va a aparecer acá.',
     requests_empty_state: 'No hay solicitudes pendientes.',
+    exd_notes_title: 'Notas del Ejercicio',
+    exd_saved: 'Guardado',
+    exd_notes_placeholder: 'ej. Posición: 11 · Codos: AFUERA',
+    exd_starting_duration: 'Duración Inicial',
+    exd_starting_weight: 'Peso Inicial',
+    exd_prefill_note: 'Esto es lo que se va a precargar la próxima vez que hagas este ejercicio.',
+    exd_duration_label: 'DURACIÓN',
+    exd_alltime_pr: 'Récord histórico',
   },
 };
 
