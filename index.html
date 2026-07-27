@@ -2267,6 +2267,94 @@ const DEFAULT_EXERCISES=[
   {id:"e111",name:"Incline Walk (Treadmill)",muscle:"Cardio",notes:"",trackingType:"time"}
 ];
 
+// Display-only Spanish exercise names, keyed by id — DEFAULT_EXERCISES'
+// own `name` field is never touched (it's the canonical value every real
+// piece of logic keys off of: routine matching, session building, workout
+// log storage, shared-routine links). Only exerciseDisplayName() below
+// ever reads this map, and only for what's shown on screen right now —
+// exactly the same display/data split as hidden_pr_exercise_ids and the
+// follow-button state earlier in this file.
+const EX_NAMES_ES={
+  e01:"Sentadilla con Barra", e61:"Sentadilla Búlgara", e81:"Sentadilla Dividida",
+  e62:"Sentadilla Hack", e78:"Sentadilla Hack con Barra", e06:"Prensa de Piernas",
+  e02:"Peso Muerto Rumano con Barra", e36:"Peso Muerto con Barra",
+  e112:"Peso Muerto Rumano con Mancuernas", e113:"Peso Muerto con Mancuernas",
+  e03:"Empuje de Cadera", e82:"Empuje de Cadera con Banda (de Rodillas)",
+  e04:"Extensión de Piernas", e35:"Curl Femoral Acostado", e77:"Curl Femoral Sentado",
+  e07:"Curl Femoral (Unilateral)", e08:"Aducción de Cadera Sentado",
+  e32:"Abducción de Cadera Sentado (Glúteos)", e09:"Patada de Glúteo en Polea",
+  e63:"Zancada Caminando", e64:"Zancada", e83:"Zancada con Mancuernas",
+  e37:"Elevación de Talones", e38:"Elevación de Talones con Mancuerna (Unilateral)",
+  e05:"Elevación de Talones Haka", e39:"Elevación de Talones Haka (Unilateral)",
+  e91:"Sentadilla Goblet con Mancuerna", e92:"Sentadilla Frontal con Barra",
+  e93:"Peso Muerto Sumo con Barra", e94:"Buenos Días con Barra",
+  e95:"Puente de Glúteo con Barra", e96:"Subida al Cajón con Mancuernas",
+  e97:"Tirón desde Soporte con Barra", e115:"Arranque con Barra",
+  e116:"Dos Tiempos con Barra", e117:"Cargada de Potencia con Barra",
+
+  e10:"Press de Banca con Barra", e40:"Press de Banca con Mancuernas",
+  e11:"Press de Banca Inclinado con Barra", e41:"Press de Banca Inclinado con Mancuernas",
+  e65:"Press de Banca Declinado con Barra", e13:"Aperturas de Pecho en Máquina",
+  e60:"Aperturas de Pecho con Mancuernas", e14:"Press de Pecho Sentado en Polea",
+  e66:"Cruce de Poleas", e84:"Cruce de Poleas (Pecho Superior)",
+  e42:"Flexión de Brazos", e98:"Svend Press con Peso",
+
+  e24:"Dominada Lastrada", e20:"Jalón al Pecho en Polea", e23:"Remo con Barra Inclinado",
+  e21:"Remo con Soporte de Pecho", e25:"Remo con Soporte de Pecho (Unilateral)",
+  e67:"Remo Sentado en Polea", e26:"Remo Bajo en Polea (Unilateral)",
+  e85:"Remo Bajo Sentado en Polea", e43:"Remo con Mancuerna Inclinado (Unilateral)",
+  e86:"Remo con Mancuernas Inclinado", e68:"Remo en Barra T",
+  e22:"Pullover a un Brazo en Polea", e31:"Encogimiento de Hombros con Mancuernas",
+  e79:"Encogimiento de Hombros con Barra", e69:"Hiperextensión Lumbar",
+  e99:"Jalón con Brazos Rectos en Polea",
+
+  e16:"Press de Hombro con Mancuernas", e75:"Press Militar de Pie con Barra",
+  e114:"Press Militar de Pie con Mancuernas", e87:"Press Militar de Pie en Multipower",
+  e100:"Press Arnold con Mancuernas", e76:"Press de Hombro en Máquina",
+  e12:"Elevación Lateral con Mancuernas", e71:"Elevación Frontal con Mancuernas",
+  e72:"Remo al Mentón con Barra", e70:"Aperturas Invertidas con Mancuernas",
+  e15:"Jalón a la Cara en Polea",
+
+  e18:"Extensión de Tríceps sobre la Cabeza en Polea",
+  e34:"Extensión de Tríceps sobre la Cabeza en Polea (Unilateral)",
+  e17:"Extensión de Tríceps en Polea (Barra V)", e33:"Extensión de Tríceps en Polea (Unilateral)",
+  e19:"Fondos de Tríceps", e48:"Press Francés", e49:"Patada de Tríceps con Mancuerna (Unilateral)",
+  e50:"Flexión Diamante",
+
+  e29:"Curl de Bíceps con Mancuernas", e73:"Curl de Bíceps con Barra",
+  e30:"Curl de Bíceps en Polea", e45:"Curl Martillo con Mancuernas",
+  e46:"Curl Inclinado con Mancuernas", e27:"Curl Predicador con Barra Z",
+  e80:"Curl Predicador con Mancuerna (Unilateral)", e28:"Curl Declinado con Mancuernas",
+  e47:"Curl Concentrado con Mancuerna (Unilateral)", e101:"Curl Araña con Barra Z",
+  e102:"Curl Zottman con Mancuernas",
+
+  e51:"Plancha", e88:"Plancha Frontal con Giro", e52:"Abdominal", e56:"Giro Ruso",
+  e53:"Elevación de Piernas", e89:"Elevación de Piernas Sentado",
+  e57:"Elevación de Piernas Colgado", e54:"Abdominal en Polea", e55:"Rueda Abdominal",
+  e58:"Plancha Superman", e74:"Plancha Lateral", e90:"Plancha Lateral Inclinada",
+  e103:"Bicho Muerto", e104:"Escalador",
+
+  e105:"Correr (Cinta)", e106:"Ciclismo (Bicicleta Fija)", e107:"Escaladora",
+  e108:"Elíptica", e109:"Máquina de Remo", e110:"Salto a la Soga",
+  e111:"Caminata Inclinada (Cinta)",
+};
+
+// The only place EX_NAMES_ES is ever read — falls back to the exercise's
+// real name whenever the current language isn't Spanish, or a given id
+// has no translation yet (new exercise added without updating this map).
+function exerciseDisplayName(ex){
+  if(!ex) return '';
+  if(currentLang==='es' && EX_NAMES_ES[ex.id]) return EX_NAMES_ES[ex.id];
+  return ex.name;
+}
+// For call sites that only have an id (or a name captured at some earlier
+// point, e.g. a stored log entry) rather than a live exercise object.
+function exerciseDisplayNameById(id, fallbackName){
+  const ex=db.exercises.find(e=>e.id===id);
+  if(ex) return exerciseDisplayName(ex);
+  return fallbackName!=null ? fallbackName : id;
+}
+
 // Which lifts get a PR/1RM row on the profile's PRs tab, and in what order.
 // Hand-picked per muscle group (Alan's call, 2026-07-23, revised 2026-07-24
 // after checking which lifts people actually 1RM-test — Dumbbell Shoulder
@@ -2822,7 +2910,7 @@ function renderWoScreen(){
       return `<div class="set-row time-row" id="sr-${ei}-${s}">
         <span class="set-n">${s+1}</span>
         <div class="target-chip">${targetSec>0?fmtDuration(targetSec):'—'}<span class="u">${t('workout_target_label')}</span></div>
-        <button class="go-btn" onclick="openActiveClock(${ei},${s},${targetSec},'${escapeHtml(ex.name).replace(/'/g,"\\'")}')">${t('workout_go_btn')}</button>
+        <button class="go-btn" onclick="openActiveClock(${ei},${s},${targetSec},'${escapeHtml(exerciseDisplayNameById(ex.id, ex.name)).replace(/'/g,"\\'")}')">${t('workout_go_btn')}</button>
       </div>`;
     }
     const stepAmt=isLbMode()?5:2.5;
@@ -2859,7 +2947,7 @@ function renderWoScreen(){
       const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="${t('workout_edit_notes')}"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>`;
       const lastHtml=item.lastHistory?`<div class="ex-card-last">${ICON_LAST} ${t('ex_db_last_label')}: ${item.lastHistory}</div>`:'';
       const videoBtnHtml=buildExerciseVideoBtnHtml(item.id, 26);
-      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${item.name}</div>${videoBtnHtml}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
+      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${exerciseDisplayNameById(item.id, item.name)}</div>${videoBtnHtml}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
       body.appendChild(card);
     } else if(item.type==='ss'){
       // Superset block
@@ -3963,7 +4051,7 @@ function openRoutineModal(editId){
     muscles.forEach(m=>{
       h+=`<optgroup label="${t('muscle_'+m.toLowerCase())}">`;
       db.exercises.filter(e=>e.muscle===m).forEach(e=>{
-        h+=`<option value="${e.id}"${e.id===exId?' selected':''}>${e.name}</option>`;
+        h+=`<option value="${e.id}"${e.id===exId?' selected':''}>${exerciseDisplayName(e)}</option>`;
       });
       h+='</optgroup>';
     });
@@ -4215,7 +4303,7 @@ function buildLogListHtml(entries){
     const det=entry.exercises.map(ex=>{
       const timed=isTimeTrackedEx(ex.id);
       const ss=ex.sets.map((s,i)=>{ if(timed) return `${i+1}: ${fmtDuration(s.reps)}`; const tw=toDisplayWeight(getTrueWeight(ex.id,s.weight)); return `${i+1}: ${tw===0?'BW':tw+unitLabel()}×${s.reps}`; }).join('  ·  ');
-      return`<div class="log-ex"><div class="log-ex-n">${escapeHtml(ex.name)}</div><div class="log-sets">${ss||'—'}</div></div>`;
+      return`<div class="log-ex"><div class="log-ex-n">${escapeHtml(exerciseDisplayNameById(ex.id, ex.name))}</div><div class="log-sets">${ss||'—'}</div></div>`;
     }).join('');
     const noteHtml=entry.note?`<div class="log-note">"${escapeHtml(entry.note)}"</div>`:'';
     return`<div class="log-item">
@@ -4439,7 +4527,7 @@ function buildProgramRotationHtml(schedule, schedulePos, routines, exercisesCata
       // averaged target_* columns), so they always take this path too.
       const setRows=(re.setRows&&re.setRows.length)?re.setRows:Array(re.sets||0).fill({kg:re.weight||0,reps:re.reps||0});
       const target=setRows.map(sr=>`${sr.kg||0}kg × ${sr.reps||0}`).join(' | ');
-      return `<div class="prof-rtn-ex-row"><span class="prof-rtn-ex-name">${escapeHtml(ex.name)}</span><span class="prof-rtn-ex-target">${target}</span></div>`;
+      return `<div class="prof-rtn-ex-row"><span class="prof-rtn-ex-name">${escapeHtml(exerciseDisplayName(ex))}</span><span class="prof-rtn-ex-target">${target}</span></div>`;
     }).join('');
     return `<div class="prof-rtn-item">
       <div class="prof-rtn-row ${isCur?'next':''}" onclick="toggleEl(this)">
@@ -5620,7 +5708,7 @@ function renderExercisesDB(){
           return `<div class="ex-db-row" onclick="openExDetail('${e.id}')">
             <div class="ex-db-row-inner">
               <div class="ex-db-info">
-                <div class="ex-db-name">${e.name}</div>
+                <div class="ex-db-name">${exerciseDisplayName(e)}</div>
                 ${e.notes?`<div class="ex-db-notes">${e.notes}</div>`:''}
                 ${prHtml}${lwHtml}
               </div>
@@ -5685,9 +5773,9 @@ async function openExerciseVideo(exId){
   const ex=db.exercises.find(e=>e.id===exId);
   const url=exerciseVideoUrl(ex);
   if(!url) return;
-  document.getElementById('exercise-video-title').textContent=ex.name;
+  document.getElementById('exercise-video-title').textContent=exerciseDisplayName(ex);
   const img=document.getElementById('exercise-video-img');
-  img.alt=ex.name+' demonstration';
+  img.alt=exerciseDisplayName(ex)+' '+t('exd_video_demonstration_suffix');
   document.getElementById('exercise-video-overlay').style.display='flex';
   img.src=await getExerciseVideoSrc(ex); // cached blob when this exercise is in a routine and already downloaded; live URL otherwise
 }
@@ -5776,7 +5864,7 @@ function openExDetail(exId){
   const ex=db.exercises.find(e=>e.id===exId);
   if(!ex) return;
   document.getElementById('exd-muscle').textContent=t('muscle_'+ex.muscle.toLowerCase());
-  document.getElementById('exd-name').textContent=ex.name;
+  document.getElementById('exd-name').textContent=exerciseDisplayName(ex);
   document.getElementById('exd-video-btn').innerHTML=buildExerciseVideoBtnHtml(exId, 38);
   renderExDetail(exId);
   showScreen('ex-detail');
@@ -6070,21 +6158,22 @@ function initProgressCharts(){
   const usedExIds=new Set();
   db.workoutLog.forEach(log=>log.exercises.forEach(e=>usedExIds.add(e.id)));
   const usedExs=db.exercises.filter(e=>usedExIds.has(e.id));
-  if(!exSel.options.length || exSel._populated!==db.workoutLog.length){
+  const popKey=db.workoutLog.length+'|'+currentLang;
+  if(!exSel.options.length || exSel._populated!==popKey){
     exSel.innerHTML=usedExs.length
-      ? usedExs.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')
-      : '<option value="">No exercises logged yet</option>';
-    exSel._populated=db.workoutLog.length;
+      ? usedExs.map(e=>`<option value="${e.id}">${exerciseDisplayName(e)}</option>`).join('')
+      : `<option value="">${t('analytics_no_exercises_logged')}</option>`;
+    exSel._populated=popKey;
   }
   // Populate routine selector
   const rtSel=document.getElementById('prog-rt-sel');
   const usedRtIds=new Set(db.workoutLog.map(l=>l.routineId));
   const usedRts=db.routines.filter(r=>usedRtIds.has(r.id));
-  if(!rtSel.options.length || rtSel._populated!==db.workoutLog.length){
+  if(!rtSel.options.length || rtSel._populated!==popKey){
     rtSel.innerHTML=usedRts.length
       ? usedRts.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')
-      : '<option value="">No workouts logged yet</option>';
-    rtSel._populated=db.workoutLog.length;
+      : `<option value="">${t('analytics_no_workouts_logged')}</option>`;
+    rtSel._populated=popKey;
   }
   drawExChart();
   drawRtChart();
@@ -6138,14 +6227,14 @@ function drawExChart(){
       return {date:log.date, w:maxW, sets, label:fmtDate(log.date,exRange)};
     });
 
-  document.getElementById('ex-chart-title').textContent=ex.name;
-  document.getElementById('ex-stat-pr-lbl').textContent=timed?'PR':'PR ('+unitLabel()+')';
+  document.getElementById('ex-chart-title').textContent=exerciseDisplayName(ex);
+  document.getElementById('ex-stat-pr-lbl').textContent=timed?t('ex_db_pr_label'):t('ex_db_pr_label')+' ('+unitLabel()+')';
   const pr=db.allTimePRs[exId];
   const prDispW=pr?toDisplayWeight(getTrueWeight(exId,pr.weight)):0; // pr.weight is raw kg — normalize+convert once, reused below for the chart's PR-dot comparison and both stat cells
-  document.getElementById('ex-chart-pr').textContent=pr?'⚡ PR: '+(timed?fmtDuration(pr.reps):fmtPRWeight(pr,exId)):'';
+  document.getElementById('ex-chart-pr').textContent=pr?'⚡ '+t('ex_db_pr_label')+': '+(timed?fmtDuration(pr.reps):fmtPRWeight(pr,exId)):'';
 
   if(sessions.length<2){
-    document.getElementById('ex-svg').innerHTML='<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family="Rajdhani" dy=".3em">Not enough data for this range</text>';
+    document.getElementById('ex-svg').innerHTML=`<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family="Rajdhani" dy=".3em">${t('analytics_not_enough_data')}</text>`;
     document.getElementById('ex-svg').setAttribute('viewBox','0 0 400 80');
     document.getElementById('ex-svg').style.height='80px';
     document.getElementById('ex-stat-gain').textContent='—';
@@ -6243,7 +6332,7 @@ function drawRtChart(){
   document.getElementById('rt-chart-title').textContent=rt.name;
 
   if(logs.length<2){
-    document.getElementById('rt-svg').innerHTML='<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family="Rajdhani" dy=".3em">Not enough data for this range</text>';
+    document.getElementById('rt-svg').innerHTML=`<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family="Rajdhani" dy=".3em">${t('analytics_not_enough_data')}</text>`;
     document.getElementById('rt-svg').setAttribute('viewBox','0 0 400 80');
     document.getElementById('rt-svg').style.height='80px';
     document.getElementById('rt-legend').innerHTML='';
@@ -6257,7 +6346,7 @@ function drawRtChart(){
 
   const series=exIds.map(exId=>{
     const ex=db.exercises.find(e=>e.id===exId);
-    const name=ex?ex.name:exId;
+    const name=ex?exerciseDisplayName(ex):exId;
     const vals=logs.map(log=>{
       const exLog=log.exercises.find(e=>e.id===exId);
       if(!exLog||!exLog.sets.length) return null;
@@ -6338,7 +6427,7 @@ function drawRtChart(){
   const lastAvg=avgPcts[avgPcts.length-1];
   const badge=document.getElementById('rt-trend-badge');
   badge.style.display='inline-flex';
-  badge.textContent=`${lastAvg>=0?'↗':'↘'} Overall ${lastAvg>=0?'+':''}${lastAvg.toFixed(1)}% vs first session`;
+  badge.textContent=`${lastAvg>=0?'↗':'↘'} ${t('analytics_overall_trend')} ${lastAvg>=0?'+':''}${lastAvg.toFixed(1)}% ${t('analytics_vs_first_session')}`;
 
   // Tooltips
   svg.querySelectorAll('.rt-dot').forEach(el=>{
@@ -6722,6 +6811,12 @@ const STRINGS = {
     exd_prefill_note: 'This is what will pre-fill next time you do this exercise.',
     exd_duration_label: 'DURATION',
     exd_alltime_pr: 'All-time PR',
+    exd_video_demonstration_suffix: 'demonstration',
+    analytics_no_exercises_logged: 'No exercises logged yet',
+    analytics_no_workouts_logged: 'No workouts logged yet',
+    analytics_not_enough_data: 'Not enough data for this range',
+    analytics_overall_trend: 'Overall',
+    analytics_vs_first_session: 'vs first session',
   },
   es: {
     back: '← Volver',
@@ -7051,6 +7146,12 @@ const STRINGS = {
     exd_prefill_note: 'Esto es lo que se va a precargar la próxima vez que hagas este ejercicio.',
     exd_duration_label: 'DURACIÓN',
     exd_alltime_pr: 'Récord histórico',
+    exd_video_demonstration_suffix: 'demostración',
+    analytics_no_exercises_logged: 'Todavía no hay ejercicios registrados',
+    analytics_no_workouts_logged: 'Todavía no hay rutinas registradas',
+    analytics_not_enough_data: 'No hay suficientes datos para este rango',
+    analytics_overall_trend: 'General',
+    analytics_vs_first_session: 'vs. primera sesión',
   },
 };
 
