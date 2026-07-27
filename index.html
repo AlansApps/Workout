@@ -4374,7 +4374,7 @@ async function renderProfileHeader(){
   const profile=await getMyProfile(); // cached — instant on every open after the first
   const fullName=escapeHtml((profile && profile.full_name) || currentUser.email || '—');
   const username=escapeHtml((profile && profile.username) || '—');
-  const verifiedBadge=(profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
+  const verifiedBadge=(profile && profile.verified) ? ' <span title="'+t('verified_tooltip')+'" style="color:var(--gold);">✓</span>' : '';
 
   const paint=(counts)=>{
     el.innerHTML=`
@@ -4941,7 +4941,7 @@ async function renderOtherProfile(){
   }
   const badgeHtml=buildInsigniaBadgeHtml(equippedInsignia, false);
 
-  const verifiedBadge = profile.verified ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
+  const verifiedBadge = profile.verified ? ' <span title="'+t('verified_tooltip')+'" style="color:var(--gold);">✓</span>' : '';
 
   body.innerHTML=`
     <div id="oprof-sticky" class="profile-sticky">
@@ -6631,6 +6631,63 @@ const STRINGS = {
     workout_rounds_label: 'rounds',
     workout_round_label: 'Round',
     workout_add_notes_placeholder: 'Add notes...',
+    account_email_password_provider: 'Email & Password',
+    account_change_password: 'Change your password',
+    account_add_password: 'Add a password so you can sign in without Google',
+    account_name_label: 'Name',
+    account_handle_label: 'Handle',
+    account_private_label: 'Private Account',
+    account_private_sub: 'Only people you approve can follow you and see your Program and Log',
+    account_email_label: 'Email',
+    account_signed_in_with_label: 'Signed in with',
+    account_plan_label: 'Plan',
+    account_password_label: 'Password',
+    account_signout_label: 'Sign out',
+    account_signin_row_title: 'Sign in',
+    account_signin_row_sub: 'Sign in to manage your account',
+    tier_label_free: 'Free',
+    tier_label_member: 'Member — $0.99/mo',
+    tier_label_trainer: 'Trainer — $5.99/mo',
+    verified_tooltip: 'Verified',
+    weight_units_label: 'Units',
+    weight_units_sub: 'What every weight in the app is shown and typed in',
+    weight_kilograms: 'Kilograms (kg)',
+    weight_pounds: 'Pounds (lb)',
+    weight_bodyweight_label: 'Body Weight',
+    weight_bodyweight_sub: 'Optional — only used to correctly estimate 1RM on bodyweight-assisted exercises like Weighted Pull-Up',
+    weight_bodyweight_placeholder_lb: 'e.g. 175',
+    weight_bodyweight_placeholder_kg: 'e.g. 80',
+    weight_barbell_label: 'Barbell Logging',
+    weight_barbell_sub: 'What does the number you type mean, for barbell exercises?',
+    weight_total_weight: 'Total weight',
+    weight_per_side: 'Per side',
+    weight_bar_weight_label: 'BAR WEIGHT',
+    weight_dumbbell_label: 'Dumbbell Logging',
+    weight_dumbbell_sub: 'What does the number you type mean, for dumbbell exercises?',
+    weight_per_dumbbell: 'Per dumbbell',
+    weight_total_both: 'Total (both)',
+    account_password_modal_change_title: 'Change Password',
+    account_password_modal_set_title: 'Set a Password',
+    account_password_modal_add_note: 'Add a password so you can sign in with your email even without Google.',
+    error_password_min_length: 'Password must be at least 8 characters.',
+    error_passwords_dont_match: "Passwords don't match.",
+    loading_updating_password: 'Updating password…',
+    error_enter_email_password: 'Enter your email and password.',
+    loading_signing_in: 'Signing in…',
+    error_could_not_sign_in: 'Could not sign in.',
+    error_username_format: 'Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).',
+    error_valid_email_password: 'Enter a valid email and a password of at least 8 characters.',
+    loading_checking_username: 'Checking username…',
+    error_username_not_available: "That username isn't available. Try something else.",
+    loading_creating_account: 'Creating account…',
+    error_confirm_email_first: 'Check your email to confirm your account, then sign in.',
+    error_could_not_create_account: 'Could not create your account.',
+    error_enter_email_first: 'Enter your email above first, then tap this again.',
+    info_reset_email_sent: 'Password reset email sent — check your inbox.',
+    error_could_not_send_reset: 'Could not send reset email.',
+    loading_setting_up_account: 'Setting up your account…',
+    error_username_maybe_taken: 'That username may already be taken.',
+    error_sync_failed: 'Something went wrong syncing your data. Check your connection and try again.',
   },
   es: {
     back: '← Volver',
@@ -6869,6 +6926,63 @@ const STRINGS = {
     workout_rounds_label: 'rondas',
     workout_round_label: 'Ronda',
     workout_add_notes_placeholder: 'Agregar notas...',
+    account_email_password_provider: 'Correo y Contraseña',
+    account_change_password: 'Cambiar tu contraseña',
+    account_add_password: 'Agregá una contraseña para poder iniciar sesión sin Google',
+    account_name_label: 'Nombre',
+    account_handle_label: 'Usuario',
+    account_private_label: 'Cuenta Privada',
+    account_private_sub: 'Solo las personas que aprobés pueden seguirte y ver tu Programa y Registro',
+    account_email_label: 'Correo electrónico',
+    account_signed_in_with_label: 'Sesión iniciada con',
+    account_plan_label: 'Plan',
+    account_password_label: 'Contraseña',
+    account_signout_label: 'Cerrar sesión',
+    account_signin_row_title: 'Iniciar sesión',
+    account_signin_row_sub: 'Iniciá sesión para gestionar tu cuenta',
+    tier_label_free: 'Gratis',
+    tier_label_member: 'Miembro — $0.99/mes',
+    tier_label_trainer: 'Entrenador — $5.99/mes',
+    verified_tooltip: 'Verificado',
+    weight_units_label: 'Unidades',
+    weight_units_sub: 'En qué unidad se muestra y se escribe cada peso en la app',
+    weight_kilograms: 'Kilogramos (kg)',
+    weight_pounds: 'Libras (lb)',
+    weight_bodyweight_label: 'Peso Corporal',
+    weight_bodyweight_sub: 'Opcional — solo se usa para estimar correctamente el 1RM en ejercicios asistidos por peso corporal como la Dominada Lastrada',
+    weight_bodyweight_placeholder_lb: 'ej. 175',
+    weight_bodyweight_placeholder_kg: 'ej. 80',
+    weight_barbell_label: 'Registro de Barra',
+    weight_barbell_sub: '¿Qué significa el número que ingresás, para ejercicios con barra?',
+    weight_total_weight: 'Peso total',
+    weight_per_side: 'Por lado',
+    weight_bar_weight_label: 'PESO DE LA BARRA',
+    weight_dumbbell_label: 'Registro de Mancuernas',
+    weight_dumbbell_sub: '¿Qué significa el número que ingresás, para ejercicios con mancuernas?',
+    weight_per_dumbbell: 'Por mancuerna',
+    weight_total_both: 'Total (ambas)',
+    account_password_modal_change_title: 'Cambiar Contraseña',
+    account_password_modal_set_title: 'Establecer una Contraseña',
+    account_password_modal_add_note: 'Agregá una contraseña para poder iniciar sesión con tu correo incluso sin Google.',
+    error_password_min_length: 'La contraseña debe tener al menos 8 caracteres.',
+    error_passwords_dont_match: 'Las contraseñas no coinciden.',
+    loading_updating_password: 'Actualizando contraseña…',
+    error_enter_email_password: 'Ingresá tu correo electrónico y contraseña.',
+    loading_signing_in: 'Iniciando sesión…',
+    error_could_not_sign_in: 'No se pudo iniciar sesión.',
+    error_username_format: 'El nombre de usuario debe tener entre 3 y 30 caracteres: solo letras, números, puntos y guiones bajos (sin puntos al inicio, al final, o dobles).',
+    error_valid_email_password: 'Ingresá un correo electrónico válido y una contraseña de al menos 8 caracteres.',
+    loading_checking_username: 'Verificando nombre de usuario…',
+    error_username_not_available: 'Ese nombre de usuario no está disponible. Probá con otro.',
+    loading_creating_account: 'Creando cuenta…',
+    error_confirm_email_first: 'Revisá tu correo para confirmar tu cuenta y luego iniciá sesión.',
+    error_could_not_create_account: 'No se pudo crear tu cuenta.',
+    error_enter_email_first: 'Ingresá tu correo electrónico arriba primero y volvé a tocar esto.',
+    info_reset_email_sent: 'Correo de restablecimiento enviado — revisá tu bandeja de entrada.',
+    error_could_not_send_reset: 'No se pudo enviar el correo de restablecimiento.',
+    loading_setting_up_account: 'Configurando tu cuenta…',
+    error_username_maybe_taken: 'Ese nombre de usuario ya puede estar en uso.',
+    error_sync_failed: 'Algo salió mal al sincronizar tus datos. Verificá tu conexión e intentá de nuevo.',
   },
 };
 
@@ -7396,8 +7510,8 @@ async function renderAccountSection(){
           <div class="settings-row-left">
             <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div>
             <div>
-              <div class="settings-row-title">Sign in</div>
-              <div class="settings-row-sub">Sign in to manage your account</div>
+              <div class="settings-row-title">${t('account_signin_row_title')}</div>
+              <div class="settings-row-sub">${t('account_signin_row_sub')}</div>
             </div>
           </div>
           <div class="settings-row-arrow">›</div>
@@ -7409,36 +7523,36 @@ async function renderAccountSection(){
   const profile = await getMyProfile();
 
   const provider = (currentUser.app_metadata && currentUser.app_metadata.provider) || 'email';
-  const providerLabel = provider === 'google' ? 'Google' : 'Email & Password';
-  const tierLabel = TIER_LABELS[getEffectiveTier(profile)];
-  const verifiedBadge = (profile && profile.verified) ? ' <span title="Verified" style="color:var(--gold);">✓</span>' : '';
+  const providerLabel = provider === 'google' ? 'Google' : t('account_email_password_provider');
+  const tierLabel = t('tier_label_'+getEffectiveTier(profile));
+  const verifiedBadge = (profile && profile.verified) ? ' <span title="'+t('verified_tooltip')+'" style="color:var(--gold);">✓</span>' : '';
   // Real case as entered — NOT uppercased. See My Account's original fix:
   // a name someone typed as "Alan Albrecht" has no business being shown
   // back to them as "ALAN ALBRECHT".
   const fullName = escapeHtml((profile && profile.full_name) || currentUser.email || '—');
   const username = escapeHtml((profile && profile.username) || '—');
   const hasPassword = !!(profile && profile.has_password);
-  const passwordLabel = hasPassword ? 'Change your password' : 'Add a password so you can sign in without Google';
+  const passwordLabel = hasPassword ? t('account_change_password') : t('account_add_password');
   const isPrivate = !!(profile && profile.is_private);
 
   el.innerHTML = `
     <div class="settings-group">
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div><div>
-          <div class="settings-row-title">Name</div>
+          <div class="settings-row-title">${t('account_name_label')}</div>
           <div class="settings-row-sub">${fullName}${verifiedBadge}</div>
         </div></div>
       </div>
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-5.5 8.28"/></svg></div><div>
-          <div class="settings-row-title">Handle</div>
+          <div class="settings-row-title">${t('account_handle_label')}</div>
           <div class="settings-row-sub">@${username}</div>
         </div></div>
       </div>
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div><div>
-          <div class="settings-row-title">Private Account</div>
-          <div class="settings-row-sub">Only people you approve can follow you and see your Program and Log</div>
+          <div class="settings-row-title">${t('account_private_label')}</div>
+          <div class="settings-row-sub">${t('account_private_sub')}</div>
         </div></div>
         <div class="switch" onclick="togglePrivateAccount()">
           <div class="switch-track ${isPrivate?'on':''}" id="private-toggle-track"><div class="switch-thumb"></div></div>
@@ -7446,32 +7560,32 @@ async function renderAccountSection(){
       </div>
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1.8"/><path d="M4 6.5l8 6.2 8-6.2"/></svg></div><div>
-          <div class="settings-row-title">Email</div>
+          <div class="settings-row-title">${t('account_email_label')}</div>
           <div class="settings-row-sub">${escapeHtml(currentUser.email || '')}</div>
         </div></div>
       </div>
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.5l7 2.6v5.4c0 4.6-3 7.9-7 9-4-1.1-7-4.4-7-9V6.1z"/><path d="M9 12l2.2 2.2L15.5 9.8"/></svg></div><div>
-          <div class="settings-row-title">Signed in with</div>
+          <div class="settings-row-title">${t('account_signed_in_with_label')}</div>
           <div class="settings-row-sub">${providerLabel}</div>
         </div></div>
       </div>
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.5.6-4 3.8.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.8 5.5-.6z"/></svg></div><div>
-          <div class="settings-row-title">Plan</div>
+          <div class="settings-row-title">${t('account_plan_label')}</div>
           <div class="settings-row-sub">${tierLabel}</div>
         </div></div>
       </div>
       <div class="settings-row" onclick="openPasswordModal(${hasPassword})" style="cursor:pointer;">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M11.5 12h9m-4 0v3.5m3-3.5v2.5"/></svg></div><div>
-          <div class="settings-row-title">Password</div>
+          <div class="settings-row-title">${t('account_password_label')}</div>
           <div class="settings-row-sub">${passwordLabel}</div>
         </div></div>
         <div class="settings-row-arrow">›</div>
       </div>
       <div class="settings-row" onclick="confirmSignOut()" style="cursor:pointer;border-bottom:none;">
         <div class="settings-row-left"><div class="settings-row-icon" style="color:var(--danger,#c94444);"><svg viewBox="0 0 24 24"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M15 8l4 4-4 4M19 12H9"/></svg></div>
-          <div class="settings-row-title" style="color:var(--danger,#c94444);">Sign out</div>
+          <div class="settings-row-title" style="color:var(--danger,#c94444);">${t('account_signout_label')}</div>
         </div>
       </div>
     </div>
@@ -7493,40 +7607,40 @@ function renderWeightPrefsSection(){
     <div class="settings-group">
       <div class="settings-row" style="align-items:flex-start;">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M6 12h12M6 12a2 2 0 1 1-2-2v4a2 2 0 1 1 2-2zM18 12a2 2 0 1 0 2-2v4a2 2 0 1 0-2-2z"/></svg></div><div>
-          <div class="settings-row-title">Units</div>
-          <div class="settings-row-sub">What every weight in the app is shown and typed in</div>
+          <div class="settings-row-title">${t('weight_units_label')}</div>
+          <div class="settings-row-sub">${t('weight_units_sub')}</div>
         </div></div>
       </div>
       <div class="prog-time-pills" style="padding:0 18px 16px;">
-        <button class="prog-pill ${!isLbMode()?'active':''}" onclick="saveWeightPref('units','kg')">Kilograms (kg)</button>
-        <button class="prog-pill ${isLbMode()?'active':''}" onclick="saveWeightPref('units','lb')">Pounds (lb)</button>
+        <button class="prog-pill ${!isLbMode()?'active':''}" onclick="saveWeightPref('units','kg')">${t('weight_kilograms')}</button>
+        <button class="prog-pill ${isLbMode()?'active':''}" onclick="saveWeightPref('units','lb')">${t('weight_pounds')}</button>
       </div>
 
       <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div><div>
-          <div class="settings-row-title">Body Weight</div>
-          <div class="settings-row-sub">Optional — only used to correctly estimate 1RM on bodyweight-assisted exercises like Weighted Pull-Up</div>
+          <div class="settings-row-title">${t('weight_bodyweight_label')}</div>
+          <div class="settings-row-sub">${t('weight_bodyweight_sub')}</div>
         </div></div>
       </div>
       <div style="padding:0 18px 16px;">
         <input class="ex-edit-field" type="number" inputmode="decimal" style="max-width:120px;"
-          placeholder="${isLbMode()?'e.g. 175':'e.g. 80'}" value="${p.bodyweightKg?toDisplayWeight(p.bodyweightKg):''}"
+          placeholder="${isLbMode()?t('weight_bodyweight_placeholder_lb'):t('weight_bodyweight_placeholder_kg')}" value="${p.bodyweightKg?toDisplayWeight(p.bodyweightKg):''}"
           onchange="saveWeightPref('bodyweightKg', fromDisplayUnit(parseFloat(this.value)||0)||null)">
       </div>
 
       <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="3" y="8" width="4" height="8" rx="1"/><rect x="17" y="8" width="4" height="8" rx="1"/></svg></div><div>
-          <div class="settings-row-title">Barbell Logging</div>
-          <div class="settings-row-sub">What does the number you type mean, for barbell exercises?</div>
+          <div class="settings-row-title">${t('weight_barbell_label')}</div>
+          <div class="settings-row-sub">${t('weight_barbell_sub')}</div>
         </div></div>
       </div>
       <div class="prog-time-pills" style="padding:0 18px 14px;">
-        <button class="prog-pill ${p.barbellMode==='total'?'active':''}" onclick="saveWeightPref('barbellMode','total')">Total weight</button>
-        <button class="prog-pill ${p.barbellMode==='perSide'?'active':''}" onclick="saveWeightPref('barbellMode','perSide')">Per side</button>
+        <button class="prog-pill ${p.barbellMode==='total'?'active':''}" onclick="saveWeightPref('barbellMode','total')">${t('weight_total_weight')}</button>
+        <button class="prog-pill ${p.barbellMode==='perSide'?'active':''}" onclick="saveWeightPref('barbellMode','perSide')">${t('weight_per_side')}</button>
       </div>
       ${p.barbellMode==='perSide' ? `
       <div style="padding:0 18px 16px;">
-        <div class="ex-weight-label">BAR WEIGHT (${unit.toUpperCase()})</div>
+        <div class="ex-weight-label">${t('weight_bar_weight_label')} (${unit.toUpperCase()})</div>
         <input class="ex-edit-field" type="number" inputmode="decimal" style="max-width:120px;"
           value="${toDisplayWeight(p.barWeightKg||20)}"
           onchange="saveWeightPref('barWeightKg', fromDisplayUnit(parseFloat(this.value)||0))">
@@ -7534,13 +7648,13 @@ function renderWeightPrefsSection(){
 
       <div class="settings-row" style="align-items:flex-start;border-top:1px solid var(--line);border-bottom:none;">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="2.5" y="10" width="4" height="4" rx="1"/><rect x="17.5" y="10" width="4" height="4" rx="1"/><path d="M6.5 12h11"/></svg></div><div>
-          <div class="settings-row-title">Dumbbell Logging</div>
-          <div class="settings-row-sub">What does the number you type mean, for dumbbell exercises?</div>
+          <div class="settings-row-title">${t('weight_dumbbell_label')}</div>
+          <div class="settings-row-sub">${t('weight_dumbbell_sub')}</div>
         </div></div>
       </div>
       <div class="prog-time-pills" style="padding:0 18px 4px;">
-        <button class="prog-pill ${p.dumbbellMode==='perDumbbell'?'active':''}" onclick="saveWeightPref('dumbbellMode','perDumbbell')">Per dumbbell</button>
-        <button class="prog-pill ${p.dumbbellMode==='total'?'active':''}" onclick="saveWeightPref('dumbbellMode','total')">Total (both)</button>
+        <button class="prog-pill ${p.dumbbellMode==='perDumbbell'?'active':''}" onclick="saveWeightPref('dumbbellMode','perDumbbell')">${t('weight_per_dumbbell')}</button>
+        <button class="prog-pill ${p.dumbbellMode==='total'?'active':''}" onclick="saveWeightPref('dumbbellMode','total')">${t('weight_total_both')}</button>
       </div>
     </div>
   `;
@@ -7658,24 +7772,24 @@ function renderLanguageSection(){
 // just closes it — Settings underneath already shows the flattened
 // account rows directly, there's no separate account view to return to.
 function openPasswordModal(hasPassword){
-  document.getElementById('modal-title').textContent = hasPassword ? 'Change Password' : 'Set a Password';
+  document.getElementById('modal-title').textContent = hasPassword ? t('account_password_modal_change_title') : t('account_password_modal_set_title');
   document.getElementById('modal-body').innerHTML = `
     <div class="auth-tagline" style="text-align:left;margin-bottom:16px;">
-      ${hasPassword ? 'Choose a new password for your account.' : 'Add a password so you can sign in with your email even without Google.'}
+      ${hasPassword ? t('auth_reset_tagline') : t('account_password_modal_add_note')}
     </div>
     <div class="form-grp">
-      <label class="form-lbl">New Password</label>
-      <input class="form-inp" type="password" id="account-password-1" autocomplete="new-password" placeholder="At least 8 characters">
+      <label class="form-lbl">${t('auth_label_new_password')}</label>
+      <input class="form-inp" type="password" id="account-password-1" autocomplete="new-password" placeholder="${t('auth_placeholder_min_chars')}">
     </div>
     <div class="form-grp">
-      <label class="form-lbl">Confirm Password</label>
-      <input class="form-inp" type="password" id="account-password-2" autocomplete="new-password" placeholder="Re-enter password">
+      <label class="form-lbl">${t('auth_label_confirm_password')}</label>
+      <input class="form-inp" type="password" id="account-password-2" autocomplete="new-password" placeholder="${t('auth_placeholder_reenter')}">
     </div>
     <div class="auth-error" id="account-password-error"></div>
   `;
   document.getElementById('modal-footer').innerHTML =
-    `<button class="btn-ghost" onclick="closeModal()">Back</button>` +
-    `<button class="btn-main" id="account-password-submit" style="padding:9px 22px;font-size:12px;width:auto" onclick="submitAccountPassword()">Save</button>`;
+    `<button class="btn-ghost" onclick="closeModal()">${t('back')}</button>` +
+    `<button class="btn-main" id="account-password-submit" style="padding:9px 22px;font-size:12px;width:auto" onclick="submitAccountPassword()">${t('save')}</button>`;
 }
 
 async function submitAccountPassword(){
@@ -7683,8 +7797,8 @@ async function submitAccountPassword(){
   const pw2 = document.getElementById('account-password-2').value;
   const errEl = document.getElementById('account-password-error');
   errEl.textContent = '';
-  if(pw1.length < 8){ errEl.textContent = 'Password must be at least 8 characters.'; return; }
-  if(pw1 !== pw2){ errEl.textContent = 'Passwords don\'t match.'; return; }
+  if(pw1.length < 8){ errEl.textContent = t('error_password_min_length'); return; }
+  if(pw1 !== pw2){ errEl.textContent = t('error_passwords_dont_match'); return; }
 
   const btn = document.getElementById('account-password-submit'); btn.disabled = true;
   try{
@@ -7941,15 +8055,15 @@ async function authSignInWithEmail(){
   const password = document.getElementById('signin-password').value;
   const errEl = document.getElementById('signin-error');
   errEl.textContent='';
-  if(!email || !password){ errEl.textContent='Enter your email and password.'; return; }
+  if(!email || !password){ errEl.textContent=t('error_enter_email_password'); return; }
 
-  const btn = document.getElementById('signin-submit'); setBtnLoading(btn,true,'Signing in…');
+  const btn = document.getElementById('signin-submit'); setBtnLoading(btn,true,t('loading_signing_in'));
   try{
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if(error) throw error;
     await handleSignedInBoot(data.user);
   }catch(e){
-    errEl.textContent = e.message || 'Could not sign in.';
+    errEl.textContent = e.message || t('error_could_not_sign_in');
   }finally{
     setBtnLoading(btn,false);
   }
@@ -7963,16 +8077,16 @@ async function authSignUpWithEmail(){
   const errEl = document.getElementById('signup-error');
   errEl.textContent='';
 
-  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
-  if(!email || password.length < 8){ errEl.textContent='Enter a valid email and a password of at least 8 characters.'; return; }
+  if(!validateUsername(username)){ errEl.textContent=t('error_username_format'); return; }
+  if(!email || password.length < 8){ errEl.textContent=t('error_valid_email_password'); return; }
 
-  const btn = document.getElementById('signup-submit'); setBtnLoading(btn,true,'Checking username…');
+  const btn = document.getElementById('signup-submit'); setBtnLoading(btn,true,t('loading_checking_username'));
   if(!(await isUsernameAllowedRemote(username))){
-    errEl.textContent = 'That username isn\'t available. Try something else.';
+    errEl.textContent = t('error_username_not_available');
     setBtnLoading(btn,false);
     return;
   }
-  setBtnLoading(btn,true,'Creating account…');
+  setBtnLoading(btn,true,t('loading_creating_account'));
   try{
     const { data, error } = await supabaseClient.auth.signUp({
       email, password,
@@ -7984,10 +8098,10 @@ async function authSignUpWithEmail(){
     } else {
       // Supabase project has email confirmation required — no session yet.
       errEl.style.color = 'var(--dim)';
-      errEl.textContent = 'Check your email to confirm your account, then sign in.';
+      errEl.textContent = t('error_confirm_email_first');
     }
   }catch(e){
-    errEl.textContent = e.message || 'Could not create your account.';
+    errEl.textContent = e.message || t('error_could_not_create_account');
   }finally{
     setBtnLoading(btn,false);
   }
@@ -8010,13 +8124,13 @@ async function authSignInWithGoogle(){
 async function authSendPasswordReset(){
   const email = document.getElementById('signin-email').value.trim();
   const errEl = document.getElementById('signin-error');
-  if(!email){ errEl.textContent='Enter your email above first, then tap this again.'; return; }
+  if(!email){ errEl.textContent=t('error_enter_email_first'); return; }
   try{
     await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
     errEl.style.color = 'var(--dim)';
-    errEl.textContent = 'Password reset email sent — check your inbox.';
+    errEl.textContent = t('info_reset_email_sent');
   }catch(e){
-    errEl.textContent = e.message || 'Could not send reset email.';
+    errEl.textContent = e.message || t('error_could_not_send_reset');
   }
 }
 
@@ -8029,10 +8143,10 @@ async function authCompletePasswordReset(){
   const pw2 = document.getElementById('reset-password-2').value;
   const errEl = document.getElementById('reset-password-error');
   errEl.textContent = '';
-  if(pw1.length < 8){ errEl.textContent = 'Password must be at least 8 characters.'; return; }
-  if(pw1 !== pw2){ errEl.textContent = 'Passwords don\'t match.'; return; }
+  if(pw1.length < 8){ errEl.textContent = t('error_password_min_length'); return; }
+  if(pw1 !== pw2){ errEl.textContent = t('error_passwords_dont_match'); return; }
 
-  const btn = document.getElementById('reset-password-submit'); setBtnLoading(btn,true,'Updating password…');
+  const btn = document.getElementById('reset-password-submit'); setBtnLoading(btn,true,t('loading_updating_password'));
   try{
     const { error } = await supabaseClient.auth.updateUser({ password: pw1 });
     if(error) throw error;
@@ -8043,7 +8157,7 @@ async function authCompletePasswordReset(){
       showAuthView('signin');
     }
   }catch(e){
-    errEl.textContent = e.message || 'Could not update your password.';
+    errEl.textContent = e.message || t('error_update_password');
   }finally{
     setBtnLoading(btn,false);
   }
@@ -8063,15 +8177,15 @@ async function authCompleteProfile(){
   const username = document.getElementById('profile-username').value.trim().toLowerCase().replace(/^@/,'');
   const errEl = document.getElementById('profile-error');
   errEl.textContent='';
-  if(!validateUsername(username)){ errEl.textContent='Username must be 3-30 characters: letters, numbers, dots and underscores only (no leading, trailing, or double dots).'; return; }
+  if(!validateUsername(username)){ errEl.textContent=t('error_username_format'); return; }
 
-  const btn = document.getElementById('profile-submit'); setBtnLoading(btn,true,'Checking username…');
+  const btn = document.getElementById('profile-submit'); setBtnLoading(btn,true,t('loading_checking_username'));
   if(!(await isUsernameAllowedRemote(username))){
-    errEl.textContent = 'That username isn\'t available. Try something else.';
+    errEl.textContent = t('error_username_not_available');
     setBtnLoading(btn,false);
     return;
   }
-  setBtnLoading(btn,true,'Setting up your account…');
+  setBtnLoading(btn,true,t('loading_setting_up_account'));
   try{
     const { error } = await supabaseClient
       .from('profiles')
@@ -8080,7 +8194,7 @@ async function authCompleteProfile(){
     if(error) throw error;
     await afterAuthResolved();
   }catch(e){
-    errEl.textContent = e.message || 'That username may already be taken.';
+    errEl.textContent = e.message || t('error_username_maybe_taken');
   }finally{
     setBtnLoading(btn,false);
   }
@@ -8181,7 +8295,7 @@ async function resolveDataConflict(choice){
     // here could make a half-applied choice look successful. Keep them on
     // the conflict screen with a clear error instead, so they know to retry
     // rather than assuming their data is already resolved.
-    if(errEl) errEl.textContent = 'Something went wrong syncing your data. Check your connection and try again.';
+    if(errEl) errEl.textContent = t('error_sync_failed');
     return;
   }
   hideAuthScreen();
