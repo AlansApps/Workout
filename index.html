@@ -5051,9 +5051,9 @@ async function renderOtherProfile(){
         <button class="oprof-ping-btn ${pingUsed?'used':''}" id="oprof-ping-btn" onclick="openPingPicker('${uid}')" aria-label="Ping">${PING_ICON_SVG}</button>
       </div>
       <div class="profile-tabs">
-        <button class="profile-tab active" id="optab-prs" onclick="switchOtherProfileTab('prs')">PRs</button>
-        <button class="profile-tab" id="optab-program" onclick="switchOtherProfileTab('program')">Program</button>
-        <button class="profile-tab" id="optab-log" onclick="switchOtherProfileTab('log')">Log</button>
+        <button class="profile-tab active" id="optab-prs" onclick="switchOtherProfileTab('prs')">${t('profile_tab_prs')}</button>
+        <button class="profile-tab" id="optab-program" onclick="switchOtherProfileTab('program')">${t('nav_program')}</button>
+        <button class="profile-tab" id="optab-log" onclick="switchOtherProfileTab('log')">${t('profile_tab_log')}</button>
       </div>
     </div>
     <div id="oprof-tab-prs" class="profile-tab-content" style="padding:0;"></div>
@@ -5084,7 +5084,7 @@ async function renderOtherProfile(){
   const hiddenIds = profile.hidden_pr_exercise_ids || [];
   const allHidden = PR_TRACKED_EXERCISES.every(g => g.ids.every(id => hiddenIds.includes(id)));
   document.getElementById('oprof-tab-prs').innerHTML = allHidden
-    ? buildPRsHiddenHtml(profile.full_name || profile.username || 'This user')
+    ? buildPRsHiddenHtml(profile.full_name || profile.username || t('oprof_fallback_name'))
     : buildPRsTabHtml(logEntries, hiddenIds);
   document.getElementById('oprof-tab-program').innerHTML=buildProgramRotationHtml(programData.schedule, programData.schedulePos, programData.routines);
   document.getElementById('oprof-log-list').innerHTML=buildLogListHtml(logEntries);
@@ -5094,8 +5094,8 @@ async function renderOtherProfile(){
 function buildPrivateLockHtml(){
   return `<div class="oprof-lock">
     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-    <div class="oprof-lock-title">This account is private</div>
-    <div class="oprof-lock-sub">Follow to see their program and workout history.</div>
+    <div class="oprof-lock-title">${t('oprof_private_title')}</div>
+    <div class="oprof-lock-sub">${t('oprof_private_sub')}</div>
   </div>`;
 }
 
@@ -6460,7 +6460,7 @@ function drawRtChart(){
   legend.innerHTML=series.map((s,i)=>`
     <div class="prog-legend-item ${rtDimmed.has(i)?'dimmed':''}" onclick="toggleRtDim(${i})">
       <div class="prog-legend-dot" style="background:${CHART_COLORS[i%CHART_COLORS.length]}"></div>${s.name}
-    </div>`).join('')+`<div class="prog-legend-item"><div class="prog-legend-dot" style="background:rgba(255,255,255,0.15);border-radius:0;width:14px;height:2px;border-top:1px dashed rgba(255,255,255,0.2);"></div>Avg</div>`;
+    </div>`).join('')+`<div class="prog-legend-item"><div class="prog-legend-dot" style="background:rgba(255,255,255,0.15);border-radius:0;width:14px;height:2px;border-top:1px dashed rgba(255,255,255,0.2);"></div>${t('analytics_avg_label')}</div>`;
 }
 
 function toggleRtDim(i){
@@ -6835,6 +6835,10 @@ const STRINGS = {
     tip_profile_prs: 'Your 1RM is estimated from your PR set. Keep it accurate: set your bodyweight, units, and bar type in Settings.',
     error_profanity_name: 'That name contains language that is not allowed. Please use a different name.',
     alert_profanity_routine_name: 'That workout name contains language that is not allowed. Please use a different name.',
+    oprof_fallback_name: 'This user',
+    oprof_private_title: 'This account is private',
+    oprof_private_sub: 'Follow to see their program and workout history.',
+    analytics_avg_label: 'Avg',
   },
   es: {
     back: '← Volver',
@@ -7185,6 +7189,10 @@ const STRINGS = {
     tip_profile_prs: 'Tu 1RM se estima a partir de tu serie récord. Mantenelo preciso: configurá tu peso corporal, unidades y tipo de barra en Ajustes.',
     error_profanity_name: 'Ese nombre contiene lenguaje no permitido. Por favor usá otro nombre.',
     alert_profanity_routine_name: 'Ese nombre de rutina contiene lenguaje no permitido. Por favor usá otro nombre.',
+    oprof_fallback_name: 'Este usuario',
+    oprof_private_title: 'Esta cuenta es privada',
+    oprof_private_sub: 'Seguí a esta persona para ver su programa e historial de entrenamientos.',
+    analytics_avg_label: 'Prom',
   },
 };
 
