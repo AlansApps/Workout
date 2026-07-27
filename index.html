@@ -2591,8 +2591,8 @@ function importBackup() {
       db = { ...DEFAULT_DB, ...parsed };
       saveDB();
       showScreen('home');
-      alert('Backup restored successfully.');
-    } catch(e) { alert('Could not read backup file.'); }
+      alert(t('alert_backup_restored'));
+    } catch(e) { alert(t('alert_backup_read_error')); }
   };
   inp.click();
 }
@@ -3765,7 +3765,7 @@ function confirmDownloadRoutine(defId){
   const def=DEFAULT_ROUTINES.find(r=>r.id===defId);
   if(!def) return;
   const name=document.getElementById('dl-name-inp').value.trim();
-  if(!name){ alert('Name your routine.'); return; }
+  if(!name){ alert(t('alert_name_routine')); return; }
   db.routines.push({id:genId(), name, exercises:JSON.parse(JSON.stringify(def.exercises))});
   saveDB(); closeModal(); renderRoutines();
   syncOfflineVideoCache(); // the downloaded routine may reference exercises with cached videos
@@ -3902,7 +3902,7 @@ function confirmImportSharedRoutine(){
   const shared=_pendingSharedRoutine;
   if(!shared) return;
   const name=document.getElementById('dl-name-inp').value.trim();
-  if(!name){ alert('Name your routine.'); return; }
+  if(!name){ alert(t('alert_name_routine')); return; }
   db.routines.push({id:genId(), name, exercises:JSON.parse(JSON.stringify(shared.exercises))});
   saveDB(); closeModal(); renderRoutines();
   syncOfflineVideoCache();
@@ -4098,7 +4098,7 @@ function openRoutineModal(editId){
     rows.push({kg:last.kg,reps:last.reps}); rdr();
   };
   window.rmSet=function(i,si){
-    if(items[i].setRows.length<=1){alert('At least one set required.');return;}
+    if(items[i].setRows.length<=1){alert(t('alert_min_one_set'));return;}
     items[i].setRows.splice(si,1); rdr();
   };
   // Swapping the exercise dropdown mid-build normally keeps set values as-is
@@ -4122,7 +4122,7 @@ function openRoutineModal(editId){
   };
   window.rmSSEx=function(i,e){
     const ss=items[i];
-    if(ss.exercises.length<=2){alert('A superset needs at least 2 exercises.');return;}
+    if(ss.exercises.length<=2){alert(t('alert_superset_min_two'));return;}
     ss.exercises.splice(e,1);
     ss.sets.forEach(round=>round.splice(e,1));
     rdr();
@@ -4134,13 +4134,13 @@ function openRoutineModal(editId){
   };
   window.rmSSRound=function(i,r){
     const ss=items[i];
-    if(ss.sets.length<=1){alert('At least one round required.');return;}
+    if(ss.sets.length<=1){alert(t('alert_min_one_round'));return;}
     ss.sets.splice(r,1); rdr();
   };
   window.saveRoutine=function(){
     const name=document.getElementById('rn-inp').value.trim();
-    if(!name){alert('Name your routine.');return;}
-    if(!items.length){alert('Add at least one exercise.');return;}
+    if(!name){alert(t('alert_name_routine'));return;}
+    if(!items.length){alert(t('alert_add_one_exercise'));return;}
     const exercises=[];
     items.forEach(re=>{
       if(re.type==='ex'){
@@ -4186,7 +4186,7 @@ function renderSchedule(){
 }
 
 function openScheduleModal(){
-  if(!db.routines.length){alert("Create routines first.");return;}
+  if(!db.routines.length){alert(t('alert_create_routines_first'));return;}
   document.getElementById('modal-title').textContent='Add to Schedule';
   document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">Select Routine</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="addSched()">Add</button>`;
@@ -4517,7 +4517,7 @@ async function handleFollowClick(targetUserId, targetIsPrivate, onChanged){
   const label=followButtonLabel(state);
   if(label==='Follow' || label==='Follow back'){
     try{ await createFollow(targetUserId, targetIsPrivate); onChanged&&onChanged(); }
-    catch(e){ alert('Could not follow. Try again.'); }
+    catch(e){ alert(t('alert_follow_error')); }
   } else if(label==='Requested'){
     showConfirm({
       title:'Cancel Request?',
@@ -4527,7 +4527,7 @@ async function handleFollowClick(targetUserId, targetIsPrivate, onChanged){
       danger:true,
       onOk: async ()=>{
         try{ await removeFollow(currentUser.id, targetUserId); onChanged&&onChanged(); }
-        catch(e){ alert('Could not cancel. Try again.'); }
+        catch(e){ alert(t('alert_cancel_error')); }
       }
     });
   } else if(label==='Following'){
@@ -4539,7 +4539,7 @@ async function handleFollowClick(targetUserId, targetIsPrivate, onChanged){
       danger:true,
       onOk: async ()=>{
         try{ await removeFollow(currentUser.id, targetUserId); onChanged&&onChanged(); }
-        catch(e){ alert('Could not unfollow. Try again.'); }
+        catch(e){ alert(t('alert_unfollow_error')); }
       }
     });
   }
@@ -4710,7 +4710,7 @@ function buildTrainerStudentDetailHtml(connection, assignments, logEntries){
 }
 
 function openAssignRoutineModal(connectionId){
-  if(!db.routines.length){ alert('Create a routine first, then assign it.'); return; }
+  if(!db.routines.length){ alert(t('alert_create_routine_first_assign')); return; }
   document.getElementById('modal-title').textContent='Assign Routine';
   document.getElementById('modal-body').innerHTML=`
     <div class="form-grp"><label class="form-lbl">Select Routine</label><select class="form-inp" id="assign-routine-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>
@@ -4736,7 +4736,7 @@ async function confirmAssignRoutine(connectionId){
     showToast('Routine assigned');
     renderTrainerStudentDetail(connectionId);
   }catch(e){
-    alert(e.message || 'Could not assign routine.');
+    alert(e.message || t('alert_assign_routine_error'));
   }
 }
 
@@ -4810,7 +4810,7 @@ async function confirmClaimTrainerInvite(token){
     showToast('Connected with your trainer');
   }catch(e){
     closeModal();
-    alert(e.message || 'Could not connect. The link may be invalid.');
+    alert(e.message || t('alert_connect_error'));
   }
 }
 
@@ -5443,7 +5443,7 @@ async function respondToRequest(followerId, accept, targetIsPrivate){
       await refreshPendingBadge();
       const actionsEl=document.querySelector('#req-row-'+followerId+' .req-actions');
       if(actionsEl) actionsEl.innerHTML=`<button class="oprof-followbtn small secondary" onclick="event.stopPropagation();handleFollowClick('${followerId}', ${!!targetIsPrivate}, ()=>renderRequestsScreen())">Follow back</button>`;
-    }catch(e){ alert('Could not confirm. Try again.'); }
+    }catch(e){ alert(t('alert_confirm_error')); }
   } else {
     showConfirm({
       title:'Delete Request?',
@@ -5457,7 +5457,7 @@ async function respondToRequest(followerId, accept, targetIsPrivate){
           await refreshPendingBadge();
           const rowEl=document.getElementById('req-row-'+followerId);
           if(rowEl) rowEl.remove();
-        }catch(e){ alert('Could not delete. Try again.'); }
+        }catch(e){ alert(t('alert_delete_error')); }
       }
     });
   }
@@ -5539,7 +5539,7 @@ async function hasPingedToday(){
 
 async function openPingPicker(targetUserId){
   if(await hasPingedToday()){
-    alert("You've used today's ping. Come back tomorrow.");
+    alert(t('alert_ping_used_today'));
     return;
   }
   const options=pickRandomPingOptions();
@@ -5574,7 +5574,7 @@ async function sendPing(targetUserId, btnEl){
     refreshPingButtonState();
   }catch(e){
     [...optionsEl.children].forEach(b=>b.disabled=false);
-    alert('Could not send ping. Try again.');
+    alert(t('alert_ping_send_error'));
   }
 }
 
@@ -6492,6 +6492,26 @@ const STRINGS = {
     rest_label: 'Rest',
     rest_skip: 'Skip',
     active_label: 'Active',
+    alert_backup_restored: 'Backup restored successfully.',
+    alert_backup_read_error: 'Could not read backup file.',
+    alert_name_routine: 'Name your routine.',
+    alert_min_one_set: 'At least one set required.',
+    alert_superset_min_two: 'A superset needs at least 2 exercises.',
+    alert_min_one_round: 'At least one round required.',
+    alert_add_one_exercise: 'Add at least one exercise.',
+    alert_create_routines_first: 'Create routines first.',
+    alert_create_routine_first_assign: 'Create a routine first, then assign it.',
+    alert_assign_routine_error: 'Could not assign routine.',
+    alert_connect_error: 'Could not connect. The link may be invalid.',
+    alert_confirm_error: 'Could not confirm. Try again.',
+    alert_delete_error: 'Could not delete. Try again.',
+    alert_ping_used_today: "You've used today's ping. Come back tomorrow.",
+    alert_ping_send_error: 'Could not send ping. Try again.',
+    alert_setting_update_error: 'Could not update this setting. Try again.',
+    alert_google_signin_not_setup: 'Google sign-in is not set up yet: ',
+    alert_follow_error: 'Could not follow. Try again.',
+    alert_cancel_error: 'Could not cancel. Try again.',
+    alert_unfollow_error: 'Could not unfollow. Try again.',
   },
   es: {
     back: '← Volver',
@@ -6600,6 +6620,26 @@ const STRINGS = {
     rest_label: 'Descanso',
     rest_skip: 'Saltar',
     active_label: 'Activo',
+    alert_backup_restored: 'Copia de seguridad restaurada con éxito.',
+    alert_backup_read_error: 'No se pudo leer el archivo de copia de seguridad.',
+    alert_name_routine: 'Ponele un nombre a tu rutina.',
+    alert_min_one_set: 'Se requiere al menos una serie.',
+    alert_superset_min_two: 'Una superserie necesita al menos 2 ejercicios.',
+    alert_min_one_round: 'Se requiere al menos una ronda.',
+    alert_add_one_exercise: 'Agregá al menos un ejercicio.',
+    alert_create_routines_first: 'Creá rutinas primero.',
+    alert_create_routine_first_assign: 'Creá una rutina primero para poder asignarla.',
+    alert_assign_routine_error: 'No se pudo asignar la rutina.',
+    alert_connect_error: 'No se pudo conectar. El enlace puede ser inválido.',
+    alert_confirm_error: 'No se pudo confirmar. Intentá de nuevo.',
+    alert_delete_error: 'No se pudo eliminar. Intentá de nuevo.',
+    alert_ping_used_today: 'Ya usaste tu ping de hoy. Volvé mañana.',
+    alert_ping_send_error: 'No se pudo enviar el ping. Intentá de nuevo.',
+    alert_setting_update_error: 'No se pudo actualizar esta opción. Intentá de nuevo.',
+    alert_google_signin_not_setup: 'El inicio de sesión con Google todavía no está configurado: ',
+    alert_follow_error: 'No se pudo seguir. Intentá de nuevo.',
+    alert_cancel_error: 'No se pudo cancelar. Intentá de nuevo.',
+    alert_unfollow_error: 'No se pudo dejar de seguir. Intentá de nuevo.',
   },
 };
 
@@ -7299,7 +7339,7 @@ async function togglePrivateAccount(){
     if(_myProfileCache) _myProfileCache.is_private = newVal;
   }catch(e){
     track.classList.toggle('on', wasOn); // revert
-    alert('Could not update this setting. Try again.');
+    alert(t('alert_setting_update_error'));
   }
 }
 
@@ -7360,7 +7400,7 @@ async function togglePrExerciseVisibility(exId){
     if(_myProfileCache) _myProfileCache.hidden_pr_exercise_ids = updated;
   }catch(e){
     track.classList.toggle('on', wasOn); // revert
-    alert('Could not update this setting. Try again.');
+    alert(t('alert_setting_update_error'));
   }
 }
 
@@ -7734,7 +7774,7 @@ async function authSignInWithGoogle(){
     // to this same page, where bootstrapAuthGate() picks up the new
     // session on the next load.
   }catch(e){
-    alert('Google sign-in is not set up yet: ' + (e.message||e));
+    alert(t('alert_google_signin_not_setup') + (e.message||e));
   }
 }
 
