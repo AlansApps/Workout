@@ -3689,12 +3689,12 @@ function sortedRoutines() {
 }
 function renderRoutines(){
   const el=document.getElementById('routines-list');
-  if(!db.routines.length){el.innerHTML='<div class="empty-state"><p>No workouts yet.<br>Tap + New to build one, or Browse to add one of ours.</p></div>';return;}
+  if(!db.routines.length){el.innerHTML=`<div class="empty-state"><p>${t('routines_empty_state_1')}<br>${t('routines_empty_state_2')}</p></div>`;return;}
   el.innerHTML=sortedRoutines().map(r=>`
     <div class="rtn-row">
-      <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} exercises · ${r.exercises.reduce((a,e)=>a+e.sets,0)} sets</div></div>
+      <div><div class="rtn-name">${r.name}</div><div class="rtn-meta">${r.exercises.length} ${t('routines_meta_exercises')} · ${r.exercises.reduce((a,e)=>a+e.sets,0)} ${t('routines_meta_sets')}</div></div>
       <div class="rtn-acts">
-        <button class="btn-ico" onclick="shareRoutine(db.routines.find(x=>x.id==='${r.id}'))" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+        <button class="btn-ico" onclick="shareRoutine(db.routines.find(x=>x.id==='${r.id}'))" title="Share" data-i18n-title="share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
         <button class="btn-ico" onclick="openRoutineModal('${r.id}')"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
         <button class="btn-ico del" onclick="delRoutine('${r.id}')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
@@ -3961,7 +3961,7 @@ function openRoutineModal(editId){
     const muscles=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core','Cardio'];
     let h='';
     muscles.forEach(m=>{
-      h+=`<optgroup label="${m}">`;
+      h+=`<optgroup label="${t('muscle_'+m.toLowerCase())}">`;
       db.exercises.filter(e=>e.muscle===m).forEach(e=>{
         h+=`<option value="${e.id}"${e.id===exId?' selected':''}>${e.name}</option>`;
       });
@@ -4168,15 +4168,15 @@ function openRoutineModal(editId){
 // ═══════════════════════════════════════════
 function renderSchedule(){
   const el=document.getElementById('schedule-list');
-  if(!db.schedule.length){el.innerHTML='<div class="empty-state"><p>No schedule yet.<br>Add routines to the rotation.</p></div>';return;}
+  if(!db.schedule.length){el.innerHTML=`<div class="empty-state"><p>${t('schedule_empty_state_1')}<br>${t('schedule_empty_state_2')}</p></div>`;return;}
   const cur=db.schedulePos%db.schedule.length;
   el.innerHTML=db.schedule.map((rId,i)=>{
     const r=db.routines.find(x=>x.id===rId);
     const isCur=i===cur;
     return`<div class="sched-row ${isCur?'now':''}">
       <span class="sched-num">${i+1}</span>
-      <span class="sched-name">${r?r.name:'(deleted)'}</span>
-      ${isCur?'<span class="sched-badge">Next</span>':''}
+      <span class="sched-name">${r?r.name:t('schedule_deleted_routine')}</span>
+      ${isCur?`<span class="sched-badge">${t('schedule_next_badge')}</span>`:''}
       <div style="display:flex;gap:4px">
         ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`:''}
         ${i<db.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
@@ -4187,9 +4187,9 @@ function renderSchedule(){
 
 function openScheduleModal(){
   if(!db.routines.length){alert(t('alert_create_routines_first'));return;}
-  document.getElementById('modal-title').textContent='Add to Schedule';
-  document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">Select Routine</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>`;
-  document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="addSched()">Add</button>`;
+  document.getElementById('modal-title').textContent=t('schedule_modal_title');
+  document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button><button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="addSched()">${t('add')}</button>`;
   window.addSched=function(){db.schedule.push(document.getElementById('sched-sel').value);saveDB();closeModal();renderSchedule();};
   document.getElementById('modal-overlay').classList.add('active');
 }
@@ -5608,15 +5608,15 @@ function renderExercisesDB(){
   el.innerHTML=order.filter(m=>groups[m]).map(muscle=>`
     <div class="muscle-group">
       <div class="mg-header" onclick="toggleEl(this)">
-        <span class="mg-name">${muscle}</span><span class="mg-count">${groups[muscle].length} exercises</span>
+        <span class="mg-name">${t('muscle_'+muscle.toLowerCase())}</span><span class="mg-count">${groups[muscle].length} ${t('routines_meta_exercises')}</span>
       </div>
       <div class="mg-body">
         ${groups[muscle].map(e=>{
           const pr=db.allTimePRs[e.id];
           const lw=db.lastWeights[e.id];
           const timed=e.trackingType==='time';
-          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} PR: ${timed?fmtDuration(pr.reps)+' held':fmtPRWeight(pr,e.id)}</div>`:'';
-          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} Last: ${fmtLastWeightDisplay(lw,e.id,timed)}</div>`:'';
+          const prHtml=pr?`<div class="ex-db-pr">${ICON_PR} ${t('ex_db_pr_label')}: ${timed?fmtDuration(pr.reps)+' '+t('ex_db_held_suffix'):fmtPRWeight(pr,e.id)}</div>`:'';
+          const lwHtml=lw?`<div class="ex-db-pr" style="color:var(--muted);">${ICON_LAST} ${t('ex_db_last_label')}: ${fmtLastWeightDisplay(lw,e.id,timed)}</div>`:'';
           return `<div class="ex-db-row" onclick="openExDetail('${e.id}')">
             <div class="ex-db-row-inner">
               <div class="ex-db-info">
@@ -5775,7 +5775,7 @@ async function getExerciseVideoSrc(ex){
 function openExDetail(exId){
   const ex=db.exercises.find(e=>e.id===exId);
   if(!ex) return;
-  document.getElementById('exd-muscle').textContent=ex.muscle;
+  document.getElementById('exd-muscle').textContent=t('muscle_'+ex.muscle.toLowerCase());
   document.getElementById('exd-name').textContent=ex.name;
   document.getElementById('exd-video-btn').innerHTML=buildExerciseVideoBtnHtml(exId, 38);
   renderExDetail(exId);
@@ -6552,6 +6552,27 @@ const STRINGS = {
     follow_list_empty_following: 'Not following anyone yet.',
     loading_ellipsis: 'Loading…',
     profile_stat_workouts: 'Workouts',
+    routines_empty_state_1: 'No workouts yet.',
+    routines_empty_state_2: 'Tap + New to build one, or Browse to add one of ours.',
+    routines_meta_exercises: 'exercises',
+    routines_meta_sets: 'sets',
+    schedule_empty_state_1: 'No schedule yet.',
+    schedule_empty_state_2: 'Add routines to the rotation.',
+    schedule_deleted_routine: '(deleted)',
+    schedule_next_badge: 'Next',
+    schedule_modal_title: 'Add to Schedule',
+    schedule_modal_select_routine: 'Select Routine',
+    muscle_legs: 'Legs',
+    muscle_chest: 'Chest',
+    muscle_back: 'Back',
+    muscle_shoulders: 'Shoulders',
+    muscle_triceps: 'Triceps',
+    muscle_biceps: 'Biceps',
+    muscle_core: 'Core',
+    muscle_cardio: 'Cardio',
+    ex_db_pr_label: 'PR',
+    ex_db_held_suffix: 'held',
+    ex_db_last_label: 'Last',
   },
   es: {
     back: '← Volver',
@@ -6711,6 +6732,27 @@ const STRINGS = {
     follow_list_empty_following: 'Todavía no seguís a nadie.',
     loading_ellipsis: 'Cargando…',
     profile_stat_workouts: 'Entrenamientos',
+    routines_empty_state_1: 'Todavía no tenés rutinas.',
+    routines_empty_state_2: 'Tocá + Nueva para crear una, o Explorar para agregar una de las nuestras.',
+    routines_meta_exercises: 'ejercicios',
+    routines_meta_sets: 'series',
+    schedule_empty_state_1: 'Todavía no hay rotación.',
+    schedule_empty_state_2: 'Agregá rutinas a la rotación.',
+    schedule_deleted_routine: '(eliminada)',
+    schedule_next_badge: 'Próxima',
+    schedule_modal_title: 'Agregar a la Rotación',
+    schedule_modal_select_routine: 'Seleccionar Rutina',
+    muscle_legs: 'Piernas',
+    muscle_chest: 'Pecho',
+    muscle_back: 'Espalda',
+    muscle_shoulders: 'Hombros',
+    muscle_triceps: 'Tríceps',
+    muscle_biceps: 'Bíceps',
+    muscle_core: 'Core',
+    muscle_cardio: 'Cardio',
+    ex_db_pr_label: 'Récord',
+    ex_db_held_suffix: 'sostenido',
+    ex_db_last_label: 'Último',
   },
 };
 
