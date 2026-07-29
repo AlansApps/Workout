@@ -6735,6 +6735,17 @@ const STRINGS = {
     account_plan_label: 'Plan',
     account_password_label: 'Password',
     account_signout_label: 'Sign out',
+    account_delete_label: 'Delete account',
+    account_delete_sub: 'Permanently erase your account and everything in the cloud',
+    delete_account_title: 'Delete Account',
+    delete_account_warning: 'This is permanent. There is no way to undo it or recover the account afterwards.',
+    delete_account_what_goes: 'Erased from the cloud: your profile and username, every saved workout, your PRs, your routines and rotation, followers and following, pings, and any trainer connections.',
+    delete_account_local_note: 'The workout history already saved on this phone stays put — you can keep training as a guest straight away. Want a copy first? Use Export Backup under Data.',
+    delete_account_confirm_label: 'Type {handle} to confirm',
+    delete_account_ok: 'Delete forever',
+    delete_account_mismatch: "That doesn't match your username. Check the spelling and try again.",
+    delete_account_loading: 'Deleting…',
+    delete_account_error: 'Could not delete your account. Check your connection and try again.',
     account_signin_row_title: 'Sign in',
     account_signin_row_sub: 'Sign in to manage your account',
     tier_label_free: 'Free',
@@ -7098,6 +7109,17 @@ const STRINGS = {
     account_plan_label: 'Plan',
     account_password_label: 'Contraseña',
     account_signout_label: 'Cerrar sesión',
+    account_delete_label: 'Eliminar cuenta',
+    account_delete_sub: 'Borrá tu cuenta y todo lo que está en la nube de forma permanente',
+    delete_account_title: 'Eliminar Cuenta',
+    delete_account_warning: 'Esto es permanente. No hay forma de deshacerlo ni de recuperar la cuenta después.',
+    delete_account_what_goes: 'Se borra de la nube: tu perfil y nombre de usuario, todos los entrenamientos guardados, tus récords, tus rutinas y rotación, seguidores y seguidos, pings, y cualquier conexión con entrenadores.',
+    delete_account_local_note: 'El historial que ya está guardado en este teléfono se queda — podés seguir entrenando como invitado enseguida. ¿Querés una copia antes? Usá Exportar Copia de Seguridad en Datos.',
+    delete_account_confirm_label: 'Escribí {handle} para confirmar',
+    delete_account_ok: 'Eliminar para siempre',
+    delete_account_mismatch: 'Eso no coincide con tu nombre de usuario. Revisá cómo lo escribiste e intentá de nuevo.',
+    delete_account_loading: 'Eliminando…',
+    delete_account_error: 'No se pudo eliminar tu cuenta. Revisá tu conexión e intentá de nuevo.',
     account_signin_row_title: 'Iniciar sesión',
     account_signin_row_sub: 'Iniciá sesión para gestionar tu cuenta',
     tier_label_free: 'Gratis',
@@ -7811,10 +7833,24 @@ async function renderAccountSection(){
         </div></div>
         <div class="settings-row-arrow">›</div>
       </div>
-      <div class="settings-row" onclick="confirmSignOut()" style="cursor:pointer;border-bottom:none;">
+      <div class="settings-row" onclick="confirmSignOut()" style="cursor:pointer;">
         <div class="settings-row-left"><div class="settings-row-icon" style="color:var(--danger,#c94444);"><svg viewBox="0 0 24 24"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M15 8l4 4-4 4M19 12H9"/></svg></div>
           <div class="settings-row-title" style="color:var(--danger,#c94444);">${t('account_signout_label')}</div>
         </div>
+      </div>
+      <!-- Account deletion — mandatory on both stores (Apple 5.1.1(v),
+           Google Play User Data policy). Has to be reachable from inside
+           the app, so it lives here at the bottom of Account rather than
+           behind a support email. The destructive confirmation lives in
+           openDeleteAccountModal(). -->
+      <div class="settings-row" onclick="openDeleteAccountModal()" style="cursor:pointer;border-bottom:none;">
+        <div class="settings-row-left"><div class="settings-row-icon" style="color:var(--danger,#c94444);"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg></div>
+          <div>
+            <div class="settings-row-title" style="color:var(--danger,#c94444);">${t('account_delete_label')}</div>
+            <div class="settings-row-sub">${t('account_delete_sub')}</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
       </div>
     </div>
   `;
@@ -8057,6 +8093,91 @@ function confirmSignOut(){
       location.reload(); // simplest reliable reset of all in-memory auth/session state
     }
   });
+}
+
+// ═══════════════════════════════════════════
+//  ACCOUNT DELETION
+// ═══════════════════════════════════════════
+// Required in-app by Apple 5.1.1(v) and the Google Play User Data policy.
+// Deliberately NOT a showConfirm(): a single "are you sure" is too easy to
+// tap through for something irreversible, so this uses the full modal with
+// a type-your-username gate (the same pattern GitHub uses for deleting a
+// repo). Easy to FIND, hard to do BY ACCIDENT — which is exactly what the
+// guideline asks for.
+//
+// Scope of the delete, stated plainly in the dialog because guessing wrong
+// either way would be bad: the cloud account and everything attached to it
+// is destroyed server-side (see delete_own_account() and the cascade graph
+// in 20260729000001_delete_own_account.sql). Workout history already on
+// THIS device is left alone — it never belonged to the account, the user
+// can keep training as a guest immediately afterwards, and silently wiping
+// a phone's local data is not something an account-deletion button should
+// do without being asked.
+async function openDeleteAccountModal(){
+  if(!currentUser) return;
+  // Awaited rather than read straight off _myProfileCache: the cache is
+  // warm in practice (renderAccountSection had to resolve it to draw the
+  // row this was tapped on), but the username is what gates the whole
+  // confirmation — falling back to a blank handle would make the gate
+  // trivially bypassable by submitting an empty field.
+  const profile = await getMyProfile();
+  const handle = (profile && profile.username) || currentUser.email || '';
+  document.getElementById('modal-title').textContent = t('delete_account_title');
+  document.getElementById('modal-body').innerHTML = `
+    <div class="auth-tagline" style="text-align:left;margin-bottom:14px;color:var(--danger,#c94444);">
+      ${t('delete_account_warning')}
+    </div>
+    <div style="font-size:12px;color:var(--soft);line-height:1.6;margin-bottom:14px;">
+      ${t('delete_account_what_goes')}
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px;">
+      ${t('delete_account_local_note')}
+    </div>
+    <div class="form-grp">
+      <label class="form-lbl">${t('delete_account_confirm_label').replace('{handle}', escapeHtml(handle))}</label>
+      <input class="form-inp" type="text" id="delete-account-confirm" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${escapeHtml(handle)}">
+    </div>
+    <div class="auth-error" id="delete-account-error"></div>
+  `;
+  document.getElementById('modal-footer').innerHTML =
+    `<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>` +
+    `<button class="btn-main" id="delete-account-submit" style="padding:9px 22px;font-size:12px;width:auto;background:var(--danger,#c94444);color:#fff;" onclick="submitDeleteAccount()">${t('delete_account_ok')}</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+  const inp = document.getElementById('delete-account-confirm');
+  if(inp) inp.focus();
+}
+
+async function submitDeleteAccount(){
+  if(!currentUser) return;
+  const errEl = document.getElementById('delete-account-error');
+  const btn = document.getElementById('delete-account-submit');
+  const typed = (document.getElementById('delete-account-confirm').value || '').trim();
+  const profile = await getMyProfile();
+  const handle = (profile && profile.username) || currentUser.email || '';
+  errEl.textContent = '';
+
+  // Case-insensitive so someone whose keyboard auto-capitalised the first
+  // letter isn't stonewalled — the point of this gate is deliberateness,
+  // not a spelling test. The !handle check keeps an empty handle from
+  // matching an empty field and waving the deletion straight through.
+  if(!handle || typed.toLowerCase() !== String(handle).toLowerCase()){
+    errEl.textContent = t('delete_account_mismatch');
+    return;
+  }
+
+  setBtnLoading(btn, true, t('delete_account_loading'));
+  try{
+    const { error } = await supabaseClient.rpc('delete_own_account');
+    if(error) throw error;
+    // The auth row is gone, so the current JWT now points at nothing.
+    // Tear down local auth state and hard-reload straight into the guest
+    // gate rather than leaving a half-dead session in memory.
+    await authSignOut();
+    location.reload();
+  }catch(e){
+    setBtnLoading(btn, false);
+    errEl.textContent = e.message || t('delete_account_error');
+  }
 }
 
 // Redraw charts on resize
