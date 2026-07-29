@@ -6736,12 +6736,11 @@ const STRINGS = {
     account_password_label: 'Password',
     account_signout_label: 'Sign out',
     account_delete_label: 'Delete account',
-    account_delete_sub: 'Permanently erase your account and everything in the cloud',
     delete_account_title: 'Delete Account',
-    delete_account_warning: 'This is permanent. There is no way to undo it or recover the account afterwards.',
-    delete_account_what_goes: 'Erased from the cloud: your profile and username, every saved workout, your PRs, your routines and rotation, followers and following, pings, and any trainer connections.',
-    delete_account_local_note: 'The workout history already saved on this phone stays put — you can keep training as a guest straight away. Want a copy first? Use Export Backup under Data.',
-    delete_account_confirm_label: 'Type {handle} to confirm',
+    delete_account_warning: "This is permanent. The account can't be recovered.",
+    delete_account_what_goes: 'Erased from the cloud: your profile, workouts, PRs, routines, followers, and trainer connections.',
+    delete_account_local_note: 'Workout history already on this device stays — you can keep training as a guest. For a copy, use Export Backup under Data first.',
+    delete_account_confirm_label: 'Confirm your username',
     delete_account_ok: 'Delete forever',
     delete_account_mismatch: "That doesn't match your username. Check the spelling and try again.",
     delete_account_loading: 'Deleting…',
@@ -7110,13 +7109,12 @@ const STRINGS = {
     account_password_label: 'Contraseña',
     account_signout_label: 'Cerrar sesión',
     account_delete_label: 'Eliminar cuenta',
-    account_delete_sub: 'Borrá tu cuenta y todo lo que está en la nube de forma permanente',
     delete_account_title: 'Eliminar Cuenta',
-    delete_account_warning: 'Esto es permanente. No hay forma de deshacerlo ni de recuperar la cuenta después.',
-    delete_account_what_goes: 'Se borra de la nube: tu perfil y nombre de usuario, todos los entrenamientos guardados, tus récords, tus rutinas y rotación, seguidores y seguidos, pings, y cualquier conexión con entrenadores.',
-    delete_account_local_note: 'El historial que ya está guardado en este teléfono se queda — podés seguir entrenando como invitado enseguida. ¿Querés una copia antes? Usá Exportar Copia de Seguridad en Datos.',
-    delete_account_confirm_label: 'Escribí {handle} para confirmar',
-    delete_account_ok: 'Eliminar para siempre',
+    delete_account_warning: 'Esto es permanente. La cuenta no se puede recuperar.',
+    delete_account_what_goes: 'Se borra de la nube: tu perfil, entrenamientos, récords, rutinas, seguidores y conexiones con entrenadores.',
+    delete_account_local_note: 'El historial que ya está en este dispositivo se queda — podés seguir entrenando como invitado. Si querés una copia, usá Exportar Copia de Seguridad en Datos primero.',
+    delete_account_confirm_label: 'Confirmá tu nombre de usuario',
+    delete_account_ok: 'Eliminar cuenta',
     delete_account_mismatch: 'Eso no coincide con tu nombre de usuario. Revisá cómo lo escribiste e intentá de nuevo.',
     delete_account_loading: 'Eliminando…',
     delete_account_error: 'No se pudo eliminar tu cuenta. Revisá tu conexión e intentá de nuevo.',
@@ -7845,10 +7843,7 @@ async function renderAccountSection(){
            openDeleteAccountModal(). -->
       <div class="settings-row" onclick="openDeleteAccountModal()" style="cursor:pointer;border-bottom:none;">
         <div class="settings-row-left"><div class="settings-row-icon" style="color:var(--danger,#c94444);"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg></div>
-          <div>
-            <div class="settings-row-title" style="color:var(--danger,#c94444);">${t('account_delete_label')}</div>
-            <div class="settings-row-sub">${t('account_delete_sub')}</div>
-          </div>
+          <div class="settings-row-title" style="color:var(--danger,#c94444);">${t('account_delete_label')}</div>
         </div>
         <div class="settings-row-arrow">›</div>
       </div>
@@ -8130,28 +8125,39 @@ async function openDeleteAccountModal(){
     <div style="font-size:12px;color:var(--soft);line-height:1.6;margin-bottom:14px;">
       ${t('delete_account_what_goes')}
     </div>
-    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px;">
+    <div style="font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:18px;">
       ${t('delete_account_local_note')}
     </div>
     <div class="form-grp">
-      <label class="form-lbl">${t('delete_account_confirm_label').replace('{handle}', escapeHtml(handle))}</label>
-      <input class="form-inp" type="text" id="delete-account-confirm" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${escapeHtml(handle)}">
+      <label class="form-lbl">${t('delete_account_confirm_label')}</label>
+      <!-- The handle is shown here in its real case rather than inside the
+           .form-lbl, which is uppercased at 8px/3px-tracking — that made a
+           case-insensitive check look like it demanded caps, and it was the
+           only real-case reference on screen, so it vanished the moment the
+           placeholder cleared on first keystroke. -->
+      <div style="font-family:var(--body);font-size:14px;font-weight:600;color:var(--text);margin-bottom:7px;letter-spacing:.5px;">${escapeHtml(handle)}</div>
+      <input class="form-inp" type="text" id="delete-account-confirm" autocomplete="off" autocapitalize="none" spellcheck="false">
     </div>
     <div class="auth-error" id="delete-account-error"></div>
   `;
   document.getElementById('modal-footer').innerHTML =
     `<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>` +
-    `<button class="btn-main" id="delete-account-submit" style="padding:9px 22px;font-size:12px;width:auto;background:var(--danger,#c94444);color:#fff;" onclick="submitDeleteAccount()">${t('delete_account_ok')}</button>`;
+    `<button class="btn-main" id="delete-account-submit" style="padding:9px 22px;font-size:12px;width:auto;background:var(--danger,#c94444);color:#fff;box-shadow:none;" onclick="submitDeleteAccount()">${t('delete_account_ok')}</button>`;
   document.getElementById('modal-overlay').classList.add('active');
-  const inp = document.getElementById('delete-account-confirm');
-  if(inp) inp.focus();
+  // Deliberately no autofocus: on mobile the keyboard would immediately
+  // cover the warning and scope copy the user is meant to read, and the
+  // deliberate tap into the field is part of the point of this gate.
 }
 
 async function submitDeleteAccount(){
   if(!currentUser) return;
   const errEl = document.getElementById('delete-account-error');
   const btn = document.getElementById('delete-account-submit');
-  const typed = (document.getElementById('delete-account-confirm').value || '').trim();
+  // Leading @ stripped: the Handle row in Settings and the Profile header
+  // both display the username as "@name", so copying what you just read
+  // and typing "@name" is the likeliest input — rejecting it would be a
+  // gotcha, not a safety check.
+  const typed = (document.getElementById('delete-account-confirm').value || '').trim().replace(/^@/, '');
   const profile = await getMyProfile();
   const handle = (profile && profile.username) || currentUser.email || '';
   errEl.textContent = '';
