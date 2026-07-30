@@ -3832,7 +3832,10 @@ function finishWorkout(){
 
   // Update lastWeights + PRs
   session.exercises.forEach(ex=>{
-    const key=ex.id;
+    // Slot-aware (see lastWeightsKey). Falls back to the bare id so a session
+    // already in progress when this shipped — restored from localStorage
+    // without an lwKey — still saves rather than throwing.
+    const key=ex.lwKey||ex.id;
     const ticked=ex.tickedSets;
     if(!ticked.length) return;
     const savedSets=ticked.map(si=>({weight:ex.actualWeight[si],reps:ex.actualReps[si]}));
@@ -4893,14 +4896,23 @@ async function fetchUserProgramData(userId){
   try{
     const [{data:settings}, {data:routineRows}] = await Promise.all([
       supabaseClient.from('user_settings').select('schedule, schedule_pos').eq('user_id', userId).maybeSingle(),
-      supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', userId),
+      supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds, ss_group, ss_group_rest, set_rows)').eq('user_id', userId),
     ]);
     const routines = (routineRows||[]).map(r=>({
       id: r.client_id || r.id,
       name: r.name,
       exercises: (r.routine_exercises||[])
         .sort((a,b)=>a.position-b.position)
-        .map(re=>({ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds })),
+        // Same conditional attach as the own-data hydrate below, so a
+        // superset on someone else's profile renders as a superset instead
+        // of a run of unrelated exercises.
+        .map(re=>{
+          const ex={ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds };
+          if(re.ss_group) ex.ssGroup=re.ss_group;
+          if(re.ss_group_rest) ex.ssGroupRest=re.ss_group_rest;
+          if(re.set_rows) ex.setRows=re.set_rows;
+          return ex;
+        }),
     }));
     return { schedule: (settings && settings.schedule) || [], schedulePos: (settings && settings.schedule_pos) || 0, routines };
   }catch(e){ return { schedule:[], schedulePos:0, routines:[] }; }
@@ -6318,11 +6330,41 @@ function startWorkoutWithRoutine(routineId){
   _startWithRoutine(rt);
 }
 
+// db.lastWeights remembers "what did I use last time" per exercise. A routine
+// may legitimately list the SAME exercise more than once — a drop-set superset
+// (curls at 15kg, then curls at 10kg) is the obvious case — and keying purely
+// by exercise id made both occurrences read and write one entry, so finishing
+// a workout saved the first and instantly overwrote it with the second, and
+// the next session prefilled both from whichever survived.
+//
+// Later occurrences therefore get a "#n" suffix. The FIRST occurrence keeps
+// the bare id, which is what lets every pre-existing entry — and every other
+// screen that looks up db.lastWeights[exerciseId] directly (Exercises DB,
+// Exercise Detail, the 1RM math) — keep working untouched, still reading the
+// primary occurrence. Mirrors last_weights.slot server-side.
+function lastWeightsKey(exId, slot){ return slot ? exId+'#'+slot : exId; }
+
+// Split a local key back into its parts for the cloud, where the two live in
+// separate columns. "e14" -> {id:'e14', slot:0}; "e14#2" -> {id:'e14', slot:2}.
+function parseLastWeightsKey(key){
+  const i=String(key).indexOf('#');
+  if(i===-1) return {id:key, slot:0};
+  const slot=parseInt(key.slice(i+1),10);
+  return {id:key.slice(0,i), slot:Number.isFinite(slot)&&slot>0?slot:0};
+}
+
 function _startWithRoutine(rt){
+  // Occurrence counter per exercise id, advanced in routine order so slot
+  // numbering is stable for a given routine layout. Reordering a superset's
+  // A/B swaps which slot remembers which weight, which is the correct
+  // behaviour — the memory follows the position in the routine.
+  const _slotSeen={};
   // Helper: build one session exercise from a routine exercise entry
   function buildSessionEx(re){
     const ex=db.exercises.find(e=>e.id===re.id)||{id:re.id,name:re.id,notes:''};
-    const last=db.lastWeights[re.id]||{};
+    const slot=_slotSeen[re.id]=(_slotSeen[re.id]===undefined?0:_slotSeen[re.id]+1);
+    const lwKey=lastWeightsKey(re.id, slot);
+    const last=db.lastWeights[lwKey]||{};
     const defW=last.weight!==undefined?last.weight:re.weight;
     const defR=last.reps!==undefined?last.reps:re.reps;
     const actualWeight=[], actualReps=[];
@@ -6343,7 +6385,9 @@ function _startWithRoutine(rt){
     // current unit) rather than trusting last.history, which was baked in
     // raw kg at save time and can't be reinterpreted after the fact.
     const lastHistory=last.weight!==undefined||last.sets ? fmtLastWeightDisplay(last,re.id,isTimeTrackedEx(re.id)) : '';
-    return {type:'ex', id:re.id, name:ex.name, notes:ex.notes||'',
+    // lwKey rides along on the session item so finishWorkout() writes back to
+    // the same slot this was prefilled from, without re-deriving the count.
+    return {type:'ex', id:re.id, lwKey, name:ex.name, notes:ex.notes||'',
       sets:re.sets, reps:re.reps, rest:re.rest,
       tickedSets:[], actualReps, actualWeight, lastHistory};
   }
@@ -9331,16 +9375,26 @@ async function pushLocalDataToCloud(){
       target_reps: ex.reps || 8,
       target_weight: ex.weight || 0,
       rest_seconds: ex.rest || 90,
+      // Superset grouping and per-set targets used to be client-only, so a
+      // cloud hydrate flattened every superset into loose exercises and
+      // collapsed differing per-round weights into one number. Both now
+      // round-trip. null (not undefined) so the column is written explicitly.
+      ss_group: ex.ssGroup || null,
+      ss_group_rest: ex.ssGroupRest || null,
+      set_rows: ex.setRows || null,
     }));
     if(rows.length) await supabaseClient.from('routine_exercises').insert(rows);
   }
 
   const lw = db.lastWeights || {};
-  const lwRows = Object.keys(lw).map(exId=>({
-    user_id: uid, exercise_id: exId,
-    weight: lw[exId].weight || 0, reps: lw[exId].reps || 0,
-    sets: lw[exId].sets || [], history: lw[exId].history || '',
-  }));
+  const lwRows = Object.keys(lw).map(key=>{
+    const { id, slot } = parseLastWeightsKey(key);
+    return {
+      user_id: uid, exercise_id: id, slot,
+      weight: lw[key].weight || 0, reps: lw[key].reps || 0,
+      sets: lw[key].sets || [], history: lw[key].history || '',
+    };
+  });
   if(lwRows.length) await supabaseClient.from('last_weights').upsert(lwRows);
 
   const prs = db.allTimePRs || {};
@@ -9365,7 +9419,7 @@ async function pullCloudDataToLocal(){
   const [settingsRes, notesRes, routinesRes, lwRes, prsRes, logsRes, insigniaRes, profileRes] = await Promise.all([
     supabaseClient.from('user_settings').select('*').eq('user_id', uid).maybeSingle(),
     supabaseClient.from('user_exercise_notes').select('*').eq('user_id', uid),
-    supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', uid),
+    supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds, ss_group, ss_group_rest, set_rows)').eq('user_id', uid),
     supabaseClient.from('last_weights').select('*').eq('user_id', uid),
     supabaseClient.from('all_time_prs').select('*').eq('user_id', uid),
     supabaseClient.from('workout_logs').select('id, client_id, routine_id, routine_name, performed_at, duration_seconds, note, workout_log_exercises(id, exercise_id, exercise_name, position, workout_log_sets(set_index, weight, reps))').eq('user_id', uid).order('performed_at', {ascending:true}),
@@ -9389,12 +9443,23 @@ async function pullCloudDataToLocal(){
     name: r.name,
     exercises: (r.routine_exercises||[])
       .sort((a,b)=>a.position-b.position)
-      .map(re=>({ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds })),
+      // Only attach ssGroup/setRows when the row actually carries them, so a
+      // routine written by an older client hydrates to exactly the shape it
+      // had before (no ssGroup key at all) rather than one with explicit
+      // nulls that the superset-grouping loops would have to special-case.
+      .map(re=>{
+        const ex={ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds };
+        if(re.ss_group) ex.ssGroup=re.ss_group;
+        if(re.ss_group_rest) ex.ssGroupRest=re.ss_group_rest;
+        if(re.set_rows) ex.setRows=re.set_rows;
+        return ex;
+      }),
   }));
 
   const lastWeights = {};
   (lwRes.data||[]).forEach(row=>{
-    lastWeights[row.exercise_id] = { weight: row.weight, reps: row.reps, sets: row.sets || [], history: row.history || '' };
+    // slot 0 keys back to the bare exercise id — see lastWeightsKey().
+    lastWeights[lastWeightsKey(row.exercise_id, row.slot||0)] = { weight: row.weight, reps: row.reps, sets: row.sets || [], history: row.history || '' };
   });
 
   const allTimePRs = {};
@@ -9464,7 +9529,7 @@ async function fetchCloudNonLogSnapshot(){
   const [settingsRes, notesRes, routinesRes, lwRes, prsRes] = await Promise.all([
     supabaseClient.from('user_settings').select('*').eq('user_id', uid).maybeSingle(),
     supabaseClient.from('user_exercise_notes').select('*').eq('user_id', uid),
-    supabaseClient.from('routines').select('client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', uid),
+    supabaseClient.from('routines').select('client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds, ss_group, ss_group_rest, set_rows)').eq('user_id', uid),
     supabaseClient.from('last_weights').select('*').eq('user_id', uid),
     supabaseClient.from('all_time_prs').select('*').eq('user_id', uid),
   ]);
