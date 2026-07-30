@@ -2694,6 +2694,18 @@ function restoreSession(){
       const flatExs=session.items.flatMap(it=>it.type==='ss'?it.exercises:[it]);
       flatExs.forEach((ex,idx)=>{ ex._ei=idx; });
       session.exercises=flatExs;
+      // Re-derive lwKey rather than trusting the snapshot. A session started
+      // before slot-keying shipped has none at all, and without this both
+      // occurrences of a duplicated exercise would fall back to the bare id
+      // in finishWorkout() and clobber each other — the very bug slots fix.
+      // Safe to do unconditionally: this flatten order is the same order
+      // _startWithRoutine() assigned slots in, so a session saved by current
+      // code re-derives to exactly the keys it already had.
+      const seen={};
+      flatExs.forEach(ex=>{
+        const slot=seen[ex.id]=(seen[ex.id]===undefined?0:seen[ex.id]+1);
+        ex.lwKey=lastWeightsKey(ex.id, slot);
+      });
     }
     renderWoScreen();
     showScreen('workout');
