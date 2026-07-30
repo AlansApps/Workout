@@ -266,6 +266,24 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 #rest-overlay{display:flex;position:fixed;inset:0;background:transparent;z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:translateY(100%);transition:transform .42s cubic-bezier(.16,1,.3,1);will-change:transform;overflow:hidden;pointer-events:none;}
 #rest-overlay.active::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
 #rest-overlay.active{transform:translateY(0)!important;pointer-events:all;background:var(--overlay-bg-heavy);}
+/* ── ROTATIONS LIST ── one row per rotation, a tick marking the single
+   active one. Built on the same panel/line tokens as .sched-row rather
+   than a new visual language. */
+.rot-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);}
+.rot-row.active{background:color-mix(in srgb,var(--gold) 5%,transparent);}
+.rot-check{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--line2);
+  background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:.15s;}
+.rot-check.on{border-color:var(--gold);background:var(--gold);}
+.rot-check svg{width:14px;height:14px;stroke:var(--void);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+.rot-main{flex:1;min-width:0;cursor:pointer;}
+.rot-name{font-family:var(--body);font-size:14px;font-weight:600;color:var(--text);letter-spacing:.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rot-meta{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-top:3px;text-transform:uppercase;font-weight:600;}
+.rot-edit{flex-shrink:0;background:none;border:1px solid var(--line2);color:var(--dim);border-radius:999px;
+  font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:6px 13px;cursor:pointer;transition:.15s;}
+.rot-edit:hover{border-color:var(--gold3);color:var(--gold);}
+
 /* ── TIMER HALO ──────────────────────────────────────────────────────
    A frame hugging the screen edge while a timer is up, in whatever accent
    the user picked (so it follows --gold like everything else).
@@ -1605,12 +1623,24 @@ body.light-mode .auth-choice-title{color:#111;}
     <button class="prog-subbtn" onclick="showScreen('routines')" data-i18n="routines_title">Workouts</button>
     <button class="prog-subbtn" onclick="showScreen('exercises')" data-i18n="exercises_title">Exercises</button>
   </div>
+  <!-- Rotations, plural. + Add here creates a NEW rotation; adding workouts
+       to one happens inside its editor. Only one rotation is active at a
+       time — the tick marks it. -->
   <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
-    <span data-i18n="schedule_rotation_label">Rotation</span>
-    <button class="btn-new" onclick="openScheduleModal()" data-i18n="btn_add_short">+ Add</button>
+    <span data-i18n="schedule_rotations_label">Rotations</span>
+    <button class="btn-new" onclick="createRotation()" data-i18n="rotation_new">+ New</button>
   </div>
   <div id="schedule-list" class="list-scroll"></div>
-  <div class="notice" data-i18n="schedule_notice">Loops automatically · Advances after each saved session</div>
+  <div class="notice" data-i18n="rotations_notice">Only the ticked rotation runs · Loops automatically</div>
+</div>
+
+<!-- ══ ROTATION EDITOR ══ order, rename, add workouts, activate, delete -->
+<div id="screen-rotation-edit" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('schedule')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="rotation_edit_title">Rotation</div>
+  </div>
+  <div id="rotation-edit-body" class="list-scroll"></div>
 </div>
 
 <!-- ══ ANALYTICS ══ (was the Log screen's "Progress" tab — moved into
@@ -2689,6 +2719,10 @@ const DEFAULT_DB={
   routines:[],
   schedule:[],
   schedulePos:0,
+  // See the ROTATIONS section. schedule/schedulePos above remain the ACTIVE
+  // rotation's live data; rotations[] is the full set.
+  rotations:[],
+  activeRotationId:null,
   workoutLog:[],
   lastWeights:DEFAULT_LAST_WEIGHTS,
   allTimePRs:{},
@@ -2728,6 +2762,11 @@ const DEFAULT_DB={
 const LS_KEY = 'alans_workout_v4';
 
 function saveDB() {
+  // Fold db.schedule/db.schedulePos back into the active rotation before
+  // persisting. Doing it here, in the single choke point every mutation
+  // already passes through, is what lets the ~15 existing readers of
+  // db.schedule keep working untouched — see the ROTATIONS section.
+  if(typeof syncActiveRotation === 'function') syncActiveRotation();
   try { localStorage.setItem(LS_KEY, JSON.stringify(db)); } catch(e) {}
   // Debounced, best-effort push to Supabase for signed-in users — defined
   // in the AUTH & CLOUD SYNC section below. No-ops entirely for guests/
@@ -2852,6 +2891,14 @@ function loadDB() {
       if (!db.allTimePRs)  db.allTimePRs  = {};
       db.weightPrefs = {...DEFAULT_DB.weightPrefs, ...(db.weightPrefs||{})};
       migratePRsToV2();
+      // Its OWN try/catch, and this is not defensive padding — loadDB's outer
+      // catch falls through to `db = DEFAULT_DB`, so ANY throw in here would
+      // silently reset a real user's entire local database to empty while
+      // their data still sat untouched in localStorage. Caught exactly that
+      // during testing (a ReferenceError wiped routines, schedule and log in
+      // one load). A rotation that fails to migrate is a cosmetic problem;
+      // losing the database is not, so the two must never share a handler.
+      try{ migrateRotations(); }catch(e){}
       return;
     }
   } catch(e) {}
@@ -2958,7 +3005,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','rotation-edit','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -2969,7 +3016,8 @@ function showScreen(id){
   SCR.forEach(s=>document.getElementById('screen-'+s).classList.toggle('active',s===id));
   if(id==='home') renderHome();
   if(id==='routines') renderRoutines();
-  if(id==='schedule') renderSchedule();
+  if(id==='schedule') renderRotations();
+  if(id==='rotation-edit') renderRotationEditor();
   if(id==='exercises') renderExercisesDB();
   // Settings only needs the Account ROW's sub-line now; the sections
   // themselves live on their own screens and render when opened.
@@ -4544,36 +4592,235 @@ function openRoutineModal(editId){
 // ═══════════════════════════════════════════
 //  SCHEDULE
 // ═══════════════════════════════════════════
-function renderSchedule(){
+// ── ROTATIONS ────────────────────────────────────────────────────────────
+// A rotation is a named, ordered list of routines that loops. A user can keep
+// several (a push/pull/legs block, a travel week, an off-season block) but
+// exactly ONE is active at a time — the active one is what Home reads for
+// "next session" and what finishWorkout() advances.
+//
+// db.schedule / db.schedulePos are KEPT as the active rotation's live data
+// rather than replaced, because roughly fifteen places read them: the Home
+// hero, finishWorkout's advance, the Profile program tab, the cloud push and
+// pull, and the other-user program view. db.schedule is literally the same
+// array object as the active rotation's `schedule`, so ordinary mutation
+// (push / splice / swap) updates both at once; syncActiveRotation() re-links
+// them and copies the position across on every saveDB(), which covers the
+// few places that REPLACE the array wholesale instead of mutating it.
+// Own id generator on purpose: the routine builder's uid() is a function
+// nested inside the builder and is NOT in scope here. Same shape of value.
+function rotationUid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function activeRotation(){
+  if(!Array.isArray(db.rotations) || !db.rotations.length) return null;
+  return db.rotations.find(r=>r.id===db.activeRotationId) || db.rotations[0];
+}
+// name:'' means "no name chosen yet" and renders as the translated default,
+// so a migrated rotation follows the app's language until the user renames
+// it. Storing the English string instead would have frozen it for everyone.
+function rotationDisplayName(rot){
+  return (rot && rot.name) ? rot.name : t('rotation_default_name');
+}
+function syncActiveRotation(){
+  const rot=activeRotation();
+  if(!rot) return;
+  rot.schedule = db.schedule || [];
+  rot.pos = db.schedulePos || 0;
+}
+// Idempotent: safe to call on every load and after every cloud hydrate.
+function migrateRotations(){
+  if(!Array.isArray(db.rotations)) db.rotations=[];
+  if(!db.rotations.length){
+    // Nothing to carry over for a brand-new install — leave rotations empty
+    // so the Program screen shows its empty state rather than an untitled
+    // rotation with nothing in it.
+    if(!(db.schedule||[]).length){ db.activeRotationId=null; return; }
+    // Everyone arriving from a single-rotation build keeps exactly what they
+    // had, INCLUDING which routine was up next. Losing pos would silently
+    // restart people's week, which is the one thing this migration must not
+    // do — see the assertion in the accompanying SQL migration.
+    db.rotations=[{ id:'rot-'+rotationUid(), name:'', schedule: db.schedule, pos: db.schedulePos||0 }];
+  }
+  const ids=db.rotations.map(r=>r.id);
+  if(!db.activeRotationId || ids.indexOf(db.activeRotationId)===-1) db.activeRotationId=db.rotations[0].id;
+  const rot=activeRotation();
+  rot.schedule = rot.schedule || [];
+  // Re-link identities so later mutation of db.schedule hits the rotation too.
+  db.schedule = rot.schedule;
+  db.schedulePos = rot.pos || 0;
+}
+function setActiveRotation(id){
+  if(id===db.activeRotationId) return;
+  syncActiveRotation();          // bank the outgoing one's order + position
+  db.activeRotationId=id;
+  const rot=activeRotation();
+  if(rot){ db.schedule=rot.schedule||(rot.schedule=[]); db.schedulePos=rot.pos||0; }
+  saveDB(); renderRotations(); renderHome();
+}
+function createRotation(){
+  syncActiveRotation();
+  const rot={ id:'rot-'+rotationUid(), name:'', schedule:[], pos:0 };
+  db.rotations.push(rot);
+  db.activeRotationId=rot.id;    // a rotation you just made is the one you want
+  db.schedule=rot.schedule; db.schedulePos=0;
+  saveDB(); openRotationEditor(rot.id);
+}
+function deleteRotation(id){
+  const rot=db.rotations.find(r=>r.id===id); if(!rot) return;
+  showConfirm({
+    title:t('confirm_delete_rotation_title'), message:t('confirm_cannot_be_undone'),
+    okLabel:t('delete'), danger:true,
+    onOk:()=>{
+      db.rotations=db.rotations.filter(r=>r.id!==id);
+      if(db.activeRotationId===id){
+        // Promote whatever is left so there is always an active rotation
+        // (or none at all, if that was the last one).
+        const next=db.rotations[0];
+        db.activeRotationId = next ? next.id : null;
+        db.schedule = next ? (next.schedule||(next.schedule=[])) : [];
+        db.schedulePos = next ? (next.pos||0) : 0;
+      }
+      saveDB(); showScreen('schedule'); renderHome();
+    }
+  });
+}
+
+// ── Rotations list (Program tab) ──
+function renderRotations(){
   const el=document.getElementById('schedule-list');
-  if(!db.schedule.length){el.innerHTML=`<div class="empty-state"><p>${t('schedule_empty_state_1')}<br>${t('schedule_empty_state_2')}</p></div>`;return;}
-  const cur=db.schedulePos%db.schedule.length;
-  el.innerHTML=db.schedule.map((rId,i)=>{
-    const r=db.routines.find(x=>x.id===rId);
-    const isCur=i===cur;
-    return`<div class="sched-row ${isCur?'now':''}">
-      <span class="sched-num">${i+1}</span>
-      <span class="sched-name">${r?r.name:t('schedule_deleted_routine')}</span>
-      ${isCur?`<span class="sched-badge">${t('schedule_next_badge')}</span>`:''}
-      <div style="display:flex;gap:4px">
-        ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`:''}
-        ${i<db.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
-        <button class="btn-ico del" onclick="rmSched(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      </div></div>`;
+  if(!el) return;
+  if(!db.rotations || !db.rotations.length){
+    el.innerHTML=`<div class="empty-state"><p>${t('rotations_empty_1')}<br>${t('rotations_empty_2')}</p></div>`;
+    return;
+  }
+  el.innerHTML=db.rotations.map(rot=>{
+    const isActive=rot.id===db.activeRotationId;
+    const count=(rot.schedule||[]).length;
+    return `<div class="rot-row ${isActive?'active':''}">
+      <button class="rot-check ${isActive?'on':''}" onclick="setActiveRotation('${rot.id}')"
+              aria-label="${escapeHtml(t('rotation_set_active'))}" title="${escapeHtml(t('rotation_set_active'))}">
+        ${isActive?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}
+      </button>
+      <div class="rot-main" onclick="openRotationEditor('${rot.id}')">
+        <div class="rot-name">${escapeHtml(rotationDisplayName(rot))}</div>
+        <div class="rot-meta">${count} ${count===1?t('rotation_workout_singular'):t('rotation_workout_plural')}${isActive?' · '+t('rotation_active_label'):''}</div>
+      </div>
+      <button class="rot-edit" onclick="openRotationEditor('${rot.id}')">${t('rotation_edit')}</button>
+    </div>`;
   }).join('');
 }
 
+// ── Rotation editor (its own screen) ──
+let _editingRotationId=null;
+function openRotationEditor(id){
+  _editingRotationId=id;
+  showScreen('rotation-edit');
+}
+function renderRotationEditor(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  const el=document.getElementById('rotation-edit-body');
+  if(!el) return;
+  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const isActive=rot.id===db.activeRotationId;
+  // NEXT is only meaningful for the active rotation — an inactive one isn't
+  // advancing, so badging a row would claim something untrue.
+  const cur=(rot.schedule||[]).length ? (rot.pos||0)%rot.schedule.length : -1;
+  el.innerHTML=`
+    <div class="form-grp" style="padding:0 18px;">
+      <label class="form-lbl">${t('rotation_name_label')}</label>
+      <input class="form-inp" id="rot-name-inp" maxlength="40"
+             placeholder="${escapeHtml(t('rotation_default_name'))}"
+             value="${escapeHtml(rot.name||'')}"
+             oninput="renameActiveEditingRotation(this.value)">
+    </div>
+    <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
+      <span>${t('rotation_workouts_label')}</span>
+      <button class="btn-new" onclick="openScheduleModal()">${t('btn_add_short')}</button>
+    </div>
+    <div id="rot-sched-list">${
+      !(rot.schedule||[]).length
+        ? `<div class="empty-state"><p>${t('schedule_empty_state_1')}<br>${t('schedule_empty_state_2')}</p></div>`
+        : rot.schedule.map((rId,i)=>{
+            const r=db.routines.find(x=>x.id===rId);
+            const isCur=isActive && i===cur;
+            return `<div class="sched-row ${isCur?'now':''}">
+              <span class="sched-num">${i+1}</span>
+              <span class="sched-name">${r?escapeHtml(r.name):t('schedule_deleted_routine')}</span>
+              ${isCur?`<span class="sched-badge">${t('schedule_next_badge')}</span>`:''}
+              <div style="display:flex;gap:4px">
+                ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`:''}
+                ${i<rot.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
+                <button class="btn-ico del" onclick="rmSched(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+              </div></div>`;
+          }).join('')
+    }</div>
+    <div class="notice">${t('schedule_notice')}</div>
+    ${isActive?'':`<div style="padding:6px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="setActiveRotation('${rot.id}')">${t('rotation_make_active')}</button></div>`}
+    <div style="padding:14px 18px 0;">
+      <button class="btn-ghost" style="width:100%;border-color:var(--danger);color:var(--danger);" onclick="deleteRotation('${rot.id}')">${t('rotation_delete')}</button>
+    </div>`;
+}
+function renameActiveEditingRotation(v){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  if(!rot) return;
+  rot.name=v.trim();
+  saveDB();
+  // Deliberately no re-render: the input is the thing being typed into, and
+  // rebuilding it mid-keystroke would drop focus and the caret position.
+}
+
+// The schedule mutators still speak in terms of db.schedule, which IS the
+// active rotation's array — but the editor can be open on an INACTIVE
+// rotation, so they resolve the target from _editingRotationId instead.
+function editingRotationSchedule(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  return rot ? (rot.schedule||(rot.schedule=[])) : null;
+}
 function openScheduleModal(){
   if(!db.routines.length){alert(t('alert_create_routines_first'));return;}
   document.getElementById('modal-title').textContent=t('schedule_modal_title');
-  document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>`;
+  document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button><button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="addSched()">${t('add')}</button>`;
-  window.addSched=function(){db.schedule.push(document.getElementById('sched-sel').value);saveDB();closeModal();renderSchedule();};
+  window.addSched=function(){
+    const sch=editingRotationSchedule(); if(!sch) return;
+    sch.push(document.getElementById('sched-sel').value);
+    saveDB();closeModal();renderRotationEditor();renderHome();
+  };
   document.getElementById('modal-overlay').classList.add('active');
 }
-
-function rmSched(i){db.schedule.splice(i,1);if(db.schedulePos>=db.schedule.length)db.schedulePos=0;saveDB();renderSchedule();}
-function moveSched(i,d){const j=i+d;if(j<0||j>=db.schedule.length)return;[db.schedule[i],db.schedule[j]]=[db.schedule[j],db.schedule[i]];saveDB();renderSchedule();}
+function rmSched(i){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const sch=rot.schedule||[];
+  // NEXT has to keep pointing at the same WORKOUT, not the same index.
+  // The old code only clamped pos to the new length, so deleting any row
+  // ABOVE the current one silently slid NEXT onto the wrong workout.
+  const curIdx = sch.length ? (rot.pos||0)%sch.length : -1;
+  const curId  = curIdx>=0 ? sch[curIdx] : null;
+  const removingNext = i===curIdx;
+  sch.splice(i,1);
+  if(!sch.length){
+    rot.pos=0;
+  } else if(removingNext){
+    // The workout that was up next is gone, so the slot it vacated — now
+    // holding whatever followed it — is the right thing to do next.
+    rot.pos = i % sch.length;
+  } else {
+    const ni = sch.indexOf(curId);
+    rot.pos = ni!==-1 ? ni : 0;
+  }
+  if(rot.id===db.activeRotationId) db.schedulePos=rot.pos||0;
+  saveDB();renderRotationEditor();renderHome();
+}
+function moveSched(i,d){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const sch=rot.schedule||[]; const j=i+d;
+  if(j<0||j>=sch.length) return;
+  // Reordering must carry the NEXT marker with the routine it points at,
+  // not leave it pinned to an index that now holds a different workout.
+  const curId = sch.length ? sch[(rot.pos||0)%sch.length] : null;
+  [sch[i],sch[j]]=[sch[j],sch[i]];
+  if(curId){ const ni=sch.indexOf(curId); if(ni!==-1) rot.pos=ni; }
+  if(rot.id===db.activeRotationId) db.schedulePos=rot.pos||0;
+  saveDB();renderRotationEditor();renderHome();
+}
 
 // ═══════════════════════════════════════════
 //  LOG — rendered inside Profile's Log tab, see renderProfile()
@@ -7021,6 +7268,24 @@ const STRINGS = {
     routines_empty_state_2: 'Tap + New to build one, or Browse to add one of ours.',
     routines_meta_exercises: 'exercises',
     routines_meta_sets: 'sets',
+    schedule_rotations_label: 'Rotations',
+    rotations_notice: 'Only the ticked rotation runs · Loops automatically',
+    rotation_new: '+ New',
+    rotation_default_name: 'My rotation',
+    rotation_edit: 'Edit',
+    rotation_edit_title: 'Rotation',
+    rotation_name_label: 'Rotation name',
+    rotation_workouts_label: 'Workouts in order',
+    rotation_set_active: 'Make this the active rotation',
+    rotation_active_label: 'Active',
+    rotation_make_active: 'Make active',
+    rotation_delete: 'Delete rotation',
+    rotation_workout_singular: 'workout',
+    rotation_workout_plural: 'workouts',
+    rotation_gone: 'This rotation no longer exists.',
+    rotations_empty_1: 'No rotations yet.',
+    rotations_empty_2: 'Tap + New to build one.',
+    confirm_delete_rotation_title: 'Delete Rotation?',
     schedule_empty_state_1: 'No schedule yet.',
     schedule_empty_state_2: 'Add routines to the rotation.',
     schedule_deleted_routine: '(deleted)',
@@ -7439,6 +7704,24 @@ const STRINGS = {
     routines_empty_state_2: 'Toca + Nueva para crear una, o Explorar para agregar una de las nuestras.',
     routines_meta_exercises: 'ejercicios',
     routines_meta_sets: 'series',
+    schedule_rotations_label: 'Rotaciones',
+    rotations_notice: 'Solo se ejecuta la rotación marcada · Se repite automáticamente',
+    rotation_new: '+ Nueva',
+    rotation_default_name: 'Mi rotación',
+    rotation_edit: 'Editar',
+    rotation_edit_title: 'Rotación',
+    rotation_name_label: 'Nombre de la rotación',
+    rotation_workouts_label: 'Rutinas en orden',
+    rotation_set_active: 'Hacer que esta sea la rotación activa',
+    rotation_active_label: 'Activa',
+    rotation_make_active: 'Activar',
+    rotation_delete: 'Eliminar rotación',
+    rotation_workout_singular: 'rutina',
+    rotation_workout_plural: 'rutinas',
+    rotation_gone: 'Esta rotación ya no existe.',
+    rotations_empty_1: 'Todavía no hay rotaciones.',
+    rotations_empty_2: 'Toca + Nueva para crear una.',
+    confirm_delete_rotation_title: '¿Eliminar Rotación?',
     schedule_empty_state_1: 'Todavía no hay rotación.',
     schedule_empty_state_2: 'Agrega rutinas a la rotación.',
     schedule_deleted_routine: '(eliminada)',
@@ -9428,8 +9711,13 @@ async function pushLocalDataToCloud(){
     theme: (settingsRaw ? !!settingsRaw.lightMode : true) ? 'light' : 'dark',
     accent: (settingsRaw && settingsRaw.accent) || 'Navy',
     lang: (settingsRaw && settingsRaw.lang) || 'en',
+    // schedule/schedule_pos stay the ACTIVE rotation, unchanged — that's what
+    // other users' profile program view reads, and what an older client
+    // expects to find. rotations carries the full set alongside it.
     schedule: db.schedule || [],
     schedule_pos: db.schedulePos || 0,
+    rotations: db.rotations || [],
+    active_rotation_id: db.activeRotationId || null,
     last_notes: db.lastNotes || {},
     weight_prefs: db.weightPrefs || DEFAULT_DB.weightPrefs,
   });
@@ -9592,6 +9880,13 @@ async function pullCloudDataToLocal(){
     // which stores cloud UUIDs in workout_logs.routine_id and does need it.
     db.schedule = s.schedule || [];
     db.schedulePos = s.schedule_pos || 0;
+    // Cloud rotations win when present. When they're absent (account last
+    // synced by a pre-rotations client) migrateRotations() wraps the
+    // schedule/schedule_pos just hydrated above into a single rotation, so
+    // the NEXT position survives the round trip either way.
+    db.rotations = Array.isArray(s.rotations) ? s.rotations : [];
+    db.activeRotationId = s.active_rotation_id || null;
+    migrateRotations();
     db.lastNotes = s.last_notes || {};
     db.weightPrefs = {...DEFAULT_DB.weightPrefs, ...(s.weight_prefs||{})};
     try{
