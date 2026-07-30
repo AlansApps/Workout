@@ -1818,7 +1818,33 @@ body.light-mode .auth-choice-title{color:#111;}
       </div>
     </div>
 
-    <div style="height:24px;"></div>
+    <!-- SUPPORT — Apple Guideline 1.5 requires a working way to reach the
+         developer, and Guideline 1.2 separately requires published contact
+         info for any app carrying user-generated content (profiles, pings,
+         shared routines all qualify). One row covers both.
+         NOTE for the native wrapper: mailto: needs an explicit handler in
+         a WKWebView / TWA shell or it silently does nothing — see the
+         wrapper task before shipping natively. -->
+    <div class="settings-section-label" data-i18n="settings_support_label">Support</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="location.href='mailto:alansworkoutapp@gmail.com'" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1.8"/><path d="M4 6.5l8 6.2 8-6.2"/></svg></div>
+          <div>
+            <div class="settings-row-title" data-i18n="settings_support_title">Contact support</div>
+            <div class="settings-row-sub">alansworkoutapp@gmail.com</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
+    <div style="height:20px;"></div>
+    <!-- Health disclaimer — standard for fitness apps, reduces review
+         friction and liability. Deliberately --dim rather than --muted:
+         it is real information, not decorative chrome. -->
+    <div style="text-align:center;font-size:10px;color:var(--dim);line-height:1.65;padding:0 12px;" data-i18n="health_disclaimer">Not medical advice. Consult a qualified professional before starting a new training programme — especially with an existing injury or condition.</div>
+    <div style="height:20px;"></div>
     <div style="text-align:center;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">Alan's Workout · v1.0</div>
     <div style="height:16px;"></div>
   </div>
@@ -6756,6 +6782,9 @@ const STRINGS = {
     account_plan_label: 'Plan',
     account_password_label: 'Password',
     account_signout_label: 'Sign out',
+    settings_support_label: 'Support',
+    settings_support_title: 'Contact support',
+    health_disclaimer: 'Not medical advice. Consult a qualified professional before starting a new training programme — especially with an existing injury or condition.',
     account_delete_label: 'Delete account',
     delete_account_title: 'Delete Account',
     delete_account_warning: "This is permanent. The account can't be recovered.",
@@ -7129,6 +7158,9 @@ const STRINGS = {
     account_plan_label: 'Plan',
     account_password_label: 'Contraseña',
     account_signout_label: 'Cerrar sesión',
+    settings_support_label: 'Soporte',
+    settings_support_title: 'Contactar a soporte',
+    health_disclaimer: 'No es asesoramiento médico. Consultá a un profesional antes de empezar un nuevo programa de entrenamiento — sobre todo si tenés una lesión o condición previa.',
     account_delete_label: 'Eliminar cuenta',
     delete_account_title: 'Eliminar Cuenta',
     delete_account_warning: 'Esto es permanente. La cuenta no se puede recuperar.',
