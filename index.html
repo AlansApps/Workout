@@ -266,6 +266,39 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 #rest-overlay{display:flex;position:fixed;inset:0;background:transparent;z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:translateY(100%);transition:transform .42s cubic-bezier(.16,1,.3,1);will-change:transform;overflow:hidden;pointer-events:none;}
 #rest-overlay.active::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
 #rest-overlay.active{transform:translateY(0)!important;pointer-events:all;background:var(--overlay-bg-heavy);}
+/* ── TIMER HALO ──────────────────────────────────────────────────────
+   A frame hugging the screen edge while a timer is up, in whatever accent
+   the user picked (so it follows --gold like everything else).
+
+   Deliberately STATIC — it is not a progress track. Rest can be extended
+   past its own starting length with +15s, so a draining line would have to
+   either run backwards or cap and quietly misreport how long is left;
+   there is no honest "100%" once the total can move. The digits stay the
+   single source of truth and the frame is identity, not data.
+
+   Inset by the safe-area insets so it never disappears under a notch or a
+   home indicator. pointer-events:none so it can't eat taps meant for the
+   buttons underneath. Lives inside #rest-full, which means it inherits
+   that wrapper's fade when the timer is minimized without needing its own
+   rule — the minimized frame is #rest-mini's own border instead. */
+.timer-halo{
+  position:absolute;
+  top:calc(env(safe-area-inset-top,0px) + 10px);
+  bottom:calc(env(safe-area-inset-bottom,0px) + 10px);
+  left:10px; right:10px;
+  border:1px solid var(--gold);
+  border-radius:20px;
+  pointer-events:none;
+  box-shadow:0 0 16px var(--glow-color, rgba(212,168,67,.35)),
+             inset 0 0 26px var(--glow-color-soft, rgba(212,168,67,.10));
+  transition:border-color .3s, box-shadow .3s;
+}
+/* Last 5 seconds — matches .rest-time.urgent, so the frame and the number
+   change together rather than the number going red inside a gold box. */
+.timer-halo.urgent{
+  border-color:var(--danger);
+  box-shadow:0 0 16px rgba(201,68,68,.45), inset 0 0 26px rgba(201,68,68,.12);
+}
 .rest-lbl{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-weight:600;}
 .rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color, rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft, rgba(212,168,67,.15));transition:color .3s;}
 .rest-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);animation:pulse .8s infinite;}
@@ -823,7 +856,12 @@ body.light-mode .ex-section-title{color:var(--gold-ink);}
 body.light-mode .ex-detail-muscle{color:var(--gold-ink);}
 body.light-mode .prog-stat-val{color:var(--gold-ink);}
 body.light-mode .prog-trend-badge{color:var(--gold-ink);}
-body.light-mode .rest-time{color:var(--gold-ink);}
+/* :not(.urgent) — without it this rule outranks .rest-time.urgent (it adds
+   the `body` type selector on top of two classes) and the last-5-seconds
+   red never appeared in light mode. Same guard on the .light-mode copy
+   further down. The mini timer was never affected: #rest-mini-time.urgent
+   wins on its id. */
+body.light-mode .rest-time:not(.urgent){color:var(--gold-ink);}
 body.light-mode .rest-mini-time{color:var(--gold-ink);}
 body.light-mode .tier-modal-name{color:#111 !important;}
 /* Inputs */
@@ -1203,8 +1241,8 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
 .light-mode .last-chip { background:var(--surface); color:var(--muted); border-color:var(--line); }
 .light-mode #rest-overlay.active { background:var(--overlay-bg-heavy) !important; }
 .light-mode .rest-lbl { color:var(--muted); }
-.light-mode .rest-time { color:var(--text); }
-.light-mode .rest-mini-time { color:var(--text); }
+.light-mode .rest-time:not(.urgent) { color:var(--text); }
+.light-mode .rest-mini-time:not(.urgent) { color:var(--text); }
 .light-mode #rest-skip,.light-mode #rest-plus { border-color:var(--line2); color:var(--muted); }
 .light-mode #confirm-overlay { background:var(--overlay-bg) !important; }
 .light-mode #confirm-overlay > div { background:var(--panel) !important; border-color:var(--gold) !important; }
@@ -1253,12 +1291,26 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
   opacity:0;pointer-events:none;
 }
 
-/* Mini bar — at bottom of overlay, visible when minimized (sits at top of screen) */
+/* Mini bar — at bottom of overlay, visible when minimized (sits at top of
+   screen). Carries the same halo frame as the expanded state, just sized to
+   the bar: same 1px accent border, same radius language, same glow. Its own
+   border rather than a second .timer-halo element because the frame here
+   has to hug the bar itself, not the viewport. */
 #rest-mini{
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  gap:8px;width:100%;padding:16px 0 12px;
+  gap:8px;width:calc(100% - 20px);padding:14px 0 12px;
   pointer-events:all;
+  border:1px solid var(--gold);
+  border-radius:18px;
+  background:var(--overlay-bg-heavy);
+  box-shadow:0 0 16px var(--glow-color, rgba(212,168,67,.35)),
+             inset 0 0 26px var(--glow-color-soft, rgba(212,168,67,.10));
+  transition:border-color .3s, box-shadow .3s;
+}
+#rest-mini.urgent{
+  border-color:var(--danger);
+  box-shadow:0 0 16px rgba(201,68,68,.45), inset 0 0 26px rgba(201,68,68,.12);
 }
 #rest-overlay:not(.minimized) #rest-mini{
   display:none;
@@ -1308,7 +1360,15 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
 .active-target{font-size:9px;color:var(--muted);letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;min-height:11px;}
 .active-min-btn{background:none;border:1px solid var(--line2);color:var(--dim);padding:8px 16px;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.2px;cursor:pointer;border-radius:999px;margin-top:8px;}
 .active-done-btn{width:100%;max-width:320px;margin-top:10px;padding:20px;background:var(--ok);border:1px solid var(--ok);border-radius:28px;color:var(--void);font-family:var(--body);font-size:16px;font-weight:700;letter-spacing:.3px;cursor:pointer;}
-#active-mini{display:none;position:fixed;top:0;left:0;right:0;z-index:101;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;align-items:center;justify-content:center;gap:10px;background:var(--overlay-bg-heavy);border-bottom:1px solid var(--line2);cursor:pointer;}
+/* The Active clock gets the same halo as the rest timer — it's the same
+   kind of overlay and an unframed one next to a framed one reads as a bug
+   — but keeps its own green (--ok, "you're working") rather than the
+   accent, which is the distinction the two overlays already draw. */
+.timer-halo--active{
+  border-color:var(--ok);
+  box-shadow:0 0 16px rgba(74,158,106,.35), inset 0 0 26px rgba(74,158,106,.10);
+}
+#active-mini{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:101;padding:12px 16px;align-items:center;justify-content:center;gap:10px;background:var(--overlay-bg-heavy);border:1px solid var(--ok);border-radius:18px;box-shadow:0 0 16px rgba(74,158,106,.35), inset 0 0 26px rgba(74,158,106,.10);cursor:pointer;}
 #active-overlay.minimized #active-mini{display:flex;}
 .active-mini-time{font-family:var(--hd);font-size:20px;font-weight:900;color:var(--ok);}
 .active-mini-lbl{font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-weight:700;}
@@ -2279,6 +2339,10 @@ body.light-mode .auth-choice-title{color:#111;}
 <div id="rest-overlay">
   <!-- Full content (expanded state) -->
   <div id="rest-full">
+    <!-- Static accent frame around the screen — see .timer-halo. Inside
+         #rest-full so it fades out with the rest of the expanded content
+         when the timer is minimized. -->
+    <div class="timer-halo" id="rest-halo"></div>
     <div class="rest-lbl" data-i18n="rest_label">Rest</div>
     <div id="rest-time" class="rest-time">0:00</div>
     <div class="rest-btns">
@@ -2313,6 +2377,7 @@ body.light-mode .auth-choice-title{color:#111;}
      reads as "you're working" instead of "you're waiting". -->
 <div id="active-overlay">
   <div id="active-full">
+    <div class="timer-halo timer-halo--active"></div>
     <button class="active-close-btn" onclick="activeCancel()" title="Cancel" data-i18n-title="cancel"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="active-lbl" id="active-ex-name" data-i18n="active_label">Active</div>
     <div id="active-time" class="active-time">0:00</div>
@@ -3693,13 +3758,20 @@ function restTick(){
 function updRestDisp(){
   const el = document.getElementById('rest-time');
   el.textContent = Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
-  el.classList.toggle('urgent', restRem<=5 && restRem>0);
+  const urgent = restRem<=5 && restRem>0;
+  el.classList.toggle('urgent', urgent);
+  // The halo frames follow the number into the urgent state so the border
+  // and the digits change together (see .timer-halo.urgent).
+  const _halo = document.getElementById('rest-halo');
+  if(_halo) _halo.classList.toggle('urgent', urgent);
   // Update mini time display
   const _mt = document.getElementById('rest-mini-time');
   if(_mt){
     _mt.textContent = Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
-    _mt.classList.toggle('urgent', restRem<=5 && restRem>0);
+    _mt.classList.toggle('urgent', urgent);
   }
+  const _mini = document.getElementById('rest-mini');
+  if(_mini) _mini.classList.toggle('urgent', urgent);
   // Toggle skip/go button state
   const skipBtn = document.getElementById('rest-skip-btn');
   if (skipBtn) {
