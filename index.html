@@ -1094,6 +1094,11 @@ input, select, textarea {
   .prog-subrow,
   #profile-body,
   #screen-search .pg-header,
+  /* Trainer is a top-level nav destination with no .back-row, exactly like
+     Search — so its bare .pg-header needs the same inset. Search was listed
+     here when it was built; Trainer shipped later and was never added, which
+     is why its title sat noticeably higher than every other screen's. */
+  #screen-trainer .pg-header,
   .oprof-topbar {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
@@ -2004,8 +2009,13 @@ body.light-mode .auth-choice-title{color:#111;}
   <button class="float-nav-item" id="nav-trainer-item" data-screen="trainer" onclick="showScreen('trainer')" style="display:none;">
     <span class="float-nav-item-inner">
       <span class="float-nav-icon">
-        <svg class="ol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="10" width="4" height="4" rx="1"/><rect x="17.5" y="10" width="4" height="4" rx="1"/><path d="M6.5 12h11"/></svg>
-        <svg class="fl" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 9a1 1 0 0 0-1 1v4a1 1 0 0 0 2 0v-1h1v1a1 1 0 0 0 2 0v-8a1 1 0 0 0-2 0v1h-1v-1a1 1 0 0 0-1-1zM17.5 9a1 1 0 0 1 1 1v4a1 1 0 0 1-2 0v-1h-1v1a1 1 0 0 1-2 0v-8a1 1 0 0 1 2 0v1h1v-1a1 1 0 0 1 1-1z"/></svg>
+        <!-- Outline and filled deliberately share ONE silhouette and one
+             bounding box (x 2.5-21.5, y 8.5-15.5, centred on y=12). They
+             used to be different drawings — outline 19x4, filled 13x9,
+             centred on different lines — so the icon visibly jumped and
+             changed proportion the moment the tab became active. -->
+        <svg class="ol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8.5" width="4.5" height="7" rx="1.6"/><rect x="17" y="8.5" width="4.5" height="7" rx="1.6"/><path d="M7 12h10"/></svg>
+        <svg class="fl" viewBox="0 0 24 24" fill="currentColor"><rect x="2.5" y="8.5" width="4.5" height="7" rx="1.6"/><rect x="17" y="8.5" width="4.5" height="7" rx="1.6"/><rect x="7" y="10.75" width="10" height="2.5" rx="1.25"/></svg>
       </span>
       <span class="float-nav-label" data-i18n="nav_trainer">Trainer</span>
     </span>
