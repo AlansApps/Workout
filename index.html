@@ -1345,6 +1345,24 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
   text-align:center; font-family:var(--body); font-size:11px; color:var(--muted);
   margin-top:22px; cursor:pointer; letter-spacing:.5px;
 }
+/* ── Plan screen ──────────────────────────────────────────────────────
+   The current plan gets a faint accent wash plus a left rail rather than
+   a border-colour change, so it still reads as one continuous list. The
+   pill uses --gold (the user-selectable accent) rather than a hardcoded
+   hue, per the rule that nothing "on-brand" hardcodes a colour. */
+.plan-name-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.plan-pill{
+  font-family:var(--body); font-size:9px; font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--void); background:var(--gold);
+  padding:3px 9px; border-radius:999px; white-space:nowrap;
+}
+.plan-row.current{
+  background:color-mix(in srgb, var(--gold) 7%, transparent);
+  box-shadow:inset 2px 0 0 var(--gold);
+}
+body.light-mode .plan-pill{color:#fff;}
+
 /* Consent line under Create account. --dim not --muted: it is a legal
    notice people are entitled to actually read, not decorative chrome. */
 .auth-legal-note{
@@ -1534,6 +1552,14 @@ body.light-mode .auth-choice-title{color:#111;}
   <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
   <div class="pg-header"><div class="pg-title" data-i18n="settings_language_row_title">Language</div></div>
   <div id="language-list" class="list-scroll"></div>
+</div>
+
+<!-- PLAN — same drill-down pattern as PR Visibility and Language. Filled in
+     by renderPlanSection(). -->
+<div id="screen-plan" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="account_plan_label">Plan</div></div>
+  <div id="plan-list" class="list-scroll"></div>
 </div>
 
 <div id="screen-analytics" class="screen">
@@ -1971,7 +1997,8 @@ body.light-mode .auth-choice-title{color:#111;}
     </span>
   </button>
   <!-- Trainer-tier only (see updateTrainerNavVisibility()) — hidden by
-       default, shown only for accounts where getEffectiveTier()==='trainer'.
+       default, shown only for accounts whose tier is trainer-capable
+       (trainer or trainer_pro — see tierHasTrainer()).
        Placed here (not appended at the end) since it's still meant to
        read as a first-class destination once unlocked, not an afterthought. -->
   <button class="float-nav-item" id="nav-trainer-item" data-screen="trainer" onclick="showScreen('trainer')" style="display:none;">
@@ -2777,7 +2804,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -2793,6 +2820,7 @@ function showScreen(id){
   if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); }
   if(id==='pr-visibility') renderPrVisibilitySection();
   if(id==='language') renderLanguageSection();
+  if(id==='plan') renderPlanSection();
   if(id==='profile') renderProfile();
   if(id==='analytics') initProgressCharts();
   if(id==='search'){ _searchMode='search'; renderSearchScreen(); }
@@ -2849,7 +2877,10 @@ async function updateTrainerNavVisibility(){
   let show=false;
   if(currentUser){
     const profile=await getMyProfile();
-    show=getEffectiveTier(profile)==='trainer';
+    // tierHasTrainer(), not === 'trainer': trainer_pro is also
+    // trainer-capable, and an equality check here would silently hide the
+    // tab from the highest tier — including the owner account.
+    show=tierHasTrainer(getEffectiveTier(profile));
   }
   item.style.display=show?'':'none';
   if(show!==wasShown){
@@ -4471,7 +4502,29 @@ function switchProfileTab(tab){
 // currently unreachable for anyone except via direct DB action (see
 // 20260725000001_membership_tiers.sql), but the labels/pricing already
 // match what Settings should show the moment a real upgrade path exists.
-const TIER_LABELS={ free:'Free', member:'Member — $0.99/mo', trainer:'Trainer — $5.99/mo' };
+// ── Plans. Two INDEPENDENT capabilities rather than one ladder, which is
+// why there are four: `trainer` unlocks the bottom Trainer tab, `pro`
+// unlocks the video scan / form-diagnosis feature (not built yet — the
+// capability is declared so the plumbing exists, nothing gates on it).
+//
+// Deliberately NO price anywhere. Advertising a price for something that
+// cannot be bought is an App Store 2.1 rejection, and once purchasing does
+// exist the price has to come from StoreKit/Play Billing rather than a
+// hardcoded string, so there is no version of this where a literal here is
+// correct.
+//
+// Order matters — it is the display order on the Plan screen, cheapest
+// capability set first.
+const PLANS = [
+  {id:'basic',       trainer:false, pro:false},
+  {id:'pro',         trainer:false, pro:true },
+  {id:'trainer',     trainer:true,  pro:false},
+  {id:'trainer_pro', trainer:true,  pro:true },
+];
+function planById(id){ return PLANS.find(p=>p.id===id) || PLANS[0]; }
+// Does this tier grant the Trainer tab? Single source of truth so the nav
+// check and the Plan screen can never disagree about what "trainer" means.
+function tierHasTrainer(tier){ return !!planById(tier).trainer; }
 
 // Single source of truth for "what tier does this account actually get
 // treated as" — used by both the Settings Plan row and the Trainer nav
@@ -4479,9 +4532,12 @@ const TIER_LABELS={ free:'Free', member:'Member — $0.99/mo', trainer:'Trainer 
 // is_admin (currently only @alan) gets full Trainer behavior for free,
 // per that column's own comment in the profiles table.
 function getEffectiveTier(profile){
-  if(!profile) return 'free';
-  if(profile.is_admin) return 'trainer';
-  return profile.subscription_tier||'free';
+  if(!profile) return 'basic';
+  // The owner account always sits at the top tier so every feature stays
+  // visible to it — the migration also writes trainer_pro to the row, this
+  // is the belt-and-braces client-side half of that same rule.
+  if(profile.is_admin) return 'trainer_pro';
+  return profile.subscription_tier||'basic';
 }
 
 let _myProfileCache=null;
@@ -6843,9 +6899,15 @@ const STRINGS = {
     delete_account_error: 'Could not delete your account. Check your connection and try again.',
     account_signin_row_title: 'Sign in',
     account_signin_row_sub: 'Sign in to manage your account',
-    tier_label_free: 'Free',
-    tier_label_member: 'Member — $0.99/mo',
-    tier_label_trainer: 'Trainer — $5.99/mo',
+    plan_basic: 'Basic',
+    plan_pro: 'Pro',
+    plan_trainer: 'Trainer',
+    plan_trainer_pro: 'Trainer Pro',
+    plan_current: 'Current',
+    plan_perk_core: 'Full workout tracking',
+    plan_perk_trainer: 'Trainer tools',
+    plan_perk_scan: 'Form scan',
+    plan_footnote: 'Upgrades are coming soon.',
     verified_tooltip: 'Verified',
     weight_units_label: 'Units',
     weight_units_sub: 'What every weight in the app is shown and typed in',
@@ -7224,9 +7286,15 @@ const STRINGS = {
     delete_account_error: 'No se pudo eliminar tu cuenta. Revisá tu conexión e intentá de nuevo.',
     account_signin_row_title: 'Iniciar sesión',
     account_signin_row_sub: 'Iniciá sesión para gestionar tu cuenta',
-    tier_label_free: 'Gratis',
-    tier_label_member: 'Miembro — $0.99/mes',
-    tier_label_trainer: 'Entrenador — $5.99/mes',
+    plan_basic: 'Basic',
+    plan_pro: 'Pro',
+    plan_trainer: 'Trainer',
+    plan_trainer_pro: 'Trainer Pro',
+    plan_current: 'Actual',
+    plan_perk_core: 'Registro completo de entrenamientos',
+    plan_perk_trainer: 'Herramientas de entrenador',
+    plan_perk_scan: 'Escaneo de técnica',
+    plan_footnote: 'Las mejoras de plan llegan pronto.',
     verified_tooltip: 'Verificado',
     weight_units_label: 'Unidades',
     weight_units_sub: 'En qué unidad se muestra y se escribe cada peso en la app',
@@ -7876,7 +7944,7 @@ async function renderAccountSection(){
 
   const provider = (currentUser.app_metadata && currentUser.app_metadata.provider) || 'email';
   const providerLabel = provider === 'google' ? 'Google' : t('account_email_password_provider');
-  const tierLabel = t('tier_label_'+getEffectiveTier(profile));
+  const tierLabel = t('plan_'+getEffectiveTier(profile));
   const verifiedBadge = (profile && profile.verified) ? ' <span title="'+t('verified_tooltip')+'" style="color:var(--gold);">✓</span>' : '';
   // Real case as entered — NOT uppercased. See My Account's original fix:
   // a name someone typed as "Alan Albrecht" has no business being shown
@@ -7922,11 +7990,12 @@ async function renderAccountSection(){
           <div class="settings-row-sub">${providerLabel}</div>
         </div></div>
       </div>
-      <div class="settings-row">
+      <div class="settings-row" onclick="showScreen('plan')" style="cursor:pointer;">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.5.6-4 3.8.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.8 5.5-.6z"/></svg></div><div>
           <div class="settings-row-title">${t('account_plan_label')}</div>
           <div class="settings-row-sub">${tierLabel}</div>
         </div></div>
+        <div class="settings-row-arrow">›</div>
       </div>
       <div class="settings-row" onclick="openPasswordModal(${hasPassword})" style="cursor:pointer;">
         <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M11.5 12h9m-4 0v3.5m3-3.5v2.5"/></svg></div><div>
@@ -8114,6 +8183,54 @@ async function togglePrExerciseVisibility(exId){
 // a display preference stored the same way dark/light mode already is
 // (see saveSettings()). English and Español only for now, English is
 // always the default for a brand-new install.
+// ═══════════════════════════════════════════
+//  PLAN
+// ═══════════════════════════════════════════
+// Drill-down from Settings → Account → Plan, same pattern as PR Visibility
+// and Language. Shows all four plans with what each one actually unlocks,
+// and marks the one you're on.
+//
+// No prices and no upgrade path yet — deliberately. Purchasing has to go
+// through StoreKit / Play Billing when it exists, so there is nothing here
+// to link an Upgrade button to. Showing a dead "Upgrade" control would be
+// exactly the App Store 2.1 problem we just cleared elsewhere. The layout
+// leaves the right-hand slot free so an Upgrade/Cancel pill can drop in
+// beside the Current pill without a redesign.
+async function renderPlanSection(){
+  const el = document.getElementById('plan-list');
+  if(!el) return;
+  const profile = currentUser ? await getMyProfile() : null;
+  const current = getEffectiveTier(profile);
+
+  el.innerHTML = `
+    <div class="settings-group" style="margin:12px 14px;">
+      ${PLANS.map((p, i) => {
+        const isCurrent = p.id === current;
+        const perks = [
+          t('plan_perk_core'),
+          p.trainer ? t('plan_perk_trainer') : null,
+          p.pro ? t('plan_perk_scan') : null,
+        ].filter(Boolean).join(' · ');
+        return `
+        <div class="settings-row plan-row${isCurrent?' current':''}" style="align-items:flex-start;${i===PLANS.length-1?'border-bottom:none;':''}">
+          <div class="settings-row-left" style="align-items:flex-start;">
+            <div>
+              <div class="plan-name-row">
+                <span class="settings-row-title">${t('plan_'+p.id)}</span>
+                ${isCurrent ? `<span class="plan-pill">${t('plan_current')}</span>` : ''}
+              </div>
+              <div class="settings-row-sub" style="margin-top:3px;">${perks}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--dim);line-height:1.6;padding:4px 22px 0;text-align:center;">
+      ${t('plan_footnote')}
+    </div>
+  `;
+}
+
 function renderLanguageSection(){
   const el = document.getElementById('language-list');
   if(!el) return;
