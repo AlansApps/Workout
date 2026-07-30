@@ -727,6 +727,12 @@ body.light-mode .pr-1rm,body.light-mode .pr-1rm-unit,body.light-mode .pr-formula
 .settings-row-left{display:flex;align-items:center;gap:14px;flex:1;}
 .settings-row-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);}
 .settings-row-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+/* Every Settings icon is a stroked line drawing except the Ping mark, which
+   is a solid filled glyph (PING_ICON_SVG) — the rule above would erase it
+   (fill:none) and outline its silhouette instead. This flips it back. Its
+   viewBox is taller than wide; the SVG default preserveAspectRatio
+   letterboxes it inside the 18px box rather than squashing it. */
+.settings-row-icon.filled-icon svg{fill:currentColor;stroke:none;}
 .settings-row-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:.5px;}
 .settings-row-sub{font-size:10px;color:var(--dim);letter-spacing:1px;margin-top:2px;}
 .settings-row-arrow{color:var(--muted);font-size:18px;flex-shrink:0;}
@@ -4619,7 +4625,7 @@ async function fetchMyProfile(){
   try{
     const { data }=await supabaseClient
       .from('profiles')
-      .select('username, full_name, verified, subscription_tier, is_admin, has_password, is_private, hidden_pr_exercise_ids')
+      .select('username, full_name, verified, subscription_tier, is_admin, has_password, is_private, hidden_pr_exercise_ids, pings_blocked')
       .eq('id', currentUser.id)
       .single();
     _myProfileCache=data;
@@ -5199,11 +5205,12 @@ async function renderOtherProfile(){
   if(!uid){ body.innerHTML=''; return; }
   body.innerHTML = _otherProfileHtmlCache[uid] || '<div class="empty-state"><p>Loading…</p></div>';
 
-  const [{data:profile}, followState, counts, pingUsed] = await Promise.all([
-    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia, hidden_pr_exercise_ids').eq('id', uid).maybeSingle(),
+  const [{data:profile}, followState, counts, pingUsed, myProfile] = await Promise.all([
+    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia, hidden_pr_exercise_ids, pings_blocked').eq('id', uid).maybeSingle(),
     getFollowState(uid),
     getFollowCounts(uid),
     hasPingedToday(),
+    getMyProfile(),
   ]);
   if(_otherProfileUserId!==uid) return; // navigated to a different profile while this was in flight
   if(!profile){
@@ -5220,6 +5227,12 @@ async function renderOtherProfile(){
   const canView = !profile.is_private || (followState.mine && followState.mine.status==='accepted');
   const label = followButtonLabel(followState);
   const isPrimary = (label==='follow' || label==='follow_back');
+
+  // The Ping button disappears entirely — rather than rendering greyed out —
+  // when either side has blocked pings, because a permanently dead control
+  // is worse than no control. Server-side the INSERT policy refuses these
+  // anyway; this just avoids offering an action that cannot succeed.
+  const canPing = !profile.pings_blocked && !(myProfile && myProfile.pings_blocked);
 
   let equippedInsignia=null, workoutCount='—';
   if(canView){
@@ -5260,7 +5273,7 @@ async function renderOtherProfile(){
       </div>
       <div class="oprof-followbtn-row">
         <button class="oprof-followbtn ${isPrimary?'primary':'secondary'}" id="oprof-follow-btn" onclick="onOtherProfileFollowClick()">${followButtonText(label)}</button>
-        <button class="oprof-ping-btn ${pingUsed?'used':''}" id="oprof-ping-btn" onclick="openPingPicker('${uid}')" aria-label="Ping">${PING_ICON_SVG}</button>
+        ${canPing ? `<button class="oprof-ping-btn ${pingUsed?'used':''}" id="oprof-ping-btn" onclick="openPingPicker('${uid}')" aria-label="Ping">${PING_ICON_SVG}</button>` : ''}
       </div>
       <div class="profile-tabs">
         <button class="profile-tab active" id="optab-prs" onclick="switchOtherProfileTab('prs')">${t('profile_tab_prs')}</button>
@@ -5879,6 +5892,12 @@ async function sendPing(targetUserId, btnEl){
     const { error } = await supabaseClient.from('pings').insert({ sender_id:currentUser.id, recipient_id:targetUserId, message:text, kind });
     if(error){
       if(error.code==='23505'){ _pingedToday=true; closePingPicker(); refreshPingButtonState(); return; }
+      // 42501 = the INSERT policy refused it, which for this table means
+      // one of the two parties has pings blocked. Only reachable if the
+      // block landed after this screen was rendered (or someone is calling
+      // the API directly), but it deserves a real explanation rather than
+      // the generic "could not send" — nothing they retry will help.
+      if(error.code==='42501'){ closePingPicker(); alert(t('alert_ping_blocked')); return; }
       throw error;
     }
     _pingedToday=true;
@@ -6821,6 +6840,7 @@ const STRINGS = {
     alert_delete_error: 'Could not delete. Try again.',
     alert_ping_used_today: "You've used today's ping. Come back tomorrow.",
     alert_ping_send_error: 'Could not send ping. Try again.',
+    alert_ping_blocked: 'This ping could not be sent — pings are blocked.',
     alert_setting_update_error: 'Could not update this setting. Try again.',
     alert_google_signin_not_setup: 'Google sign-in is not set up yet: ',
     alert_follow_error: 'Could not follow. Try again.',
@@ -6943,6 +6963,8 @@ const STRINGS = {
     account_handle_label: 'Handle',
     account_private_label: 'Private Account',
     account_private_sub: 'Only people you approve can follow you and see your Program and Log',
+    account_block_pings_label: 'Block Pings',
+    account_block_pings_sub: "Nobody can ping you, and you can't ping anyone",
     account_email_label: 'Email',
     account_signed_in_with_label: 'Signed in with',
     account_plan_label: 'Plan',
@@ -7229,6 +7251,7 @@ const STRINGS = {
     alert_delete_error: 'No se pudo eliminar. Intentá de nuevo.',
     alert_ping_used_today: 'Ya usaste tu ping de hoy. Volvé mañana.',
     alert_ping_send_error: 'No se pudo enviar el ping. Intentá de nuevo.',
+    alert_ping_blocked: 'No se pudo enviar el ping — los pings están bloqueados.',
     alert_setting_update_error: 'No se pudo actualizar esta opción. Intentá de nuevo.',
     alert_google_signin_not_setup: 'El inicio de sesión con Google todavía no está configurado: ',
     alert_follow_error: 'No se pudo seguir. Intentá de nuevo.',
@@ -7351,6 +7374,8 @@ const STRINGS = {
     account_handle_label: 'Usuario',
     account_private_label: 'Cuenta Privada',
     account_private_sub: 'Solo las personas que aprobés pueden seguirte y ver tu Programa y Registro',
+    account_block_pings_label: 'Bloquear Pings',
+    account_block_pings_sub: 'Nadie puede mandarte pings, y vos tampoco podés mandar',
     account_email_label: 'Correo electrónico',
     account_signed_in_with_label: 'Sesión iniciada con',
     account_plan_label: 'Plan',
@@ -8103,6 +8128,7 @@ async function renderAccountSection(){
   const hasPassword = !!(profile && profile.has_password);
   const passwordLabel = hasPassword ? t('account_change_password') : t('account_add_password');
   const isPrivate = !!(profile && profile.is_private);
+  const pingsBlocked = !!(profile && profile.pings_blocked);
 
   el.innerHTML = `
     <div class="settings-group">
@@ -8125,6 +8151,22 @@ async function renderAccountSection(){
         </div></div>
         <div class="switch" onclick="togglePrivateAccount()">
           <div class="switch-track ${isPrivate?'on':''}" id="private-toggle-track"><div class="switch-thumb"></div></div>
+        </div>
+      </div>
+      <!-- Ping blocking sits directly under Private account: same shape of
+           setting (an account-level social switch, server-enforced, on =
+           more restricted), so it reads as part of the same group rather
+           than a stray toggle somewhere else in Settings. The reciprocal
+           rule — blocking receipt also blocks sending — is stated in the
+           sub-line, because a switch labelled only "block pings" would not
+           lead anyone to expect it takes their own away too. -->
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon filled-icon">${PING_ICON_SVG}</div><div>
+          <div class="settings-row-title">${t('account_block_pings_label')}</div>
+          <div class="settings-row-sub">${t('account_block_pings_sub')}</div>
+        </div></div>
+        <div class="switch" onclick="toggleBlockPings()">
+          <div class="switch-track ${pingsBlocked?'on':''}" id="block-pings-toggle-track"><div class="switch-thumb"></div></div>
         </div>
       </div>
       <div class="settings-row">
@@ -8261,6 +8303,33 @@ async function togglePrivateAccount(){
     const { error } = await supabaseClient.from('profiles').update({ is_private: newVal }).eq('id', currentUser.id);
     if(error) throw error;
     if(_myProfileCache) _myProfileCache.is_private = newVal;
+  }catch(e){
+    track.classList.toggle('on', wasOn); // revert
+    alert(t('alert_setting_update_error'));
+  }
+}
+
+// Opt out of pings entirely — you receive none, and you can send none.
+// Like togglePrivateAccount above, this flag is only a flag: the actual
+// enforcement is the pings INSERT policy (20260730000002_ping_blocking),
+// which checks pings_blocked on BOTH sides of every attempted ping. That
+// matters because the anon key is public, so a UI-only block would stop
+// nobody who didn't want to be stopped.
+//
+// _otherProfileHtmlCache is cleared because it holds pre-rendered profile
+// markup that includes (or omits) the Ping button — leaving it would show
+// a stale button on the next profile opened until it refetched.
+async function toggleBlockPings(){
+  if(!currentUser) return;
+  const track = document.getElementById('block-pings-toggle-track');
+  const wasOn = track.classList.contains('on');
+  const newVal = !wasOn;
+  track.classList.toggle('on', newVal); // optimistic
+  try{
+    const { error } = await supabaseClient.from('profiles').update({ pings_blocked: newVal }).eq('id', currentUser.id);
+    if(error) throw error;
+    if(_myProfileCache) _myProfileCache.pings_blocked = newVal;
+    _otherProfileHtmlCache = {};
   }catch(e){
     track.classList.toggle('on', wasOn); // revert
     alert(t('alert_setting_update_error'));
@@ -9815,6 +9884,10 @@ function restExpand() {
   // ── First time viewing someone else's profile — what the PING button does.
   window.__maybeShowPingTip = async function(){
     if(_tipOpen || !currentUser) return;
+    // The button is absent when either side blocked pings (see canPing in
+    // renderOtherProfile). Bail WITHOUT marking the tip seen, so it still
+    // appears the first time they open a profile that does have one.
+    if(!document.getElementById('oprof-ping-btn')) return;
     if(await hasSeenTip('other_profile_ping')) return;
     showSpotlightTip({
       targets: [document.getElementById('oprof-ping-btn')],
