@@ -1345,6 +1345,13 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
   text-align:center; font-family:var(--body); font-size:11px; color:var(--muted);
   margin-top:22px; cursor:pointer; letter-spacing:.5px;
 }
+/* Consent line under Create account. --dim not --muted: it is a legal
+   notice people are entitled to actually read, not decorative chrome. */
+.auth-legal-note{
+  text-align:center; font-family:var(--body); font-size:11px; color:var(--dim);
+  margin-top:14px; line-height:1.6; letter-spacing:.3px;
+}
+.auth-legal-note a{color:var(--gold); text-decoration:underline; text-underline-offset:2px;}
 .auth-error{
   font-family:var(--body); font-size:12px; color:var(--danger,#c94444);
   margin:-4px 0 12px; min-height:14px;
@@ -1839,6 +1846,29 @@ body.light-mode .auth-choice-title{color:#111;}
       </div>
     </div>
 
+    <!-- LEGAL — Apple 5.1.1 requires the privacy policy to be reachable
+         from INSIDE the app, not only from the App Store Connect metadata
+         field, so these rows are mandatory rather than courtesy links.
+         target="_blank" + rel=noopener: these open real web pages, and we
+         never want them replacing the app's own single-page context. -->
+    <div class="settings-section-label" data-i18n="settings_legal_label">Legal</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="window.open('privacy.html','_blank','noopener')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 3.5l7 2.6v5.4c0 4.6-3 7.9-7 9-4-1.1-7-4.4-7-9V6.1z"/></svg></div>
+          <div class="settings-row-title" data-i18n="settings_privacy_title">Privacy Policy</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="window.open('terms.html','_blank','noopener')" style="cursor:pointer;border-bottom:none;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M6.5 3.5h8l5 5v12a1 1 0 0 1-1 1h-12a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M14 3.5v5.5h5.5"/><path d="M9 13h6M9 16.5h6"/></svg></div>
+          <div class="settings-row-title" data-i18n="settings_terms_title">Terms of Use</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
     <div style="height:20px;"></div>
     <!-- Health disclaimer — standard for fitness apps, reduces review
          friction and liability. Deliberately --dim rather than --muted:
@@ -2046,6 +2076,17 @@ body.light-mode .auth-choice-title{color:#111;}
     </div>
     <div class="auth-error" id="signup-error"></div>
     <button class="btn-cta" id="signup-submit" onclick="authSignUpWithEmail()" data-i18n="auth_btn_create_account">Create account</button>
+    <!-- Sign-in-wrap consent: the industry-standard zero-friction pattern
+         (Instagram, Strava et al). No checkbox, no blocking modal, no extra
+         tap — creating the account IS the acceptance, and both documents
+         are one tap away. Satisfies the "terms presented before account
+         creation" expectation without adding a step to signup. -->
+    <div class="auth-legal-note">
+      <span data-i18n="auth_legal_prefix">By creating an account you agree to our</span>
+      <a href="terms.html" target="_blank" rel="noopener" data-i18n="settings_terms_title">Terms of Use</a>
+      <span data-i18n="auth_legal_and">and</span>
+      <a href="privacy.html" target="_blank" rel="noopener" data-i18n="settings_privacy_title">Privacy Policy</a><span>.</span>
+    </div>
   </div>
 
   <!-- ── COMPLETE PROFILE (OAuth signups land here if they have no username yet) ── -->
@@ -6784,6 +6825,11 @@ const STRINGS = {
     account_signout_label: 'Sign out',
     settings_support_label: 'Support',
     settings_support_title: 'Contact support',
+    settings_legal_label: 'Legal',
+    settings_privacy_title: 'Privacy Policy',
+    settings_terms_title: 'Terms of Use',
+    auth_legal_prefix: 'By creating an account you agree to our',
+    auth_legal_and: 'and',
     health_disclaimer: 'Not medical advice. Consult a qualified professional before starting a new training programme — especially with an existing injury or condition.',
     account_delete_label: 'Delete account',
     delete_account_title: 'Delete Account',
@@ -7160,6 +7206,11 @@ const STRINGS = {
     account_signout_label: 'Cerrar sesión',
     settings_support_label: 'Soporte',
     settings_support_title: 'Contactar a soporte',
+    settings_legal_label: 'Legal',
+    settings_privacy_title: 'Política de Privacidad',
+    settings_terms_title: 'Términos de Uso',
+    auth_legal_prefix: 'Al crear una cuenta aceptás nuestros',
+    auth_legal_and: 'y la',
     health_disclaimer: 'No es asesoramiento médico. Consultá a un profesional antes de empezar un nuevo programa de entrenamiento — sobre todo si tenés una lesión o condición previa.',
     account_delete_label: 'Eliminar cuenta',
     delete_account_title: 'Eliminar Cuenta',
