@@ -1567,6 +1567,27 @@ body.light-mode .auth-choice-title{color:#111;}
   <div id="plan-list" class="list-scroll"></div>
 </div>
 
+<!-- ACCOUNT — same drill-down pattern. The body is still rendered by
+     renderAccountSection() into #account-section-body; only its container
+     moved off the Settings screen. -->
+<div id="screen-account" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="settings_account_label">Account</div></div>
+  <div class="list-scroll" style="gap:0;padding:12px 14px;">
+    <div id="account-section-body"></div>
+  </div>
+</div>
+
+<!-- WEIGHT LOGGING — same. Body still rendered by renderWeightPrefsSection()
+     into #weight-prefs-section-body. -->
+<div id="screen-weight-prefs" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="settings_weight_logging_label">Weight Logging</div></div>
+  <div class="list-scroll" style="gap:0;padding:12px 14px;">
+    <div id="weight-prefs-section-body"></div>
+  </div>
+</div>
+
 <div id="screen-analytics" class="screen">
   <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
   <div class="pg-header"><div class="pg-title" data-i18n="analytics_title">Analytics</div></div>
@@ -1811,8 +1832,24 @@ body.light-mode .auth-choice-title{color:#111;}
          (Profile now owns the public-facing identity view; this is the
          private account-management surface). Filled in by
          renderAccountSection(). -->
+    <!-- Account is now a drill-down (see #screen-account) rather than a
+         long inline block, matching Analytics / PR Visibility / Language.
+         The sub-line stays live — it shows the signed-in handle, or the
+         prompt to sign in, so the row still carries the state at a glance
+         without the whole section being expanded. -->
     <div class="settings-section-label" data-i18n="settings_account_label">Account</div>
-    <div id="account-section-body"></div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="showScreen('account')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div>
+          <div>
+            <div class="settings-row-title" data-i18n="settings_account_label">Account</div>
+            <div class="settings-row-sub" id="account-row-sub"></div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
 
     <!-- PR VISIBILITY — collapsed row, same "settings within settings"
          drill-down pattern as Progress/Analytics above (and the future
@@ -1838,8 +1875,25 @@ body.light-mode .auth-choice-title{color:#111;}
          loggers. Local-first (works for guests too, not gated on
          sign-in like Account above) — see getTrueWeight(). Filled in by
          renderWeightPrefsSection(). -->
+    <!-- Weight Logging is now a drill-down (see #screen-weight-prefs).
+         NOTE: the first-run Settings tip used to point at
+         '#weight-prefs-section-body .prog-time-pills' (the units pills),
+         which no longer exist on this screen — the tip now targets this
+         row instead. If this row is ever moved or renamed, update
+         __maybeShowSettingsTip too or that step silently points at null. -->
     <div class="settings-section-label" data-i18n="settings_weight_logging_label">Weight Logging</div>
-    <div id="weight-prefs-section-body"></div>
+    <div class="settings-group">
+      <div class="settings-row" id="weight-logging-row" onclick="showScreen('weight-prefs')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M6 12h12M6 12a2 2 0 1 1-2-2v4a2 2 0 1 1 2-2zM18 12a2 2 0 1 0 2-2v4a2 2 0 1 0-2-2z"/></svg></div>
+          <div>
+            <div class="settings-row-title" data-i18n="settings_weight_logging_label">Weight Logging</div>
+            <div class="settings-row-sub" data-i18n="settings_weight_logging_sub">Units, body weight, barbell and dumbbell</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
 
     <!-- DATA -->
     <div class="settings-section-label" data-i18n="settings_data_label">Data</div>
@@ -2490,7 +2544,7 @@ function exerciseDisplayNameById(id, fallbackName){
 // stay filed under Legs to match DEFAULT_EXERCISES' own muscle grouping,
 // even though most lifters would call them Back/full-body lifts.
 const PR_TRACKED_EXERCISES=[
-  {muscle:"Legs",      ids:["e01","e36","e02","e115","e116","e117"]}, // Barbell Squat, Deadlift, Romanian Deadlift, Snatch, Clean and Jerk, Power Clean
+  {muscle:"Legs",      ids:["e01","e36","e02","e06","e115","e116","e117"]}, // Barbell Squat, Deadlift, Romanian Deadlift, Leg Press, Snatch, Clean and Jerk, Power Clean
   {muscle:"Chest",     ids:["e10"]},              // Barbell Bench Press
   {muscle:"Back",      ids:["e24"]},              // Pull-Up (Weighted)
   {muscle:"Shoulders", ids:["e75"]},               // Standing Military Press
@@ -2814,7 +2868,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -2827,7 +2881,11 @@ function showScreen(id){
   if(id==='routines') renderRoutines();
   if(id==='schedule') renderSchedule();
   if(id==='exercises') renderExercisesDB();
-  if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); }
+  // Settings only needs the Account ROW's sub-line now; the sections
+  // themselves live on their own screens and render when opened.
+  if(id==='settings') renderAccountRowSub();
+  if(id==='account') renderAccountSection();
+  if(id==='weight-prefs') renderWeightPrefsSection();
   if(id==='pr-visibility') renderPrVisibilitySection();
   if(id==='language') renderLanguageSection();
   if(id==='plan') renderPlanSection();
@@ -6671,6 +6729,7 @@ const STRINGS = {
     settings_pr_visibility_title: 'PR Visibility',
     settings_pr_visibility_sub: 'Choose which lifts show on your profile',
     settings_weight_logging_label: 'Weight Logging',
+    settings_weight_logging_sub: 'Units, body weight, barbell and dumbbell',
     settings_data_label: 'Data',
     settings_export_title: 'Export Backup',
     settings_export_sub: 'Download your data as JSON',
@@ -6918,6 +6977,26 @@ const STRINGS = {
     plan_perk_trainer: 'Trainer tools',
     plan_perk_scan: 'Form scan',
     plan_footnote: 'Upgrades are coming soon.',
+    badge_req_sessions: 'sessions',
+    badge_req_not_yet: 'Not yet',
+    badge_tier_rookie: 'Rookie',
+    badge_tier_regular: 'Regular',
+    badge_tier_dedicated: 'Dedicated',
+    badge_tier_beast: 'Beast',
+    badge_tier_veteran: 'Veteran',
+    badge_tier_elite: 'Elite',
+    badge_tier_legend: 'Legend',
+    badge_founder: 'Founder',
+    badge_trainer: 'Trainer',
+    badge_og_member: 'OG Member',
+    badge_early_supporter: 'Early Supporter',
+    badge_tier_rookie_msg: '10 sessions done. Welcome to the iron game, Rookie.',
+    badge_tier_regular_msg: '25 sessions. You actually kept showing up. Respect.',
+    badge_tier_dedicated_msg: "50 sessions. Half a century of not skipping. That's dedication.",
+    badge_tier_beast_msg: "100 sessions. You're not trying anymore — this is just who you are.",
+    badge_tier_veteran_msg: "250 sessions. Most people quit at 10. You're on 250.",
+    badge_tier_elite_msg: '500 sessions. At this point the bar is scared of you.',
+    badge_tier_legend_msg: "1000 sessions. You're an absolute freak. We mean that as the highest compliment.",
     verified_tooltip: 'Verified',
     weight_units_label: 'Units',
     weight_units_sub: 'What every weight in the app is shown and typed in',
@@ -7058,6 +7137,7 @@ const STRINGS = {
     settings_pr_visibility_title: 'Visibilidad de Récords',
     settings_pr_visibility_sub: 'Elegí qué levantamientos se ven en tu perfil',
     settings_weight_logging_label: 'Registro de Peso',
+    settings_weight_logging_sub: 'Unidades, peso corporal, barra y mancuernas',
     settings_data_label: 'Datos',
     settings_export_title: 'Exportar Copia de Seguridad',
     settings_export_sub: 'Descargá tus datos como JSON',
@@ -7305,6 +7385,26 @@ const STRINGS = {
     plan_perk_trainer: 'Herramientas de entrenador',
     plan_perk_scan: 'Escaneo de técnica',
     plan_footnote: 'Las mejoras de plan llegan pronto.',
+    badge_req_sessions: 'sesiones',
+    badge_req_not_yet: 'Todavía no',
+    badge_tier_rookie: 'Novato',
+    badge_tier_regular: 'Constante',
+    badge_tier_dedicated: 'Dedicado',
+    badge_tier_beast: 'Bestia',
+    badge_tier_veteran: 'Veterano',
+    badge_tier_elite: 'Élite',
+    badge_tier_legend: 'Leyenda',
+    badge_founder: 'Fundador',
+    badge_trainer: 'Entrenador',
+    badge_og_member: 'Miembro OG',
+    badge_early_supporter: 'Pionero',
+    badge_tier_rookie_msg: '10 sesiones. Bienvenido al fierro, Novato.',
+    badge_tier_regular_msg: '25 sesiones. Realmente seguiste apareciendo. Respeto.',
+    badge_tier_dedicated_msg: '50 sesiones. Medio centenar sin faltar. Eso es dedicación.',
+    badge_tier_beast_msg: '100 sesiones. Ya no lo estás intentando — esto es simplemente quien sos.',
+    badge_tier_veteran_msg: '250 sesiones. La mayoría abandona a las 10. Vos vas por 250.',
+    badge_tier_elite_msg: '500 sesiones. A esta altura la barra te tiene miedo.',
+    badge_tier_legend_msg: '1000 sesiones. Sos un fenómeno absoluto. Lo decimos como el mayor de los halagos.',
     verified_tooltip: 'Verificado',
     weight_units_label: 'Unidades',
     weight_units_sub: 'En qué unidad se muestra y se escribe cada peso en la app',
@@ -7586,6 +7686,25 @@ const TIERS = [
   {id:'tier_rookie',    at:10,   name:'Rookie',   icon:'bronze',   msg:"10 sessions done. Welcome to the iron game, Rookie."},
 ];
 
+// Display name for any rank or insignia, by id. The English `name` on TIERS
+// and INSIGNIA_CATALOG stays the canonical value — this is a display-time
+// lookup only, exactly like exerciseDisplayName(). Safe because nothing
+// compares or stores these names: equipped_insignia persists the ID, and
+// the only `.name ===` test in the file belongs to the accent swatches,
+// which are deliberately excluded from translation for that very reason.
+function badgeName(id){
+  if(!id) return '';
+  const key = 'badge_' + id;
+  const s = t(key);
+  if(s !== key) return s;
+  // Fall back to the canonical English if a key is ever missing, rather
+  // than rendering a raw "badge_tier_legend" at the user.
+  const tier = TIERS.find(x=>x.id===id);
+  if(tier) return tier.name;
+  const ins = INSIGNIA_CATALOG.find(x=>x.id===id);
+  return ins ? ins.name : '';
+}
+
 const TIER_ICONS = {
   bronze:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#cd7f32" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#cd7f32"/><line x1="15" y1="38" x2="22" y2="42" stroke="#cd7f32" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#cd7f32" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#cd7f32"/></svg>',
   silver:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#aaaaaa" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#aaaaaa"/><line x1="15" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#aaaaaa"/></svg>',
@@ -7617,7 +7736,12 @@ const SPECIAL_ICONS = {
 
 const INSIGNIA_CATALOG = [
   {id:'founder',         name:'Founder',         icon:SPECIAL_ICONS.founder, sizeMult:1.5},
-  {id:'trainer',         name:'Trainer',         icon:SPECIAL_ICONS.trainer, sizeMult:1.2},
+  // 1.55, not the 1.2 the others sit near: this artwork is 250x142 (1.76:1)
+  // while every other insignia is roughly square, and the badge scales
+  // icons to fit a SQUARE box — so it fits by width and leaves ~43% of the
+  // height empty. The larger multiplier makes it fill the circle's widest
+  // line instead of floating as a thin strip. Not a redraw.
+  {id:'trainer',         name:'Trainer',         icon:SPECIAL_ICONS.trainer, sizeMult:1.55},
   {id:'og_member',       name:'OG Member',       icon:SPECIAL_ICONS.og,      sizeMult:1.3},
   {id:'early_supporter', name:'Early Supporter', icon:SPECIAL_ICONS.rocket,  sizeMult:1},
 ];
@@ -7744,7 +7868,7 @@ function updateStreakDisplay() {
     document.getElementById('streak-tier').style.display = 'block';
     document.getElementById('streak-val2').textContent = count;
     document.getElementById('tier-icon-el').innerHTML = TIER_ICONS[tier.icon] || '';
-    document.getElementById('tier-name-el').textContent = tier.name;
+    document.getElementById('tier-name-el').textContent = badgeName(tier.id);
   } else {
     document.getElementById('streak-notier').style.display = 'block';
     document.getElementById('streak-tier').style.display = 'none';
@@ -7765,8 +7889,8 @@ function showTierModal(tier) {
   // Scale up the icon for modal
   const svg = document.querySelector('#tier-modal-icon svg');
   if (svg) { svg.setAttribute('width','56'); svg.setAttribute('height','56'); }
-  document.getElementById('tier-modal-name').textContent = tier.name;
-  document.getElementById('tier-modal-msg').textContent = '"' + tier.msg + '"';
+  document.getElementById('tier-modal-name').textContent = badgeName(tier.id);
+  document.getElementById('tier-modal-msg').textContent = '"' + t('badge_'+tier.id+'_msg') + '"';
   document.getElementById('tier-modal').classList.add('show');
 }
 
@@ -7836,14 +7960,17 @@ function getUnlockedInsignias() {
 // Returns every insignia (locked and unlocked) in that one fixed order.
 function getAllInsigniasInOrder() {
   const unlockedIds = new Set(getUnlockedInsignias().map(i => i.id));
-  const tierRows = [...TIERS].sort((a, b) => a.at - b.at).map(t => ({
-    id: t.id, name: t.name, icon: TIER_ICONS[t.icon] || '', sizeMult: 1,
-    unlocked: unlockedIds.has(t.id), req: t.at + ' sessions',
+  // Parameter is `tr`, not `t` — `t` is the i18n lookup, and naming the map
+  // parameter `t` shadowed it inside this callback, so any t('...') call
+  // here would have resolved to a TIERS row instead of a translation.
+  const tierRows = [...TIERS].sort((a, b) => a.at - b.at).map(tr => ({
+    id: tr.id, name: tr.name, icon: TIER_ICONS[tr.icon] || '', sizeMult: 1,
+    unlocked: unlockedIds.has(tr.id), req: tr.at + ' ' + t('badge_req_sessions'),
   }));
   const specialOrder = ['trainer', 'og_member', 'early_supporter', 'founder'];
   const specialRows = specialOrder.map(id => {
     const s = INSIGNIA_CATALOG.find(x => x.id === id);
-    return {id: s.id, name: s.name, icon: s.icon, sizeMult: s.sizeMult, unlocked: unlockedIds.has(s.id), req: 'Not yet'};
+    return {id: s.id, name: s.name, icon: s.icon, sizeMult: s.sizeMult, unlocked: unlockedIds.has(s.id), req: t('badge_req_not_yet')};
   });
   return [...tierRows, ...specialRows];
 }
@@ -7875,7 +8002,7 @@ function buildInsigniaBadgeHtml(insignia, clickable){
   const padding = Math.round(78 * (1 - innerPct) / 2);
   const icon = insignia ? insignia.icon : '<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
   const plusHtml = clickable ? `<div class="insignia-badge-plus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>` : '';
-  const nameHtml = insignia ? `<div class="insignia-badge-lbl">${insignia.name}</div>` : '';
+  const nameHtml = insignia ? `<div class="insignia-badge-lbl">${badgeName(insignia.id)}</div>` : '';
   return `<div class="insignia-badge-col">
     <div class="insignia-badge-wrap" ${clickable?'onclick="openInsigniaPicker()"':''}>
       <div class="insignia-badge" style="padding:${padding}px;">${icon}</div>
@@ -7902,7 +8029,7 @@ function openInsigniaPicker() {
   document.getElementById('insignia-picker-grid').innerHTML = all.map(ins => `
     <div class="insignia-pick ${ins.unlocked ? '' : 'locked'} ${equipped && equipped.id===ins.id ? 'selected' : ''}" ${ins.unlocked ? `onclick="equipInsignia('${ins.id}')"` : ''}>
       <div class="insignia-pick-ic">${ins.icon}</div>
-      <div class="insignia-pick-lbl">${ins.name}</div>
+      <div class="insignia-pick-lbl">${badgeName(ins.id)}</div>
       ${ins.unlocked ? '' : `<div class="insignia-pick-req">${ins.req}</div>`}
     </div>`).join('');
   document.getElementById('insignia-picker-overlay').style.display = 'flex';
@@ -7930,6 +8057,18 @@ function escapeHtml(s){
 // fields (stats, no email/plan/password) — this one is deliberately kept
 // as its own function rather than shared, since the two will keep
 // diverging as more account-only vs profile-only fields get added.
+// The Account row's sub-line on the Settings screen. Cheap and independent
+// of renderAccountSection() so opening Settings doesn't have to build the
+// whole account body just to show one line.
+async function renderAccountRowSub(){
+  const el = document.getElementById('account-row-sub');
+  if(!el) return;
+  if(!currentUser){ el.textContent = t('account_signin_row_sub'); return; }
+  const profile = await getMyProfile();
+  const handle = profile && profile.username;
+  el.textContent = handle ? '@'+handle : (currentUser.email||'');
+}
+
 async function renderAccountSection(){
   const el = document.getElementById('account-section-body');
   if(!el) return;
@@ -9640,7 +9779,11 @@ function restExpand() {
     showSpotlightSequence([
       { target: document.getElementById('theme-toggle'), text: t('tip_settings_theme') },
       { target: document.getElementById('accent-swatches'), text: t('tip_settings_accent') },
-      { target: document.querySelector('#weight-prefs-section-body .prog-time-pills'), text: t('tip_settings_units') },
+      // Was '#weight-prefs-section-body .prog-time-pills' — the units pills
+      // themselves. Weight Logging is now a drill-down, so those pills are
+      // no longer on this screen and that selector returned null. Points at
+      // the row that opens them instead.
+      { target: document.getElementById('weight-logging-row'), text: t('tip_settings_units') },
     ], 'settings');
   };
 
