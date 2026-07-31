@@ -266,6 +266,184 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 #rest-overlay{display:flex;position:fixed;inset:0;background:transparent;z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:translateY(100%);transition:transform .42s cubic-bezier(.16,1,.3,1);will-change:transform;overflow:hidden;pointer-events:none;}
 #rest-overlay.active::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
 #rest-overlay.active{transform:translateY(0)!important;pointer-events:all;background:var(--overlay-bg-heavy);}
+/* The all-time PR line doubles as the way in to correcting it — see
+   openPRCorrectModal(). It carries the number every progression target will
+   be computed from, so a mistyped set has to be fixable from where the
+   number is shown, not buried in Settings. */
+.exd-pr-line{margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;
+  cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.exd-pr-edit{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);
+  border:1px solid var(--line2);border-radius:999px;padding:2px 8px;margin-left:auto;transition:.15s;}
+.exd-pr-line:hover .exd-pr-edit{border-color:var(--gold3);color:var(--gold);}
+
+/* ── PROGRESSION ── effort chips carry a WORD and a NUMBER together, which
+   is the whole novice/expert story: read whichever half you understand. */
+/* Effort is encoded as INTENSITY of the user's own accent, not as four
+   separate hues. The first attempt used --ok / --gold / --danger, which
+   broke on 5 of the 8 accent presets — including Navy, the default for a
+   new account, where the "Deload" blue and the accent were the same colour.
+   Worse, .c-hard literally WAS var(--gold), so on a Red or Emerald theme
+   the effort scale collapsed.
+
+   A single-hue ramp can't collide with anything, works on every preset, and
+   stays readable for a colour-blind user because the signal is density and
+   not hue. --gold-ink is used for text per the light-mode legibility rule:
+   raw accent as ink is under 3:1 on light backgrounds for every preset. */
+.chip{display:inline-block;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;
+  padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap;}
+/* Deload — quietest: neutral, no accent at all. It is a rest step. */
+.c-easy{color:var(--dim);border-color:var(--line2);background:none;}
+/* Moderate — accent present but faint. */
+.c-mod{color:var(--gold-ink,var(--gold));border-color:color-mix(in srgb,var(--gold) 32%,transparent);
+  background:color-mix(in srgb,var(--gold) 7%,transparent);}
+/* Hard — accent at full strength. */
+.c-hard{color:var(--gold-ink,var(--gold));border-color:var(--gold);
+  background:color-mix(in srgb,var(--gold) 14%,transparent);}
+/* All-out — inverted: solid accent, knocked-out text. The loudest thing the
+   palette can say without introducing a second colour. */
+.c-max{color:var(--void);border-color:var(--gold);background:var(--gold);}
+.light-mode .c-max{color:#fff;}
+
+.prog-presets{display:flex;flex-direction:column;gap:8px;padding:0 18px;}
+.prog-preset{text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:6px;
+  padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;transition:.15s;font-family:var(--body);}
+.prog-preset:hover{border-color:var(--gold3);}
+.pp-name{font-size:14px;font-weight:700;color:var(--text);letter-spacing:.2px;}
+.pp-desc{font-size:12px;color:var(--dim);line-height:1.45;}
+.pp-steps{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;
+  display:flex;align-items:center;gap:5px;margin-top:3px;}
+/* Preset preview: little bars, not dots. Height carries the same shape
+   language as the real chart, so the preview is informative rather than
+   four indistinguishable circles — which is also what makes it legible to
+   a colour-blind user, since intensity alone was doing all the work. */
+.pp-dot{width:5px;border-radius:1px;border:1px solid;display:inline-block;vertical-align:bottom;}
+.pp-dot.c-easy{height:5px;background:none;border-color:var(--line2);}
+.pp-dot.c-mod{height:9px;background:color-mix(in srgb,var(--gold) 26%,transparent);border-color:color-mix(in srgb,var(--gold) 55%,transparent);}
+.pp-dot.c-hard{height:13px;background:color-mix(in srgb,var(--gold) 55%,transparent);border-color:var(--gold);}
+.pp-dot.c-max{height:16px;background:var(--gold);border-color:var(--gold);}
+.prog-hint{padding:10px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;}
+.prog-linkbtn{background:none;border:none;color:var(--gold-ink,var(--gold));font-family:var(--body);font-size:12px;
+  font-weight:700;cursor:pointer;padding:0;text-decoration:underline;}
+
+/* Cycle chart — bar height is proximity to failure, so the block's shape
+   (build, back off, peak) reads without parsing any text. Tapping a bar
+   opens the step editor. */
+.bigwave{display:flex;gap:8px;align-items:flex-end;padding:14px 18px 0;}
+.bw{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.bwb{width:100%;border-radius:4px 4px 0 0;border:1px solid;transition:box-shadow .2s,filter .15s;}
+.bw:active .bwb{filter:brightness(1.25);}
+.bwb.cur{box-shadow:0 0 14px var(--glow-color,rgba(212,168,67,.5));}
+/* Same single-hue ramp as the chips: ghost → faint → strong → solid. */
+.bwb.c-easy{background:none;border-color:var(--line2);border-style:dashed;}
+.bwb.c-mod{background:color-mix(in srgb,var(--gold) 26%,transparent);border-color:color-mix(in srgb,var(--gold) 55%,transparent);}
+.bwb.c-hard{background:color-mix(in srgb,var(--gold) 55%,transparent);border-color:var(--gold);}
+.bwb.c-max{background:var(--gold);border-color:var(--gold);}
+.bwn{font-size:10px;color:var(--dim);font-weight:700;line-height:1;}
+.bwn.cur{color:var(--gold-ink,var(--gold));}
+.bwl{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.bw.add .bwplus{width:100%;height:34px;border:1px dashed var(--line2);border-radius:4px;display:flex;
+  align-items:center;justify-content:center;color:var(--muted);font-size:17px;line-height:1;}
+.bw.add:active .bwplus{border-color:var(--gold3);color:var(--gold);}
+
+.cyc-row{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--line);}
+.cyc-row.now{background:color-mix(in srgb,var(--gold) 5%,transparent);}
+.cyc-num{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--dim);flex-shrink:0;}
+.cyc-main{flex:1;min-width:0;cursor:pointer;}
+.cyc-sub{font-size:10px;color:var(--muted);letter-spacing:1.2px;margin-top:4px;text-transform:uppercase;font-weight:600;}
+.cyc-badge{font-size:7px;letter-spacing:2.5px;color:var(--void);background:var(--gold);padding:3px 7px;
+  font-weight:700;text-transform:uppercase;flex-shrink:0;}
+
+.prog-optlist{display:flex;flex-direction:column;gap:7px;}
+.prog-opt{text-align:left;background:var(--surface);border:1px solid var(--line2);border-radius:6px;
+  padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:5px;font-family:var(--body);transition:.15s;}
+.prog-opt.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent);}
+.po-sub{font-size:11px;color:var(--dim);}
+
+/* one line under an exercise while progression is driving it */
+.ex-prog-line{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.ex-prog-target{font-size:11px;color:var(--gold-ink,var(--gold));letter-spacing:.4px;font-weight:600;}
+
+/* ── GUIDE ── opens as a contents list; you expand only what you need */
+.guide-intro{padding:2px 18px 14px;font-size:14px;color:var(--soft);line-height:1.6;}
+.guide-sec{border-bottom:1px solid var(--line);}
+.guide-hd{width:100%;display:flex;align-items:center;gap:12px;padding:15px 18px;background:none;border:none;
+  cursor:pointer;font-family:var(--body);text-align:left;}
+.guide-ico{width:22px;height:22px;flex-shrink:0;color:var(--gold);}
+.guide-ico svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.guide-t{flex:1;font-size:15px;font-weight:700;color:var(--text);letter-spacing:.2px;}
+.guide-chev{font-size:18px;color:var(--muted);font-weight:400;line-height:1;}
+.guide-bd{display:none;padding:0 18px 18px 52px;font-size:13.5px;color:var(--soft);line-height:1.65;}
+.guide-sec.open .guide-bd{display:block;}
+.guide-bd b{color:var(--bright);font-weight:700;}
+.guide-bd em{color:var(--gold-ink,var(--gold));font-style:normal;font-weight:600;}
+.guide-foot{padding:18px;font-size:12px;color:var(--muted);line-height:1.6;}
+
+/* ── CYCLE-END RE-SEED ── */
+.reseed-row{display:flex;flex-direction:column;gap:6px;padding:13px 18px;border-bottom:1px solid var(--line);}
+.reseed-name{font-size:14px;font-weight:600;color:var(--text);}
+.reseed-nums{display:flex;align-items:center;gap:8px;font-size:13px;}
+.reseed-old{color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums;}
+.reseed-arrow{color:var(--muted);}
+.reseed-new{color:var(--gold-ink,var(--gold));font-weight:700;font-variant-numeric:tabular-nums;}
+.reseed-row.flat .reseed-old{text-decoration:none;}
+.reseed-row.flat .reseed-new{color:var(--dim);}
+.reseed-tag{margin-left:auto;font-size:8px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);}
+.reseed-row.up .reseed-tag{color:var(--ok);}
+
+/* ── ROTATIONS LIST ── one row per rotation, a tick marking the single
+   active one. Built on the same panel/line tokens as .sched-row rather
+   than a new visual language. */
+.rot-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);}
+.rot-row.active{background:color-mix(in srgb,var(--gold) 5%,transparent);}
+.rot-check{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--line2);
+  background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:.15s;}
+.rot-check.on{border-color:var(--gold);background:var(--gold);}
+.rot-check svg{width:14px;height:14px;stroke:var(--void);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+.rot-main{flex:1;min-width:0;cursor:pointer;}
+.rot-name{font-family:var(--body);font-size:14px;font-weight:600;color:var(--text);letter-spacing:.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rot-meta{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-top:3px;text-transform:uppercase;font-weight:600;}
+.rot-edit{flex-shrink:0;background:none;border:1px solid var(--line2);color:var(--dim);border-radius:999px;
+  font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:6px 13px;cursor:pointer;transition:.15s;}
+.rot-edit:hover{border-color:var(--gold3);color:var(--gold);}
+
+/* ── TIMER HALO ──────────────────────────────────────────────────────
+   A frame hugging the screen edge while a timer is up, in whatever accent
+   the user picked (so it follows --gold like everything else).
+
+   Deliberately STATIC — it is not a progress track. Rest can be extended
+   past its own starting length with +15s, so a draining line would have to
+   either run backwards or cap and quietly misreport how long is left;
+   there is no honest "100%" once the total can move. The digits stay the
+   single source of truth and the frame is identity, not data.
+
+   Inset by the safe-area insets so it never disappears under a notch or a
+   home indicator. pointer-events:none so it can't eat taps meant for the
+   buttons underneath. Lives inside #rest-full, which means it inherits
+   that wrapper's fade when the timer is minimized without needing its own
+   rule — the minimized frame is #rest-mini's own border instead. */
+.timer-halo{
+  position:absolute;
+  top:calc(env(safe-area-inset-top,0px) + 10px);
+  bottom:calc(env(safe-area-inset-bottom,0px) + 10px);
+  left:10px; right:10px;
+  border:1px solid var(--gold);
+  border-radius:20px;
+  pointer-events:none;
+  box-shadow:0 0 16px var(--glow-color, rgba(212,168,67,.35)),
+             inset 0 0 26px var(--glow-color-soft, rgba(212,168,67,.10));
+  transition:border-color .3s, box-shadow .3s;
+}
+/* Last 5 seconds — matches .rest-time.urgent, so the frame and the number
+   change together rather than the number going red inside a gold box. */
+.timer-halo.urgent{
+  border-color:var(--danger);
+  box-shadow:0 0 16px rgba(201,68,68,.45), inset 0 0 26px rgba(201,68,68,.12);
+}
 .rest-lbl{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-weight:600;}
 .rest-time{font-family:var(--hd);font-size:96px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color, rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft, rgba(212,168,67,.15));transition:color .3s;}
 .rest-time.urgent{color:var(--danger);text-shadow:0 0 30px rgba(201,68,68,.5);animation:pulse .8s infinite;}
@@ -727,6 +905,19 @@ body.light-mode .pr-1rm,body.light-mode .pr-1rm-unit,body.light-mode .pr-formula
 .settings-row-left{display:flex;align-items:center;gap:14px;flex:1;}
 .settings-row-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);}
 .settings-row-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+/* Every Settings icon is a stroked line drawing except the Ping mark, which
+   is a solid filled glyph (PING_ICON_SVG) — the rule above would erase it
+   (fill:none) and outline its silhouette instead. This flips it back. Its
+   viewBox is taller than wide; the SVG default preserveAspectRatio
+   letterboxes it inside the box rather than squashing it.
+   The 14px is an OPTICAL correction, not an arbitrary shrink. The stroked
+   icons draw their ink across roughly 15-17 of a 24-unit viewBox in
+   1.6px hairlines, so at 18px they read as ~11.5px of light line work.
+   This glyph's ink fills ~93% of its viewBox and is solid, so at the same
+   18px it rendered ~17px of dense mass — half again as tall as its
+   neighbours and much heavier. 14px brings its ink block back in line with
+   the column. */
+.settings-row-icon.filled-icon svg{fill:currentColor;stroke:none;width:14px;height:14px;}
 .settings-row-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:.5px;}
 .settings-row-sub{font-size:10px;color:var(--dim);letter-spacing:1px;margin-top:2px;}
 .settings-row-arrow{color:var(--muted);font-size:18px;flex-shrink:0;}
@@ -810,7 +1001,12 @@ body.light-mode .ex-section-title{color:var(--gold-ink);}
 body.light-mode .ex-detail-muscle{color:var(--gold-ink);}
 body.light-mode .prog-stat-val{color:var(--gold-ink);}
 body.light-mode .prog-trend-badge{color:var(--gold-ink);}
-body.light-mode .rest-time{color:var(--gold-ink);}
+/* :not(.urgent) — without it this rule outranks .rest-time.urgent (it adds
+   the `body` type selector on top of two classes) and the last-5-seconds
+   red never appeared in light mode. Same guard on the .light-mode copy
+   further down. The mini timer was never affected: #rest-mini-time.urgent
+   wins on its id. */
+body.light-mode .rest-time:not(.urgent){color:var(--gold-ink);}
 body.light-mode .rest-mini-time{color:var(--gold-ink);}
 body.light-mode .tier-modal-name{color:#111 !important;}
 /* Inputs */
@@ -1099,6 +1295,14 @@ input, select, textarea {
      here when it was built; Trainer shipped later and was never added, which
      is why its title sat noticeably higher than every other screen's. */
   #screen-trainer .pg-header,
+  /* Same again for the rotations/progression screens: each opens with a bare
+     .pg-header and no .back-row, so without being listed here their titles
+     would sit under the notch exactly the way Trainer's did. */
+  #screen-rotation-edit .pg-header,
+  #screen-progression .pg-header,
+  #screen-prog-guide .pg-header,
+  #screen-prog-applies .pg-header,
+  #screen-reseed .pg-header,
   .oprof-topbar {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
@@ -1190,8 +1394,8 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
 .light-mode .last-chip { background:var(--surface); color:var(--muted); border-color:var(--line); }
 .light-mode #rest-overlay.active { background:var(--overlay-bg-heavy) !important; }
 .light-mode .rest-lbl { color:var(--muted); }
-.light-mode .rest-time { color:var(--text); }
-.light-mode .rest-mini-time { color:var(--text); }
+.light-mode .rest-time:not(.urgent) { color:var(--text); }
+.light-mode .rest-mini-time:not(.urgent) { color:var(--text); }
 .light-mode #rest-skip,.light-mode #rest-plus { border-color:var(--line2); color:var(--muted); }
 .light-mode #confirm-overlay { background:var(--overlay-bg) !important; }
 .light-mode #confirm-overlay > div { background:var(--panel) !important; border-color:var(--gold) !important; }
@@ -1240,12 +1444,26 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
   opacity:0;pointer-events:none;
 }
 
-/* Mini bar — at bottom of overlay, visible when minimized (sits at top of screen) */
+/* Mini bar — at bottom of overlay, visible when minimized (sits at top of
+   screen). Carries the same halo frame as the expanded state, just sized to
+   the bar: same 1px accent border, same radius language, same glow. Its own
+   border rather than a second .timer-halo element because the frame here
+   has to hug the bar itself, not the viewport. */
 #rest-mini{
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  gap:8px;width:100%;padding:16px 0 12px;
+  gap:8px;width:calc(100% - 20px);padding:14px 0 12px;
   pointer-events:all;
+  border:1px solid var(--gold);
+  border-radius:18px;
+  background:var(--overlay-bg-heavy);
+  box-shadow:0 0 16px var(--glow-color, rgba(212,168,67,.35)),
+             inset 0 0 26px var(--glow-color-soft, rgba(212,168,67,.10));
+  transition:border-color .3s, box-shadow .3s;
+}
+#rest-mini.urgent{
+  border-color:var(--danger);
+  box-shadow:0 0 16px rgba(201,68,68,.45), inset 0 0 26px rgba(201,68,68,.12);
 }
 #rest-overlay:not(.minimized) #rest-mini{
   display:none;
@@ -1295,7 +1513,15 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
 .active-target{font-size:9px;color:var(--muted);letter-spacing:3px;text-align:center;font-weight:600;text-transform:uppercase;min-height:11px;}
 .active-min-btn{background:none;border:1px solid var(--line2);color:var(--dim);padding:8px 16px;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.2px;cursor:pointer;border-radius:999px;margin-top:8px;}
 .active-done-btn{width:100%;max-width:320px;margin-top:10px;padding:20px;background:var(--ok);border:1px solid var(--ok);border-radius:28px;color:var(--void);font-family:var(--body);font-size:16px;font-weight:700;letter-spacing:.3px;cursor:pointer;}
-#active-mini{display:none;position:fixed;top:0;left:0;right:0;z-index:101;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;align-items:center;justify-content:center;gap:10px;background:var(--overlay-bg-heavy);border-bottom:1px solid var(--line2);cursor:pointer;}
+/* The Active clock gets the same halo as the rest timer — it's the same
+   kind of overlay and an unframed one next to a framed one reads as a bug
+   — but keeps its own green (--ok, "you're working") rather than the
+   accent, which is the distinction the two overlays already draw. */
+.timer-halo--active{
+  border-color:var(--ok);
+  box-shadow:0 0 16px rgba(74,158,106,.35), inset 0 0 26px rgba(74,158,106,.10);
+}
+#active-mini{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:101;padding:12px 16px;align-items:center;justify-content:center;gap:10px;background:var(--overlay-bg-heavy);border:1px solid var(--ok);border-radius:18px;box-shadow:0 0 16px rgba(74,158,106,.35), inset 0 0 26px rgba(74,158,106,.10);cursor:pointer;}
 #active-overlay.minimized #active-mini{display:flex;}
 .active-mini-time{font-family:var(--hd);font-size:20px;font-weight:900;color:var(--ok);}
 .active-mini-lbl{font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-weight:700;}
@@ -1532,12 +1758,57 @@ body.light-mode .auth-choice-title{color:#111;}
     <button class="prog-subbtn" onclick="showScreen('routines')" data-i18n="routines_title">Workouts</button>
     <button class="prog-subbtn" onclick="showScreen('exercises')" data-i18n="exercises_title">Exercises</button>
   </div>
+  <!-- Rotations, plural. + Add here creates a NEW rotation; adding workouts
+       to one happens inside its editor. Only one rotation is active at a
+       time — the tick marks it. -->
   <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
-    <span data-i18n="schedule_rotation_label">Rotation</span>
-    <button class="btn-new" onclick="openScheduleModal()" data-i18n="btn_add_short">+ Add</button>
+    <span data-i18n="schedule_rotations_label">Rotations</span>
+    <button class="btn-new" onclick="createRotation()" data-i18n="rotation_new">+ New</button>
   </div>
   <div id="schedule-list" class="list-scroll"></div>
-  <div class="notice" data-i18n="schedule_notice">Loops automatically · Advances after each saved session</div>
+  <div class="notice" data-i18n="rotations_notice">Only the ticked rotation runs · Loops automatically</div>
+</div>
+
+<!-- ══ ROTATION EDITOR ══ order, rename, add workouts, activate, delete -->
+<div id="screen-rotation-edit" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('schedule')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="rotation_edit_title">Rotation</div>
+  </div>
+  <div id="rotation-edit-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ ADVANCED SETTINGS (per rotation) ══ periodization lives here -->
+<div id="screen-progression" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('rotation-edit')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="prog_title">Advanced</div>
+  </div>
+  <div id="progression-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ GUIDE ══ read-only explainer, opened from Advanced -->
+<div id="screen-prog-guide" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('progression')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="prog_guide_title">Guide</div>
+  </div>
+  <div id="prog-guide-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ WHICH EXERCISES ══ -->
+<div id="screen-prog-applies" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('progression')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="prog_applies_title">Applies to</div>
+  </div>
+  <div id="prog-applies-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ CYCLE END ══ confirm the new baselines -->
+<div id="screen-reseed" class="screen">
+  <div class="pg-header"><div class="pg-title" data-i18n="prog_reseed_title">Cycle complete</div></div>
+  <div id="reseed-body" class="list-scroll"></div>
 </div>
 
 <!-- ══ ANALYTICS ══ (was the Log screen's "Progress" tab — moved into
@@ -1565,6 +1836,27 @@ body.light-mode .auth-choice-title{color:#111;}
   <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
   <div class="pg-header"><div class="pg-title" data-i18n="account_plan_label">Plan</div></div>
   <div id="plan-list" class="list-scroll"></div>
+</div>
+
+<!-- ACCOUNT — same drill-down pattern. The body is still rendered by
+     renderAccountSection() into #account-section-body; only its container
+     moved off the Settings screen. -->
+<div id="screen-account" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="settings_account_label">Account</div></div>
+  <div class="list-scroll" style="gap:0;padding:12px 14px;">
+    <div id="account-section-body"></div>
+  </div>
+</div>
+
+<!-- WEIGHT LOGGING — same. Body still rendered by renderWeightPrefsSection()
+     into #weight-prefs-section-body. -->
+<div id="screen-weight-prefs" class="screen">
+  <div class="back-row"><button class="btn-back" onclick="showScreen('settings')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="settings_weight_logging_label">Weight Logging</div></div>
+  <div class="list-scroll" style="gap:0;padding:12px 14px;">
+    <div id="weight-prefs-section-body"></div>
+  </div>
 </div>
 
 <div id="screen-analytics" class="screen">
@@ -1811,8 +2103,24 @@ body.light-mode .auth-choice-title{color:#111;}
          (Profile now owns the public-facing identity view; this is the
          private account-management surface). Filled in by
          renderAccountSection(). -->
+    <!-- Account is now a drill-down (see #screen-account) rather than a
+         long inline block, matching Analytics / PR Visibility / Language.
+         The sub-line stays live — it shows the signed-in handle, or the
+         prompt to sign in, so the row still carries the state at a glance
+         without the whole section being expanded. -->
     <div class="settings-section-label" data-i18n="settings_account_label">Account</div>
-    <div id="account-section-body"></div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="showScreen('account')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/></svg></div>
+          <div>
+            <div class="settings-row-title" data-i18n="settings_account_label">Account</div>
+            <div class="settings-row-sub" id="account-row-sub"></div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
 
     <!-- PR VISIBILITY — collapsed row, same "settings within settings"
          drill-down pattern as Progress/Analytics above (and the future
@@ -1838,8 +2146,25 @@ body.light-mode .auth-choice-title{color:#111;}
          loggers. Local-first (works for guests too, not gated on
          sign-in like Account above) — see getTrueWeight(). Filled in by
          renderWeightPrefsSection(). -->
+    <!-- Weight Logging is now a drill-down (see #screen-weight-prefs).
+         NOTE: the first-run Settings tip used to point at
+         '#weight-prefs-section-body .prog-time-pills' (the units pills),
+         which no longer exist on this screen — the tip now targets this
+         row instead. If this row is ever moved or renamed, update
+         __maybeShowSettingsTip too or that step silently points at null. -->
     <div class="settings-section-label" data-i18n="settings_weight_logging_label">Weight Logging</div>
-    <div id="weight-prefs-section-body"></div>
+    <div class="settings-group">
+      <div class="settings-row" id="weight-logging-row" onclick="showScreen('weight-prefs')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M6 12h12M6 12a2 2 0 1 1-2-2v4a2 2 0 1 1 2-2zM18 12a2 2 0 1 0 2-2v4a2 2 0 1 0-2-2z"/></svg></div>
+          <div>
+            <div class="settings-row-title" data-i18n="settings_weight_logging_label">Weight Logging</div>
+            <div class="settings-row-sub" data-i18n="settings_weight_logging_sub">Units, body weight, barbell and dumbbell</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
 
     <!-- DATA -->
     <div class="settings-section-label" data-i18n="settings_data_label">Data</div>
@@ -2212,6 +2537,10 @@ body.light-mode .auth-choice-title{color:#111;}
 <div id="rest-overlay">
   <!-- Full content (expanded state) -->
   <div id="rest-full">
+    <!-- Static accent frame around the screen — see .timer-halo. Inside
+         #rest-full so it fades out with the rest of the expanded content
+         when the timer is minimized. -->
+    <div class="timer-halo" id="rest-halo"></div>
     <div class="rest-lbl" data-i18n="rest_label">Rest</div>
     <div id="rest-time" class="rest-time">0:00</div>
     <div class="rest-btns">
@@ -2246,6 +2575,7 @@ body.light-mode .auth-choice-title{color:#111;}
      reads as "you're working" instead of "you're waiting". -->
 <div id="active-overlay">
   <div id="active-full">
+    <div class="timer-halo timer-halo--active"></div>
     <button class="active-close-btn" onclick="activeCancel()" title="Cancel" data-i18n-title="cancel"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="active-lbl" id="active-ex-name" data-i18n="active_label">Active</div>
     <div id="active-time" class="active-time">0:00</div>
@@ -2490,7 +2820,7 @@ function exerciseDisplayNameById(id, fallbackName){
 // stay filed under Legs to match DEFAULT_EXERCISES' own muscle grouping,
 // even though most lifters would call them Back/full-body lifts.
 const PR_TRACKED_EXERCISES=[
-  {muscle:"Legs",      ids:["e01","e36","e02","e115","e116","e117"]}, // Barbell Squat, Deadlift, Romanian Deadlift, Snatch, Clean and Jerk, Power Clean
+  {muscle:"Legs",      ids:["e01","e36","e02","e06","e115","e116","e117"]}, // Barbell Squat, Deadlift, Romanian Deadlift, Leg Press, Snatch, Clean and Jerk, Power Clean
   {muscle:"Chest",     ids:["e10"]},              // Barbell Bench Press
   {muscle:"Back",      ids:["e24"]},              // Pull-Up (Weighted)
   {muscle:"Shoulders", ids:["e75"]},               // Standing Military Press
@@ -2557,6 +2887,10 @@ const DEFAULT_DB={
   routines:[],
   schedule:[],
   schedulePos:0,
+  // See the ROTATIONS section. schedule/schedulePos above remain the ACTIVE
+  // rotation's live data; rotations[] is the full set.
+  rotations:[],
+  activeRotationId:null,
   workoutLog:[],
   lastWeights:DEFAULT_LAST_WEIGHTS,
   allTimePRs:{},
@@ -2596,6 +2930,11 @@ const DEFAULT_DB={
 const LS_KEY = 'alans_workout_v4';
 
 function saveDB() {
+  // Fold db.schedule/db.schedulePos back into the active rotation before
+  // persisting. Doing it here, in the single choke point every mutation
+  // already passes through, is what lets the ~15 existing readers of
+  // db.schedule keep working untouched — see the ROTATIONS section.
+  if(typeof syncActiveRotation === 'function') syncActiveRotation();
   try { localStorage.setItem(LS_KEY, JSON.stringify(db)); } catch(e) {}
   // Debounced, best-effort push to Supabase for signed-in users — defined
   // in the AUTH & CLOUD SYNC section below. No-ops entirely for guests/
@@ -2627,6 +2966,18 @@ function restoreSession(){
       const flatExs=session.items.flatMap(it=>it.type==='ss'?it.exercises:[it]);
       flatExs.forEach((ex,idx)=>{ ex._ei=idx; });
       session.exercises=flatExs;
+      // Re-derive lwKey rather than trusting the snapshot. A session started
+      // before slot-keying shipped has none at all, and without this both
+      // occurrences of a duplicated exercise would fall back to the bare id
+      // in finishWorkout() and clobber each other — the very bug slots fix.
+      // Safe to do unconditionally: this flatten order is the same order
+      // _startWithRoutine() assigned slots in, so a session saved by current
+      // code re-derives to exactly the keys it already had.
+      const seen={};
+      flatExs.forEach(ex=>{
+        const slot=seen[ex.id]=(seen[ex.id]===undefined?0:seen[ex.id]+1);
+        ex.lwKey=lastWeightsKey(ex.id, slot);
+      });
     }
     renderWoScreen();
     showScreen('workout');
@@ -2708,6 +3059,14 @@ function loadDB() {
       if (!db.allTimePRs)  db.allTimePRs  = {};
       db.weightPrefs = {...DEFAULT_DB.weightPrefs, ...(db.weightPrefs||{})};
       migratePRsToV2();
+      // Its OWN try/catch, and this is not defensive padding — loadDB's outer
+      // catch falls through to `db = DEFAULT_DB`, so ANY throw in here would
+      // silently reset a real user's entire local database to empty while
+      // their data still sat untouched in localStorage. Caught exactly that
+      // during testing (a ReferenceError wiped routines, schedule and log in
+      // one load). A rotation that fails to migrate is a cosmetic problem;
+      // losing the database is not, so the two must never share a handler.
+      try{ migrateRotations(); }catch(e){}
       return;
     }
   } catch(e) {}
@@ -2727,6 +3086,84 @@ function loadDB() {
 // so just calling it again is simpler than tracking staleness. Time-tracked
 // exercises are untouched — their allTimePRs entry was always reps(=
 // seconds)-based, nothing to fix there.
+// ── PR CORRECTION ────────────────────────────────────────────────────────
+// allTimePRs holds the single number every progression target will be
+// computed from, so one mistyped set (200 instead of 100) would poison every
+// suggested weight for that lift. Two ways out, both reached from the PR line
+// on Exercise Detail where the number is actually shown:
+//
+//   Edit       — retype weight × reps. For when the bad value is ONLY in the
+//                PR record and the session log is fine.
+//   Recalculate — rebuild from db.workoutLog via bestSetForExercise(), the
+//                same scan migratePRsToV2() uses. For when the PR drifted
+//                from the sessions, or after deleting a bad session.
+//
+// Both are destructive to a stored record, so both confirm. Values are stored
+// RAW (as typed), matching workoutLog/lastWeights — normalization happens on
+// read via getTrueWeight()/recordToOneRM(), and writing a normalized number
+// here would double-apply it.
+function openPRCorrectModal(exId){
+  const pr=db.allTimePRs[exId];
+  if(!pr) return;
+  const timed=isTimeTrackedEx(exId);
+  const ex=db.exercises.find(e=>e.id===exId);
+  document.getElementById('modal-title').textContent=t('pr_fix_title');
+  document.getElementById('modal-body').innerHTML=`
+    <div style="font-size:12px;color:var(--dim);margin-bottom:14px;letter-spacing:.3px;">
+      ${escapeHtml(ex?exerciseDisplayName(ex):exId)}
+    </div>
+    ${timed
+      ? `<div class="form-grp"><label class="form-lbl">${t('pr_fix_seconds')}</label>
+           <input class="form-inp" id="prfix-reps" type="number" inputmode="numeric" value="${pr.reps||0}"></div>`
+      : `<div style="display:flex;gap:10px;">
+           <div class="form-grp" style="flex:1;"><label class="form-lbl">${unitLabel().toUpperCase()}</label>
+             <input class="form-inp" id="prfix-w" type="text" inputmode="decimal" value="${pr.weight?toDisplayWeight(pr.weight):''}"></div>
+           <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('builder_col_reps')}</label>
+             <input class="form-inp" id="prfix-reps" type="number" inputmode="numeric" value="${pr.reps||0}"></div>
+         </div>`}
+    <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-top:4px;">${t('pr_fix_note')}</div>
+    <button class="btn-ghost" style="width:100%;margin-top:16px;" onclick="recalcPRFromHistory('${exId}')">${t('pr_fix_recalc')}</button>
+    <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-top:8px;">${t('pr_fix_recalc_note')}</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="savePRCorrection('${exId}')">${t('save')}</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function savePRCorrection(exId){
+  const timed=isTimeTrackedEx(exId);
+  const reps=parseInt(document.getElementById('prfix-reps').value)||0;
+  const rawW=timed?0:fromDisplayUnit(parseKg(document.getElementById('prfix-w').value));
+  if(reps<=0 || (!timed && !(rawW>0))){ showToast(t('pr_fix_invalid')); return; }
+  closeModal();
+  showConfirm({
+    title:t('pr_fix_confirm_title'), message:t('pr_fix_confirm_msg'),
+    okLabel:t('save'), danger:true,
+    onOk:()=>{
+      // Date is left alone: this corrects WHAT was lifted, not when.
+      db.allTimePRs[exId]={weight:rawW, reps, date:db.allTimePRs[exId].date||Date.now()};
+      saveDB(); renderExDetail(exId); showToast(t('pr_fix_saved'));
+    }
+  });
+}
+function recalcPRFromHistory(exId){
+  closeModal();
+  showConfirm({
+    title:t('pr_fix_recalc_title'), message:t('pr_fix_recalc_msg'),
+    okLabel:t('pr_fix_recalc_ok'), danger:true,
+    onOk:()=>{
+      const best=bestSetForExercise(db.workoutLog||[],exId);
+      if(!best || best.needsBodyweight){
+        // Nothing derivable — either no logged sessions, or a bodyweight-
+        // assisted lift with no body weight on file. Leave the record alone
+        // rather than writing a wrong or empty one.
+        showToast(t('pr_fix_recalc_none')); return;
+      }
+      db.allTimePRs[exId]={weight:best.rawWeight, reps:best.reps, date:best.date};
+      saveDB(); renderExDetail(exId); showToast(t('pr_fix_saved'));
+    }
+  });
+}
+
 function migratePRsToV2(){
   if(!db.workoutLog || !db.workoutLog.length) return;
   const exIds=new Set();
@@ -2814,7 +3251,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','rotation-edit','progression','prog-guide','prog-applies','reseed','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -2825,9 +3262,18 @@ function showScreen(id){
   SCR.forEach(s=>document.getElementById('screen-'+s).classList.toggle('active',s===id));
   if(id==='home') renderHome();
   if(id==='routines') renderRoutines();
-  if(id==='schedule') renderSchedule();
+  if(id==='schedule') renderRotations();
+  if(id==='rotation-edit') renderRotationEditor();
+  if(id==='progression') renderProgression();
+  if(id==='prog-guide') renderProgGuide();
+  if(id==='prog-applies') renderProgApplies();
+  if(id==='reseed') renderReseed();
   if(id==='exercises') renderExercisesDB();
-  if(id==='settings'){ renderAccountSection(); renderWeightPrefsSection(); }
+  // Settings only needs the Account ROW's sub-line now; the sections
+  // themselves live on their own screens and render when opened.
+  if(id==='settings') renderAccountRowSub();
+  if(id==='account') renderAccountSection();
+  if(id==='weight-prefs') renderWeightPrefsSection();
   if(id==='pr-visibility') renderPrVisibilitySection();
   if(id==='language') renderLanguageSection();
   if(id==='plan') renderPlanSection();
@@ -3076,7 +3522,18 @@ function renderWoScreen(){
       const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="${t('workout_edit_notes')}"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>`;
       const lastHtml=item.lastHistory?`<div class="ex-card-last">${ICON_LAST} ${t('ex_db_last_label')}: ${item.lastHistory}</div>`:'';
       const videoBtnHtml=buildExerciseVideoBtnHtml(item.id, 26);
-      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${exerciseDisplayNameById(item.id, item.name)}</div>${videoBtnHtml}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
+      // One line under the exercise when progression is driving it. The
+      // effort word always shows; the target weight only when there is one
+      // (all-out has none) and the RIR/% detail only in expert mode.
+      const pStep=item.progStep;
+      const _showRir = (()=>{ const r=activeRotation(); return !!(r && r.progression && r.progression.showNumbers); })();
+      const progHtml = pStep ? `<div class="ex-prog-line">
+          <span class="chip ${stepClass(pStep)}">${stepLabel(pStep,_showRir)}</span>
+          ${item.progTarget!==null && item.progTarget!==undefined
+              ? `<span class="ex-prog-target">${t('prog_try')} ${toDisplayWeight(item.progTarget)}${unitLabel()}</span>`
+              : (pStep.type==='allout' ? `<span class="ex-prog-target">${t('prog_allout_cue')}</span>` : '')}
+        </div>` : '';
+      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${exerciseDisplayNameById(item.id, item.name)}</div>${videoBtnHtml}</div>${notesHtml}${progHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
       body.appendChild(card);
     } else if(item.type==='ss'){
       // Superset block
@@ -3610,13 +4067,20 @@ function restTick(){
 function updRestDisp(){
   const el = document.getElementById('rest-time');
   el.textContent = Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
-  el.classList.toggle('urgent', restRem<=5 && restRem>0);
+  const urgent = restRem<=5 && restRem>0;
+  el.classList.toggle('urgent', urgent);
+  // The halo frames follow the number into the urgent state so the border
+  // and the digits change together (see .timer-halo.urgent).
+  const _halo = document.getElementById('rest-halo');
+  if(_halo) _halo.classList.toggle('urgent', urgent);
   // Update mini time display
   const _mt = document.getElementById('rest-mini-time');
   if(_mt){
     _mt.textContent = Math.floor(restRem/60)+':'+String(restRem%60).padStart(2,'0');
-    _mt.classList.toggle('urgent', restRem<=5 && restRem>0);
+    _mt.classList.toggle('urgent', urgent);
   }
+  const _mini = document.getElementById('rest-mini');
+  if(_mini) _mini.classList.toggle('urgent', urgent);
   // Toggle skip/go button state
   const skipBtn = document.getElementById('rest-skip-btn');
   if (skipBtn) {
@@ -3761,7 +4225,10 @@ function finishWorkout(){
 
   // Update lastWeights + PRs
   session.exercises.forEach(ex=>{
-    const key=ex.id;
+    // Slot-aware (see lastWeightsKey). Falls back to the bare id so a session
+    // already in progress when this shipped — restored from localStorage
+    // without an lwKey — still saves rather than throwing.
+    const key=ex.lwKey||ex.id;
     const ticked=ex.tickedSets;
     if(!ticked.length) return;
     const savedSets=ticked.map(si=>({weight:ex.actualWeight[si],reps:ex.actualReps[si]}));
@@ -3830,6 +4297,10 @@ function finishWorkout(){
       const idx = db.schedule.indexOf(entry.routineId);
       if(idx !== -1) db.schedulePos=(idx+1)%db.schedule.length;
     }
+    // Wrapping back to the first workout means one full pass through the
+    // rotation just finished — which is exactly one step of the cycle.
+    // No-ops entirely when progression is off.
+    if(db.schedulePos===0) advanceProgressionCycle();
   }
 
   // Save now (before showing finish screen)
@@ -3877,7 +4348,15 @@ async function updateNote(){
   }
 }
 
-function goHome(){ showScreen('home'); }
+// Leaving the finish screen is where a queued cycle-end re-seed surfaces.
+// It is deliberately NOT shown from advanceProgressionCycle() itself —
+// finishWorkout still has its own screen to display, and stacking two
+// takeovers on top of each other would be hostile. maybeShowReseed()
+// returns true when it took over, in which case we don't also go home.
+function goHome(){
+  if(typeof maybeShowReseed === 'function' && maybeShowReseed()) return;
+  showScreen('home');
+}
 
 // ═══════════════════════════════════════════
 //  ROUTINES
@@ -3927,8 +4406,17 @@ function delRoutine(id){
     danger:true,
     onOk:()=>{
       db.routines=db.routines.filter(r=>r.id!==id);
-      db.schedule=db.schedule.filter(i=>i!==id);
-      saveDB(); renderRoutines();
+      // Purge from EVERY rotation, not just the active one. Before rotations
+      // existed there was only one schedule and filtering db.schedule was the
+      // whole job; now an inactive rotation would keep a dangling id, render
+      // it as "(deleted)", and — worse — its NEXT could end up pointing at a
+      // different workout than before. purgeRoutineFromRotations() carries
+      // each rotation's NEXT across, then we re-link the active one.
+      purgeRoutineFromRotations(id);
+      const _rot=activeRotation();
+      if(_rot){ db.schedule=_rot.schedule; db.schedulePos=_rot.pos||0; }
+      else db.schedule=db.schedule.filter(i=>i!==id);
+      saveDB(); renderRoutines(); renderHome();
       syncOfflineVideoCache(); // deleted routine may have been the last one referencing some cached videos
     }
   });
@@ -4386,36 +4874,827 @@ function openRoutineModal(editId){
 // ═══════════════════════════════════════════
 //  SCHEDULE
 // ═══════════════════════════════════════════
-function renderSchedule(){
+// ── ROTATIONS ────────────────────────────────────────────────────────────
+// A rotation is a named, ordered list of routines that loops. A user can keep
+// several (a push/pull/legs block, a travel week, an off-season block) but
+// exactly ONE is active at a time — the active one is what Home reads for
+// "next session" and what finishWorkout() advances.
+//
+// db.schedule / db.schedulePos are KEPT as the active rotation's live data
+// rather than replaced, because roughly fifteen places read them: the Home
+// hero, finishWorkout's advance, the Profile program tab, the cloud push and
+// pull, and the other-user program view. db.schedule is literally the same
+// array object as the active rotation's `schedule`, so ordinary mutation
+// (push / splice / swap) updates both at once; syncActiveRotation() re-links
+// them and copies the position across on every saveDB(), which covers the
+// few places that REPLACE the array wholesale instead of mutating it.
+// Own id generator on purpose: the routine builder's uid() is a function
+// nested inside the builder and is NOT in scope here. Same shape of value.
+function rotationUid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function activeRotation(){
+  if(!Array.isArray(db.rotations) || !db.rotations.length) return null;
+  return db.rotations.find(r=>r.id===db.activeRotationId) || db.rotations[0];
+}
+// name:'' means "no name chosen yet" and renders as the translated default,
+// so a migrated rotation follows the app's language until the user renames
+// it. Storing the English string instead would have frozen it for everyone.
+function rotationDisplayName(rot){
+  return (rot && rot.name) ? rot.name : t('rotation_default_name');
+}
+function syncActiveRotation(){
+  const rot=activeRotation();
+  if(!rot) return;
+  rot.schedule = db.schedule || [];
+  rot.pos = db.schedulePos || 0;
+}
+// Idempotent: safe to call on every load and after every cloud hydrate.
+function migrateRotations(){
+  if(!Array.isArray(db.rotations)) db.rotations=[];
+  if(!db.rotations.length){
+    // Nothing to carry over for a brand-new install — leave rotations empty
+    // so the Program screen shows its empty state rather than an untitled
+    // rotation with nothing in it.
+    if(!(db.schedule||[]).length){ db.activeRotationId=null; return; }
+    // Everyone arriving from a single-rotation build keeps exactly what they
+    // had, INCLUDING which routine was up next. Losing pos would silently
+    // restart people's week, which is the one thing this migration must not
+    // do — see the assertion in the accompanying SQL migration.
+    db.rotations=[{ id:'rot-'+rotationUid(), name:'', schedule: db.schedule, pos: db.schedulePos||0 }];
+  }
+  const ids=db.rotations.map(r=>r.id);
+  if(!db.activeRotationId || ids.indexOf(db.activeRotationId)===-1) db.activeRotationId=db.rotations[0].id;
+  const rot=activeRotation();
+  rot.schedule = rot.schedule || [];
+  // Re-link identities so later mutation of db.schedule hits the rotation too.
+  db.schedule = rot.schedule;
+  db.schedulePos = rot.pos || 0;
+}
+// Remove a deleted routine from every rotation, keeping each one's NEXT on
+// the same WORKOUT rather than the same index — the same rule rmSched()
+// follows. Called from delRoutine(); the caller re-links db.schedule to the
+// active rotation afterwards, since this replaces the arrays.
+function purgeRoutineFromRotations(routineId){
+  (db.rotations||[]).forEach(rot=>{
+    const sch=rot.schedule||[];
+    if(sch.indexOf(routineId)===-1) return;
+    const curIdx = sch.length ? (rot.pos||0)%sch.length : -1;
+    const curId  = curIdx>=0 ? sch[curIdx] : null;
+    rot.schedule = sch.filter(i=>i!==routineId);
+    if(!rot.schedule.length){ rot.pos=0; return; }
+    // If the workout that was NEXT survived, follow it. If NEXT was the one
+    // deleted, the slot it vacated now holds whatever came after it.
+    const ni = (curId!==null && curId!==routineId) ? rot.schedule.indexOf(curId) : -1;
+    rot.pos = ni!==-1 ? ni : Math.min(Math.max(curIdx,0), rot.schedule.length-1);
+  });
+}
+function setActiveRotation(id){
+  if(id===db.activeRotationId) return;
+  syncActiveRotation();          // bank the outgoing one's order + position
+  db.activeRotationId=id;
+  const rot=activeRotation();
+  if(rot){ db.schedule=rot.schedule||(rot.schedule=[]); db.schedulePos=rot.pos||0; }
+  saveDB(); renderRotations(); renderHome();
+}
+function createRotation(){
+  syncActiveRotation();
+  const rot={ id:'rot-'+rotationUid(), name:'', schedule:[], pos:0 };
+  db.rotations.push(rot);
+  db.activeRotationId=rot.id;    // a rotation you just made is the one you want
+  db.schedule=rot.schedule; db.schedulePos=0;
+  saveDB(); openRotationEditor(rot.id);
+}
+function deleteRotation(id){
+  const rot=db.rotations.find(r=>r.id===id); if(!rot) return;
+  showConfirm({
+    title:t('confirm_delete_rotation_title'), message:t('confirm_cannot_be_undone'),
+    okLabel:t('delete'), danger:true,
+    onOk:()=>{
+      db.rotations=db.rotations.filter(r=>r.id!==id);
+      if(db.activeRotationId===id){
+        // Promote whatever is left so there is always an active rotation
+        // (or none at all, if that was the last one).
+        const next=db.rotations[0];
+        db.activeRotationId = next ? next.id : null;
+        db.schedule = next ? (next.schedule||(next.schedule=[])) : [];
+        db.schedulePos = next ? (next.pos||0) : 0;
+      }
+      saveDB(); showScreen('schedule'); renderHome();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+//  PROGRESSION / PERIODIZATION
+// ═══════════════════════════════════════════
+// Lives on the ROTATION, not the person — one lifter can keep a hard block
+// and an easy one and switch between them. Off by default, so nothing about
+// the app changes until it is deliberately turned on.
+//
+// A CYCLE is an ordered list of efforts, one per pass through the rotation.
+// Alan's: RIR 2 → RIR 1 → deload → all-out. Cycle length is just the number
+// of steps, so 4 or 8 or 3 all work with no special casing. cyclePos advances
+// when the rotation wraps back to its first workout (see finishWorkout), and
+// wrapping the CYCLE is what triggers the re-seed.
+//
+// Step shapes:
+//   {type:'rir',    rir:N}                     work N reps short of failure
+//   {type:'deload', rir:N, setPct:%, loadPct:%} same, with volume/load cut
+//   {type:'allout'}                            no rep target — find your max
+const PROGRESSION_PRESETS=[
+  { id:'alan',   nameKey:'prog_preset_alan',   descKey:'prog_preset_alan_desc',
+    cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'deload',rir:3,setPct:50,loadPct:90},{type:'allout'}] },
+  { id:'ramp',   nameKey:'prog_preset_ramp',   descKey:'prog_preset_ramp_desc',
+    cycle:[{type:'rir',rir:3},{type:'rir',rir:2},{type:'rir',rir:1},{type:'deload',rir:3,setPct:50,loadPct:90}] },
+  { id:'simple', nameKey:'prog_preset_simple', descKey:'prog_preset_simple_desc',
+    cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'allout'}] },
+];
+function defaultProgression(){
+  return { mode:'off', cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'allout'}],
+           cyclePos:0, appliesTo:[], showNumbers:false };
+}
+function rotationProgression(rot){
+  if(!rot) return null;
+  if(!rot.progression) rot.progression=defaultProgression();
+  const p=rot.progression;
+  // Repair rather than trust — this object round-trips through JSON and the
+  // cloud, and a malformed cycle would break every workout screen.
+  if(!Array.isArray(p.cycle) || !p.cycle.length) p.cycle=defaultProgression().cycle;
+  if(!Array.isArray(p.appliesTo)) p.appliesTo=[];
+  if(typeof p.cyclePos!=='number' || p.cyclePos<0) p.cyclePos=0;
+  p.cyclePos = p.cyclePos % p.cycle.length;
+  return p;
+}
+function progressionOn(rot){ const p=rot&&rot.progression; return !!(p && p.mode==='on'); }
+// The step the ACTIVE rotation is currently on, or null when progression is
+// off. Everything in the workout screen funnels through this one accessor.
+function currentProgressionStep(){
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return null;
+  const p=rotationProgression(rot);
+  return p.cycle[p.cyclePos % p.cycle.length] || null;
+}
+function progressionAppliesTo(exId){
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return false;
+  const p=rotationProgression(rot);
+  return p.appliesTo.length===0 ? true : p.appliesTo.indexOf(exId)!==-1;
+}
+// Short label + the number, always together: the novice reads the word, the
+// experienced lifter reads the RIR. Same string serves both.
+// `showRir` controls whether the numeric half is appended. The settings and
+// cycle screens always pass true — that is where you are configuring the
+// thing and the number is the point. The workout screen passes the
+// rotation's showNumbers preference, which is what makes the expert toggle
+// mean something instead of being a switch that does nothing.
+function stepLabel(step, showRir){
+  if(!step) return '';
+  const rir = (showRir===false) ? '' : ' · RIR '+step.rir;
+  if(step.type==='allout') return t('prog_eff_allout');
+  if(step.type==='deload')  return t('prog_eff_deload')+rir;
+  const names={0:'prog_eff_max',1:'prog_eff_hard',2:'prog_eff_moderate',3:'prog_eff_easy'};
+  return t(names[step.rir]||'prog_eff_moderate')+rir;
+}
+function stepClass(step){
+  if(!step) return '';
+  if(step.type==='allout') return 'c-max';
+  if(step.type==='deload') return 'c-easy';
+  return step.rir<=1?'c-hard':(step.rir>=3?'c-easy':'c-mod');
+}
+
+// ── The maths ──
+// A set of X reps at Y RIR uses the weight you could do for (X+Y) reps all
+// out. Inverting the Epley formula calc1RM() already uses keeps the app on
+// ONE strength model rather than two that disagree:
+//     e1RM = w × (1 + reps/30)   →   w = e1RM / (1 + (reps+RIR)/30)
+// Returns a RAW weight in the same convention as everything stored, or null
+// when there's no record to work from (a brand-new lift), in which case the
+// workout screen just shows last time's number as it always did.
+function progressionTargetWeight(exId, reps, step){
+  if(!step || step.type==='allout') return null;      // all-out has no target
+  if(isTimeTrackedEx(exId)) return null;
+  const pr=db.allTimePRs && db.allTimePRs[exId];
+  if(!pr || !(pr.weight>0) || !(pr.reps>0)) return null;
+  const e1rm=recordToOneRM(exId, pr.weight, pr.reps);
+  if(!(e1rm>0)) return null;
+  const effReps=Math.max(1,(reps||8)+(step.rir||0));
+  let w=e1rm/(1+effReps/30);
+  if(step.type==='deload' && step.loadPct) w=w*(step.loadPct/100);
+  // Back out of "true weight" into the number the user actually types for
+  // this exercise (per-side, per-dumbbell, bodyweight-assisted), then round
+  // to something loadable. getFormulaWeight is the forward transform, so
+  // this undoes it via the same helper the PR maths uses.
+  const raw=trueWeightToRaw(exId, w);
+  return raw>0 ? roundToPlate(raw) : null;
+}
+// Smallest sensible increment in the user's own unit: 2.5kg or 5lb.
+function roundToPlate(rawKg){
+  const stepKg = (db.weightPrefs&&db.weightPrefs.units==='lb') ? 2.267962 : 2.5;
+  return Math.max(stepKg, Math.round(rawKg/stepKg)*stepKg);
+}
+// Inverse of getFormulaWeight() for the target computation above.
+// getFormulaWeight is affine in the entered number — y = a·x + b, where a is
+// 2 for a per-side barbell or the dumbbell count, and b is the bar weight or
+// the lifter's body weight. Both come from user preferences, so rather than
+// duplicating that branching here (and drifting when it changes) the slope
+// and intercept are measured from two real samples of the function itself.
+// Probing at 0 would NOT work: getTrueWeight short-circuits on a falsy
+// weight and returns 0, which hides the bar-weight intercept entirely.
+function trueWeightToRaw(exId, trueW){
+  const y1=getFormulaWeight(exId,100), y2=getFormulaWeight(exId,200);
+  const a=(y2-y1)/100;
+  if(!(a>0)) return trueW;                  // unknown shape — pass through
+  const b=y1-a*100;
+  return (trueW-b)/a;
+}
+
+// ── Cycle advance + re-seed ──
+// Called from finishWorkout the moment the rotation wraps to its first
+// workout. Advancing the cycle is what turns "6 workouts" into "one pass".
+function advanceProgressionCycle(){
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return;
+  const p=rotationProgression(rot);
+  const finishedStep=p.cycle[p.cyclePos % p.cycle.length];
+  p.cyclePos=(p.cyclePos+1)%p.cycle.length;
+  // Entering an all-out pass: photograph the baselines FIRST. finishWorkout()
+  // adopts a new PR the moment you hit it — which is right, you shouldn't have
+  // to wait a fortnight to see a lift you actually made — but it means that by
+  // the end of the rotation the stored PR IS the new number, and comparing it
+  // against itself made the cycle-end screen report "Kept" for everything even
+  // when you'd added 10kg. The snapshot is what lets it honestly say 117 → 123.
+  const nextStep=p.cycle[p.cyclePos];
+  if(nextStep && nextStep.type==='allout') snapshotProgressionBaseline(p);
+  saveDB();
+  // Finishing an all-out pass is what re-seeds the baseline. Queued rather
+  // than shown immediately — finishWorkout still has a finish screen to
+  // display, and stacking two takeovers would be hostile.
+  // Persisted on the rotation, not in a module variable: the prompt appears
+  // when you LEAVE the finish screen, and closing the app in between (or a
+  // PWA reload) would otherwise drop it and you'd never be asked to confirm
+  // the cycle you just finished.
+  if(finishedStep && finishedStep.type==='allout'){ p.pendingReseed=true; saveDB(); }
+}
+// Estimated 1RM per applied lift, as it stood the moment the all-out pass
+// began. Read back by the cycle-end screen as the "before" column.
+function snapshotProgressionBaseline(p){
+  const ids = p.appliesTo.length ? p.appliesTo : Object.keys(db.allTimePRs||{});
+  const snap={};
+  ids.forEach(id=>{
+    if(isTimeTrackedEx(id)) return;
+    const pr=db.allTimePRs[id];
+    if(pr && pr.weight>0 && pr.reps>0) snap[id]=recordToOneRM(id,pr.weight,pr.reps);
+  });
+  p.baseline=snap;
+}
+function maybeShowReseed(){
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return false;
+  const p=rotationProgression(rot);
+  if(!p.pendingReseed) return false;
+  openReseedScreen();
+  return true;
+}
+// Cleared only once the user has actually dealt with the screen — either by
+// confirming or by explicitly choosing "decide later" — so merely navigating
+// away doesn't silently lose the prompt.
+function dismissReseed(){
+  const rot=activeRotation();
+  if(rot && rot.progression){ rot.progression.pendingReseed=false; saveDB(); }
+  _reseedRows=[];
+  showScreen('home');
+}
+// One screen, once per cycle: every lift the progression applies to, its old
+// baseline and what the all-out pass produced. Nothing is adopted until it's
+// confirmed here — which is also the answer to "someone logged a PR wrong".
+function openReseedScreen(){
+  const rot=activeRotation(); if(!rot) return;
+  const p=rotationProgression(rot);
+  const ids=(p.appliesTo.length?p.appliesTo:Object.keys(db.allTimePRs||{}))
+              .filter(id=>!isTimeTrackedEx(id));
+  const rows=ids.map(id=>{
+    const pr=db.allTimePRs[id]; if(!pr||!(pr.weight>0)||!(pr.reps>0)) return null;
+    // "After" is simply the stored PR — finishWorkout already adopted it the
+    // day it was hit. "Before" is the snapshot taken when this pass started;
+    // without it the two would be the same number and every row would read
+    // "Kept" no matter how much you added.
+    const newRM=recordToOneRM(id, pr.weight, pr.reps);
+    const oldRM=(p.baseline && p.baseline[id]!==undefined) ? p.baseline[id] : newRM;
+    return { id, pr, oldRM, newRM, improved:newRM>oldRM+0.01 };
+  }).filter(Boolean);
+  _reseedRows=rows;
+  showScreen('reseed');
+}
+let _reseedRows=[];
+function renderReseed(){
+  const el=document.getElementById('reseed-body'); if(!el) return;
+  if(!_reseedRows.length){
+    el.innerHTML=`<div class="empty-state"><p>${t('prog_reseed_none')}</p></div>
+      <div style="padding:14px 18px;"><button class="btn-cta" onclick="dismissReseed()">${t('done')}</button></div>`;
+    return;
+  }
+  el.innerHTML=`
+    <div style="padding:0 18px 4px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_reseed_intro')}</div>
+    ${_reseedRows.map((r,i)=>{
+      const ex=db.exercises.find(e=>e.id===r.id);
+      // Tappable: this is the one screen where a mis-typed all-out set is
+      // obvious, so it's the right place to reach the PR correction modal.
+      return `<div class="reseed-row ${r.improved?'up':'flat'}" onclick="openPRCorrectModal('${r.id}')">
+        <div class="reseed-name">${escapeHtml(ex?exerciseDisplayName(ex):r.id)}</div>
+        <div class="reseed-nums">
+          <span class="reseed-old">${Math.round(toDisplayWeight(r.oldRM))}${unitLabel()}</span>
+          <span class="reseed-arrow">→</span>
+          <span class="reseed-new">${Math.round(toDisplayWeight(r.newRM))}${unitLabel()}</span>
+          <span class="reseed-tag">${r.improved?t('prog_reseed_up'):t('prog_reseed_kept')}</span>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="padding:14px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;">${t('prog_reseed_stall_note')}</div>
+    <div style="padding:14px 18px 0;"><button class="btn-cta" onclick="confirmReseed()">${t('prog_reseed_confirm')}</button></div>
+    <div style="padding:10px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="dismissReseed()">${t('prog_reseed_later')}</button></div>`;
+}
+function confirmReseed(){
+  // Only ever upward. A lower all-out result means a bad day, not a weaker
+  // lifter — adopting it would quietly drop every target next cycle, which
+  // is the one behaviour that could de-train someone. Alan confirmed this.
+  // Nothing to write: every improvement was already adopted by finishWorkout
+  // on the day it happened. This screen's job is to SHOW you what the pass
+  // changed and give you one place to correct a bad entry before the next
+  // cycle computes off it — which is exactly what Alan asked for. Confirming
+  // just closes the loop and drops the snapshot.
+  const rot=activeRotation();
+  if(rot && rot.progression){ rot.progression.pendingReseed=false; delete rot.progression.baseline; }
+  saveDB(); _reseedRows=[];
+  showToast(t('prog_reseed_done')); showScreen('home');
+}
+
+// ── Rotations list (Program tab) ──
+function renderRotations(){
   const el=document.getElementById('schedule-list');
-  if(!db.schedule.length){el.innerHTML=`<div class="empty-state"><p>${t('schedule_empty_state_1')}<br>${t('schedule_empty_state_2')}</p></div>`;return;}
-  const cur=db.schedulePos%db.schedule.length;
-  el.innerHTML=db.schedule.map((rId,i)=>{
-    const r=db.routines.find(x=>x.id===rId);
-    const isCur=i===cur;
-    return`<div class="sched-row ${isCur?'now':''}">
-      <span class="sched-num">${i+1}</span>
-      <span class="sched-name">${r?r.name:t('schedule_deleted_routine')}</span>
-      ${isCur?`<span class="sched-badge">${t('schedule_next_badge')}</span>`:''}
-      <div style="display:flex;gap:4px">
-        ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`:''}
-        ${i<db.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
-        <button class="btn-ico del" onclick="rmSched(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      </div></div>`;
+  if(!el) return;
+  if(!db.rotations || !db.rotations.length){
+    el.innerHTML=`<div class="empty-state"><p>${t('rotations_empty_1')}<br>${t('rotations_empty_2')}</p></div>`;
+    return;
+  }
+  el.innerHTML=db.rotations.map(rot=>{
+    const isActive=rot.id===db.activeRotationId;
+    const count=(rot.schedule||[]).length;
+    return `<div class="rot-row ${isActive?'active':''}">
+      <button class="rot-check ${isActive?'on':''}" onclick="setActiveRotation('${rot.id}')"
+              aria-label="${escapeHtml(t('rotation_set_active'))}" title="${escapeHtml(t('rotation_set_active'))}">
+        ${isActive?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}
+      </button>
+      <div class="rot-main" onclick="openRotationEditor('${rot.id}')">
+        <div class="rot-name">${escapeHtml(rotationDisplayName(rot))}</div>
+        <div class="rot-meta">${count} ${count===1?t('rotation_workout_singular'):t('rotation_workout_plural')}${isActive?' · '+t('rotation_active_label'):''}</div>
+      </div>
+      <button class="rot-edit" onclick="openRotationEditor('${rot.id}')">${t('rotation_edit')}</button>
+    </div>`;
   }).join('');
 }
 
+// ── Rotation editor (its own screen) ──
+let _editingRotationId=null;
+function openRotationEditor(id){
+  _editingRotationId=id;
+  showScreen('rotation-edit');
+}
+function renderRotationEditor(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  const el=document.getElementById('rotation-edit-body');
+  if(!el) return;
+  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const isActive=rot.id===db.activeRotationId;
+  // NEXT is only meaningful for the active rotation — an inactive one isn't
+  // advancing, so badging a row would claim something untrue.
+  const cur=(rot.schedule||[]).length ? (rot.pos||0)%rot.schedule.length : -1;
+  el.innerHTML=`
+    <div class="form-grp" style="padding:0 18px;">
+      <label class="form-lbl">${t('rotation_name_label')}</label>
+      <input class="form-inp" id="rot-name-inp" maxlength="40"
+             placeholder="${escapeHtml(t('rotation_default_name'))}"
+             value="${escapeHtml(rot.name||'')}"
+             oninput="renameActiveEditingRotation(this.value)">
+    </div>
+    <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
+      <span>${t('rotation_workouts_label')}</span>
+      <button class="btn-new" onclick="openScheduleModal()">${t('btn_add_short')}</button>
+    </div>
+    <div id="rot-sched-list">${
+      !(rot.schedule||[]).length
+        ? `<div class="empty-state"><p>${t('schedule_empty_state_1')}<br>${t('schedule_empty_state_2')}</p></div>`
+        : rot.schedule.map((rId,i)=>{
+            const r=db.routines.find(x=>x.id===rId);
+            const isCur=isActive && i===cur;
+            return `<div class="sched-row ${isCur?'now':''}">
+              <span class="sched-num">${i+1}</span>
+              <span class="sched-name">${r?escapeHtml(r.name):t('schedule_deleted_routine')}</span>
+              ${isCur?`<span class="sched-badge">${t('schedule_next_badge')}</span>`:''}
+              <div style="display:flex;gap:4px">
+                ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`:''}
+                ${i<rot.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
+                <button class="btn-ico del" onclick="rmSched(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+              </div></div>`;
+          }).join('')
+    }</div>
+    <div class="notice">${t('schedule_notice')}</div>
+    <div class="settings-section-label" style="padding:16px 18px 6px;">${t('prog_section_label')}</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="openProgressionSettings()" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div>
+          <div>
+            <div class="settings-row-title">${t('prog_row_title')}</div>
+            <div class="settings-row-sub">${progressionOn(rot)
+                ? stepLabel(rotationProgression(rot).cycle[rotationProgression(rot).cyclePos]) + ' · ' +
+                  t('prog_row_of').replace('{i}',rotationProgression(rot).cyclePos+1).replace('{n}',rotationProgression(rot).cycle.length)
+                : t('prog_row_off')}</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+    ${isActive?'':`<div style="padding:14px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="setActiveRotation('${rot.id}')">${t('rotation_make_active')}</button></div>`}
+    <div style="padding:14px 18px 0;">
+      <button class="btn-ghost" style="width:100%;border-color:var(--danger);color:var(--danger);" onclick="deleteRotation('${rot.id}')">${t('rotation_delete')}</button>
+    </div>`;
+}
+// ── The guide ──
+// Deliberately short. Everything a beginner needs to make a decision, and
+// nothing a beginner doesn't. Sections are collapsed so the screen opens as
+// a table of contents rather than a wall — you read the one you care about.
+const PROG_GUIDE=[
+  { id:'what',  icon:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/>' },
+  { id:'rir',   icon:'<path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/>' },
+  { id:'cycle', icon:'<path d="M4 12a8 8 0 1 1 2.5 5.8"/><path d="M4 19v-5h5"/>' },
+  { id:'who',   icon:'<circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/>' },
+  { id:'safe',  icon:'<path d="M12 3.5l7 2.6v5.4c0 4.6-3 7.9-7 9-4-1.1-7-4.4-7-9V6.1z"/>' },
+];
+let _guideOpen=null;
+function renderProgGuide(){
+  const el=document.getElementById('prog-guide-body'); if(!el) return;
+  el.innerHTML=`
+    <div class="guide-intro">${t('guide_intro')}</div>
+    ${PROG_GUIDE.map(sec=>{
+      const open=_guideOpen===sec.id;
+      return `<div class="guide-sec ${open?'open':''}">
+        <button class="guide-hd" onclick="toggleGuide('${sec.id}')">
+          <span class="guide-ico"><svg viewBox="0 0 24 24">${sec.icon}</svg></span>
+          <span class="guide-t">${t('guide_'+sec.id+'_t')}</span>
+          <span class="guide-chev">${open?'−':'+'}</span>
+        </button>
+        <div class="guide-bd">${t('guide_'+sec.id+'_b')}</div>
+      </div>`;
+    }).join('')}
+    <div class="guide-foot">${t('guide_foot')}</div>`;
+}
+function toggleGuide(id){ _guideOpen = _guideOpen===id ? null : id; renderProgGuide(); }
+
+// ── Advanced settings screen (per rotation) ──
+function openProgressionSettings(){ showScreen('progression'); }
+function renderProgression(){
+  const el=document.getElementById('progression-body'); if(!el) return;
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const p=rotationProgression(rot);
+  const on=p.mode==='on';
+  const total=p.cycle.length, wk=(rot.schedule||[]).length;
+  el.innerHTML=`
+    <!-- The guide comes FIRST, before any control: nobody should have to
+         guess what RIR means to use this screen. -->
+    <div class="settings-group" style="margin-bottom:4px;">
+      <div class="settings-row" onclick="showScreen('prog-guide')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg></div>
+          <div>
+            <div class="settings-row-title">${t('prog_guide_row')}</div>
+            <div class="settings-row-sub">${t('prog_guide_row_sub')}</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div><div>
+          <div class="settings-row-title">${t('prog_enable')}</div>
+          <div class="settings-row-sub">${t('prog_enable_sub')}</div>
+        </div></div>
+        <div class="switch" onclick="toggleProgression()">
+          <div class="switch-track ${on?'on':''}" id="prog-toggle-track"><div class="switch-thumb"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="prog-detail" style="${on?'':'display:none;'}">
+      <!-- Presets LOAD the fields, they don't commit anything. You review
+           the cycle below and it is already yours to edit. -->
+      <div class="settings-section-label" style="padding:18px 18px 6px;">${t('prog_presets_label')}</div>
+      <div class="prog-presets">
+        ${PROGRESSION_PRESETS.map(pr=>`
+          <button class="prog-preset" onclick="loadProgressionPreset('${pr.id}')">
+            <span class="pp-name">${t(pr.nameKey)}</span>
+            <span class="pp-desc">${t(pr.descKey)}</span>
+            <span class="pp-steps">${pr.cycle.map(s=>`<i class="pp-dot ${stepClass(s)}"></i>`).join('')} ${pr.cycle.length} ${t('prog_rotations_word')}</span>
+          </button>`).join('')}
+      </div>
+      <div class="prog-hint">${t('prog_presets_note')}</div>
+
+      <!-- The cycle as a bar chart rather than a list: the SHAPE of the block
+           is the thing you want to read here — build, back off, peak — and a
+           row of chips makes you reconstruct it line by line. Bar height is
+           proximity to failure, so harder is taller. Tapping a bar opens the
+           same step editor the list rows used; removing a step lives in that
+           editor rather than as an X on every bar, which would clutter the
+           chart and be easy to hit by accident. -->
+      <div class="settings-section-label" style="padding:18px 18px 4px;">${t('prog_cycle_label')}</div>
+      <div class="bigwave">
+        ${p.cycle.map((s,i)=>`
+          <div class="bw" onclick="editCycleStep(${i})" title="${escapeHtml(stepLabel(s)+' — '+cycleStepSub(s))}">
+            <div class="bwb ${stepClass(s)} ${i===p.cyclePos?'cur':''}" style="height:${stepBarHeight(s)}px"></div>
+            <div class="bwn ${i===p.cyclePos?'cur':''}">${i+1}</div>
+            <div class="bwl">${stepShortLabel(s)}</div>
+          </div>`).join('')}
+        <div class="bw add" onclick="addCycleStep()" title="${escapeHtml(t('prog_add_step'))}">
+          <div class="bwplus">+</div><div class="bwn">&nbsp;</div><div class="bwl">${t('prog_add_short')}</div>
+        </div>
+      </div>
+      <div class="prog-hint" style="text-align:center;">
+        <span style="color:var(--gold-ink,var(--gold));font-weight:700;">${stepLabel(p.cycle[p.cyclePos])}</span><br>
+        ${t('prog_row_of').replace('{i}',p.cyclePos+1).replace('{n}',total)} ·
+        ${t('prog_cycle_summary').replace('{n}',total).replace('{w}',wk).replace('{total}',total*wk)}
+      </div>
+
+      <div class="settings-section-label" style="padding:18px 18px 6px;">${t('prog_applies_label')}</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="showScreen('prog-applies')" style="cursor:pointer;">
+          <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div>
+            <div class="settings-row-title">${t('prog_applies_row')}</div>
+            <div class="settings-row-sub">${p.appliesTo.length?p.appliesTo.length+' '+t('prog_applies_count'):t('prog_applies_all')}</div>
+          </div></div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg></div><div>
+            <div class="settings-row-title">${t('prog_shownums')}</div>
+            <div class="settings-row-sub">${t('prog_shownums_sub')}</div>
+          </div></div>
+          <div class="switch" onclick="toggleProgShowNumbers()">
+            <div class="switch-track ${p.showNumbers?'on':''}" id="prog-nums-track"><div class="switch-thumb"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="prog-hint" style="padding-bottom:24px;">${t('prog_reset_note')}
+        <button class="prog-linkbtn" onclick="resetCyclePos()">${t('prog_reset_cycle')}</button></div>
+    </div>`;
+}
+// Bar height encodes proximity to failure — harder is taller — so the chart
+// reads as the shape of the block at a glance. Deliberately not linear in
+// RIR: a deload should look obviously different from "RIR 3 as written",
+// because it also cuts sets.
+function stepBarHeight(s){
+  if(!s) return 40;
+  if(s.type==='allout') return 92;
+  if(s.type==='deload')  return 28;
+  return {0:88,1:72,2:54,3:40}[s.rir] || 54;
+}
+// Two or three characters — the bar is narrow and the full label lives in
+// the chip under the chart and in the step editor.
+function stepShortLabel(s){
+  if(!s) return '';
+  if(s.type==='allout') return t('prog_short_max');
+  if(s.type==='deload') return t('prog_short_deload');
+  return 'RIR '+s.rir;
+}
+function cycleStepSub(s){
+  if(s.type==='allout') return t('prog_sub_allout');
+  if(s.type==='deload'){
+    const bits=[];
+    if(s.setPct && s.setPct<100) bits.push(t('prog_sub_sets').replace('{p}',s.setPct));
+    if(s.loadPct && s.loadPct<100) bits.push(t('prog_sub_load').replace('{p}',100-s.loadPct));
+    return bits.length?bits.join(' · '):t('prog_sub_deload_plain');
+  }
+  return t('prog_sub_rir').replace('{n}',s.rir);
+}
+function toggleProgression(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.mode = p.mode==='on' ? 'off' : 'on';
+  saveDB(); renderProgression();
+}
+function toggleProgShowNumbers(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.showNumbers=!p.showNumbers; saveDB(); renderProgression();
+}
+// Loads the preset's steps into the editable cycle and leaves you there.
+// Deliberately NOT a commit — Alan's point was that people should end up
+// with a cycle they chose, not one they were handed.
+function loadProgressionPreset(id){
+  const preset=PROGRESSION_PRESETS.find(x=>x.id===id); if(!preset) return;
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.cycle=JSON.parse(JSON.stringify(preset.cycle));
+  p.cyclePos=0;
+  saveDB(); renderProgression();
+  showToast(t('prog_preset_loaded'));
+}
+function addCycleStep(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.cycle.push({type:'rir',rir:2}); saveDB(); renderProgression();
+}
+function removeCycleStep(i){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  if(p.cycle.length<=1) return;
+  p.cycle.splice(i,1);
+  if(p.cyclePos>=p.cycle.length) p.cyclePos=0;
+  saveDB(); closeModal(); renderProgression();
+}
+function resetCyclePos(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  rotationProgression(rot).cyclePos=0; saveDB(); renderProgression();
+  showToast(t('prog_reset_done'));
+}
+// One editor for every step type. Effort is a single choice; the deload
+// extras only appear once Deload is selected, so the screen stays short.
+let _stepDraft=null;
+function editCycleStep(i, keepDraft){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  if(!keepDraft){
+    if(!p.cycle[i]) return;
+    _stepDraft=JSON.parse(JSON.stringify(p.cycle[i]));   // fresh draft on open
+  }
+  const s=_stepDraft; if(!s) return;
+  const opts=[
+    {type:'rir',rir:3},{type:'rir',rir:2},{type:'rir',rir:1},
+    {type:'deload',rir:3,setPct:50,loadPct:90},{type:'allout'}
+  ];
+  const same=(a,b)=>a.type===b.type && (a.type!=='rir' || a.rir===b.rir);
+  document.getElementById('modal-title').textContent=t('prog_step_title').replace('{n}',i+1);
+  document.getElementById('modal-body').innerHTML=`
+    <div class="prog-optlist">
+      ${opts.map((o,oi)=>`
+        <button class="prog-opt ${same(o,s)?'on':''}" onclick="pickCycleStep(${i},${oi})">
+          <span class="chip ${stepClass(o)}">${stepLabel(o)}</span>
+          <span class="po-sub">${cycleStepSub(o)}</span>
+        </button>`).join('')}
+    </div>
+    <div id="prog-deload-extra" style="${s.type==='deload'?'':'display:none;'}margin-top:16px;">
+      <div style="display:flex;gap:10px;">
+        <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('prog_deload_sets')}</label>
+          <input class="form-inp" id="dl-sets" type="number" min="10" max="100" value="${s.setPct||50}"></div>
+        <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('prog_deload_load')}</label>
+          <input class="form-inp" id="dl-load" type="number" min="50" max="100" value="${s.loadPct||90}"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('prog_deload_note')}</div>
+    </div>
+    ${p.cycle.length>1?`<button class="btn-ghost" style="width:100%;margin-top:18px;border-color:var(--danger);color:var(--danger);"
+        onclick="removeCycleStep(${i})">${t('prog_remove_step')}</button>`:''}`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveCycleStep(${i})">${t('save')}</button>`;
+  window._progStepOpts=opts;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+// Tapping an option edits a DRAFT, not the live cycle. Previously it wrote
+// straight into p.cycle[i], so Cancel didn't cancel — the change stayed in
+// memory and got persisted by the next saveDB() from anywhere in the app,
+// while the chart behind still showed the old bar. A sheet with Save and
+// Cancel has to mean it.
+function pickCycleStep(i,oi){
+  const o=window._progStepOpts[oi];
+  if(!_stepDraft) return;
+  // Keep any deload numbers already tuned rather than resetting them every
+  // time the same row is tapped.
+  const prev=_stepDraft;
+  _stepDraft = o.type==='deload'
+    ? {type:'deload', rir:o.rir, setPct:(prev.setPct||o.setPct), loadPct:(prev.loadPct||o.loadPct)}
+    : JSON.parse(JSON.stringify(o));
+  editCycleStep(i, true);   // re-render from the draft, don't reset it
+}
+function saveCycleStep(i){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot || !_stepDraft) return;
+  const p=rotationProgression(rot);
+  if(_stepDraft.type==='deload'){
+    const sp=parseInt(document.getElementById('dl-sets').value);
+    const lp=parseInt(document.getElementById('dl-load').value);
+    if(sp>=10&&sp<=100) _stepDraft.setPct=sp;
+    if(lp>=50&&lp<=100) _stepDraft.loadPct=lp;
+  }
+  p.cycle[i]=_stepDraft; _stepDraft=null;
+  saveDB(); closeModal(); renderProgression();
+}
+
+// ── Which exercises the progression applies to ──
+function renderProgApplies(){
+  const el=document.getElementById('prog-applies-body'); if(!el) return;
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const p=rotationProgression(rot);
+  // Only exercises actually IN this rotation — offering the full 150-entry
+  // catalogue here would be noise.
+  const ids=[];
+  (rot.schedule||[]).forEach(rId=>{
+    const r=db.routines.find(x=>x.id===rId);
+    (r?r.exercises:[]).forEach(e=>{ if(ids.indexOf(e.id)===-1 && !isTimeTrackedEx(e.id)) ids.push(e.id); });
+  });
+  if(!ids.length){ el.innerHTML=`<div class="empty-state"><p>${t('prog_applies_empty')}</p></div>`; return; }
+  const all=p.appliesTo.length===0;
+  el.innerHTML=`
+    <div style="padding:0 18px 10px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_applies_intro')}</div>
+    <div class="rot-row ${all?'active':''}">
+      <button class="rot-check ${all?'on':''}" onclick="progAppliesAll()">${all?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
+      <div class="rot-main" onclick="progAppliesAll()"><div class="rot-name">${t('prog_applies_all_row')}</div>
+        <div class="rot-meta">${t('prog_applies_all_sub')}</div></div>
+    </div>
+    ${ids.map(id=>{
+      const ex=db.exercises.find(e=>e.id===id);
+      const on=p.appliesTo.indexOf(id)!==-1;
+      return `<div class="rot-row ${on?'active':''}">
+        <button class="rot-check ${on?'on':''}" onclick="toggleProgApplies('${id}')">${on?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
+        <div class="rot-main" onclick="toggleProgApplies('${id}')"><div class="rot-name">${escapeHtml(ex?exerciseDisplayName(ex):id)}</div></div>
+      </div>`;
+    }).join('')}`;
+}
+function toggleProgApplies(id){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  const i=p.appliesTo.indexOf(id);
+  if(i===-1) p.appliesTo.push(id); else p.appliesTo.splice(i,1);
+  saveDB(); renderProgApplies();
+}
+function progAppliesAll(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  rotationProgression(rot).appliesTo=[];   // empty means "everything"
+  saveDB(); renderProgApplies();
+}
+
+function renameActiveEditingRotation(v){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  if(!rot) return;
+  rot.name=v.trim();
+  saveDB();
+  // Deliberately no re-render: the input is the thing being typed into, and
+  // rebuilding it mid-keystroke would drop focus and the caret position.
+}
+
+// The schedule mutators still speak in terms of db.schedule, which IS the
+// active rotation's array — but the editor can be open on an INACTIVE
+// rotation, so they resolve the target from _editingRotationId instead.
+function editingRotationSchedule(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  return rot ? (rot.schedule||(rot.schedule=[])) : null;
+}
 function openScheduleModal(){
   if(!db.routines.length){alert(t('alert_create_routines_first'));return;}
   document.getElementById('modal-title').textContent=t('schedule_modal_title');
-  document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>`;
+  document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button><button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="addSched()">${t('add')}</button>`;
-  window.addSched=function(){db.schedule.push(document.getElementById('sched-sel').value);saveDB();closeModal();renderSchedule();};
+  window.addSched=function(){
+    const sch=editingRotationSchedule(); if(!sch) return;
+    sch.push(document.getElementById('sched-sel').value);
+    saveDB();closeModal();renderRotationEditor();renderHome();
+  };
   document.getElementById('modal-overlay').classList.add('active');
 }
-
-function rmSched(i){db.schedule.splice(i,1);if(db.schedulePos>=db.schedule.length)db.schedulePos=0;saveDB();renderSchedule();}
-function moveSched(i,d){const j=i+d;if(j<0||j>=db.schedule.length)return;[db.schedule[i],db.schedule[j]]=[db.schedule[j],db.schedule[i]];saveDB();renderSchedule();}
+function rmSched(i){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const sch=rot.schedule||[];
+  // NEXT has to keep pointing at the same WORKOUT, not the same index.
+  // The old code only clamped pos to the new length, so deleting any row
+  // ABOVE the current one silently slid NEXT onto the wrong workout.
+  const curIdx = sch.length ? (rot.pos||0)%sch.length : -1;
+  const curId  = curIdx>=0 ? sch[curIdx] : null;
+  const removingNext = i===curIdx;
+  sch.splice(i,1);
+  if(!sch.length){
+    rot.pos=0;
+  } else if(removingNext){
+    // The workout that was up next is gone, so the slot it vacated — now
+    // holding whatever followed it — is the right thing to do next.
+    rot.pos = i % sch.length;
+  } else {
+    const ni = sch.indexOf(curId);
+    rot.pos = ni!==-1 ? ni : 0;
+  }
+  if(rot.id===db.activeRotationId) db.schedulePos=rot.pos||0;
+  saveDB();renderRotationEditor();renderHome();
+}
+function moveSched(i,d){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const sch=rot.schedule||[]; const j=i+d;
+  if(j<0||j>=sch.length) return;
+  // Reordering must carry the NEXT marker with the routine it points at,
+  // not leave it pinned to an index that now holds a different workout.
+  const curId = sch.length ? sch[(rot.pos||0)%sch.length] : null;
+  [sch[i],sch[j]]=[sch[j],sch[i]];
+  if(curId){ const ni=sch.indexOf(curId); if(ni!==-1) rot.pos=ni; }
+  if(rot.id===db.activeRotationId) db.schedulePos=rot.pos||0;
+  saveDB();renderRotationEditor();renderHome();
+}
 
 // ═══════════════════════════════════════════
 //  LOG — rendered inside Profile's Log tab, see renderProfile()
@@ -4561,7 +5840,7 @@ async function fetchMyProfile(){
   try{
     const { data }=await supabaseClient
       .from('profiles')
-      .select('username, full_name, verified, subscription_tier, is_admin, has_password, is_private, hidden_pr_exercise_ids')
+      .select('username, full_name, verified, subscription_tier, is_admin, has_password, is_private, hidden_pr_exercise_ids, pings_blocked')
       .eq('id', currentUser.id)
       .single();
     _myProfileCache=data;
@@ -4822,14 +6101,23 @@ async function fetchUserProgramData(userId){
   try{
     const [{data:settings}, {data:routineRows}] = await Promise.all([
       supabaseClient.from('user_settings').select('schedule, schedule_pos').eq('user_id', userId).maybeSingle(),
-      supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', userId),
+      supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds, ss_group, ss_group_rest, set_rows)').eq('user_id', userId),
     ]);
     const routines = (routineRows||[]).map(r=>({
       id: r.client_id || r.id,
       name: r.name,
       exercises: (r.routine_exercises||[])
         .sort((a,b)=>a.position-b.position)
-        .map(re=>({ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds })),
+        // Same conditional attach as the own-data hydrate below, so a
+        // superset on someone else's profile renders as a superset instead
+        // of a run of unrelated exercises.
+        .map(re=>{
+          const ex={ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds };
+          if(re.ss_group) ex.ssGroup=re.ss_group;
+          if(re.ss_group_rest) ex.ssGroupRest=re.ss_group_rest;
+          if(re.set_rows) ex.setRows=re.set_rows;
+          return ex;
+        }),
     }));
     return { schedule: (settings && settings.schedule) || [], schedulePos: (settings && settings.schedule_pos) || 0, routines };
   }catch(e){ return { schedule:[], schedulePos:0, routines:[] }; }
@@ -5141,11 +6429,12 @@ async function renderOtherProfile(){
   if(!uid){ body.innerHTML=''; return; }
   body.innerHTML = _otherProfileHtmlCache[uid] || '<div class="empty-state"><p>Loading…</p></div>';
 
-  const [{data:profile}, followState, counts, pingUsed] = await Promise.all([
-    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia, hidden_pr_exercise_ids').eq('id', uid).maybeSingle(),
+  const [{data:profile}, followState, counts, pingUsed, myProfile] = await Promise.all([
+    supabaseClient.from('public_profiles').select('id, username, full_name, verified, subscription_tier, is_private, equipped_insignia, hidden_pr_exercise_ids, pings_blocked').eq('id', uid).maybeSingle(),
     getFollowState(uid),
     getFollowCounts(uid),
     hasPingedToday(),
+    getMyProfile(),
   ]);
   if(_otherProfileUserId!==uid) return; // navigated to a different profile while this was in flight
   if(!profile){
@@ -5162,6 +6451,12 @@ async function renderOtherProfile(){
   const canView = !profile.is_private || (followState.mine && followState.mine.status==='accepted');
   const label = followButtonLabel(followState);
   const isPrimary = (label==='follow' || label==='follow_back');
+
+  // The Ping button disappears entirely — rather than rendering greyed out —
+  // when either side has blocked pings, because a permanently dead control
+  // is worse than no control. Server-side the INSERT policy refuses these
+  // anyway; this just avoids offering an action that cannot succeed.
+  const canPing = !profile.pings_blocked && !(myProfile && myProfile.pings_blocked);
 
   let equippedInsignia=null, workoutCount='—';
   if(canView){
@@ -5202,7 +6497,7 @@ async function renderOtherProfile(){
       </div>
       <div class="oprof-followbtn-row">
         <button class="oprof-followbtn ${isPrimary?'primary':'secondary'}" id="oprof-follow-btn" onclick="onOtherProfileFollowClick()">${followButtonText(label)}</button>
-        <button class="oprof-ping-btn ${pingUsed?'used':''}" id="oprof-ping-btn" onclick="openPingPicker('${uid}')" aria-label="Ping">${PING_ICON_SVG}</button>
+        ${canPing ? `<button class="oprof-ping-btn ${pingUsed?'used':''}" id="oprof-ping-btn" onclick="openPingPicker('${uid}')" aria-label="Ping">${PING_ICON_SVG}</button>` : ''}
       </div>
       <div class="profile-tabs">
         <button class="profile-tab active" id="optab-prs" onclick="switchOtherProfileTab('prs')">${t('profile_tab_prs')}</button>
@@ -5793,7 +7088,11 @@ async function hasPingedToday(){
 
 async function openPingPicker(targetUserId){
   if(await hasPingedToday()){
-    alert(t('alert_ping_used_today'));
+    // Toast, not alert(): none of the three ping messages asks a question
+    // or needs acknowledging, and a native dialog undercuts a flow that is
+    // otherwise fully styled. Converted as a set so this one function
+    // doesn't mix both conventions.
+    showToast(t('alert_ping_used_today'));
     return;
   }
   const options=pickRandomPingOptions();
@@ -5821,6 +7120,12 @@ async function sendPing(targetUserId, btnEl){
     const { error } = await supabaseClient.from('pings').insert({ sender_id:currentUser.id, recipient_id:targetUserId, message:text, kind });
     if(error){
       if(error.code==='23505'){ _pingedToday=true; closePingPicker(); refreshPingButtonState(); return; }
+      // 42501 = the INSERT policy refused it, which for this table means
+      // one of the two parties has pings blocked. Only reachable if the
+      // block landed after this screen was rendered (or someone is calling
+      // the API directly), but it deserves a real explanation rather than
+      // the generic "could not send" — nothing they retry will help.
+      if(error.code==='42501'){ closePingPicker(); showToast(t('alert_ping_blocked')); return; }
       throw error;
     }
     _pingedToday=true;
@@ -5828,7 +7133,7 @@ async function sendPing(targetUserId, btnEl){
     refreshPingButtonState();
   }catch(e){
     [...optionsEl.children].forEach(b=>b.disabled=false);
-    alert(t('alert_ping_send_error'));
+    showToast(t('alert_ping_send_error'));
   }
 }
 
@@ -6127,7 +7432,7 @@ function renderExDetail(exId){
               </div>
             </div>`
         )}
-        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} ${t('exd_alltime_pr')}: ${timed?fmtDuration(pr.reps)+' '+t('ex_db_held_suffix'):fmtPRWeight(pr,exId)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
+        ${pr?`<div class="exd-pr-line" onclick="openPRCorrectModal('${exId}')" title="${escapeHtml(t('pr_fix_open'))}">${ICON_PR} ${t('exd_alltime_pr')}: ${timed?fmtDuration(pr.reps)+' '+t('ex_db_held_suffix'):fmtPRWeight(pr,exId)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}<span class="exd-pr-edit">${t('pr_fix_edit')}</span></div>`:''}
       </div>
     </div>
 
@@ -6230,11 +7535,41 @@ function startWorkoutWithRoutine(routineId){
   _startWithRoutine(rt);
 }
 
+// db.lastWeights remembers "what did I use last time" per exercise. A routine
+// may legitimately list the SAME exercise more than once — a drop-set superset
+// (curls at 15kg, then curls at 10kg) is the obvious case — and keying purely
+// by exercise id made both occurrences read and write one entry, so finishing
+// a workout saved the first and instantly overwrote it with the second, and
+// the next session prefilled both from whichever survived.
+//
+// Later occurrences therefore get a "#n" suffix. The FIRST occurrence keeps
+// the bare id, which is what lets every pre-existing entry — and every other
+// screen that looks up db.lastWeights[exerciseId] directly (Exercises DB,
+// Exercise Detail, the 1RM math) — keep working untouched, still reading the
+// primary occurrence. Mirrors last_weights.slot server-side.
+function lastWeightsKey(exId, slot){ return slot ? exId+'#'+slot : exId; }
+
+// Split a local key back into its parts for the cloud, where the two live in
+// separate columns. "e14" -> {id:'e14', slot:0}; "e14#2" -> {id:'e14', slot:2}.
+function parseLastWeightsKey(key){
+  const i=String(key).indexOf('#');
+  if(i===-1) return {id:key, slot:0};
+  const slot=parseInt(key.slice(i+1),10);
+  return {id:key.slice(0,i), slot:Number.isFinite(slot)&&slot>0?slot:0};
+}
+
 function _startWithRoutine(rt){
+  // Occurrence counter per exercise id, advanced in routine order so slot
+  // numbering is stable for a given routine layout. Reordering a superset's
+  // A/B swaps which slot remembers which weight, which is the correct
+  // behaviour — the memory follows the position in the routine.
+  const _slotSeen={};
   // Helper: build one session exercise from a routine exercise entry
   function buildSessionEx(re){
     const ex=db.exercises.find(e=>e.id===re.id)||{id:re.id,name:re.id,notes:''};
-    const last=db.lastWeights[re.id]||{};
+    const slot=_slotSeen[re.id]=(_slotSeen[re.id]===undefined?0:_slotSeen[re.id]+1);
+    const lwKey=lastWeightsKey(re.id, slot);
+    const last=db.lastWeights[lwKey]||{};
     const defW=last.weight!==undefined?last.weight:re.weight;
     const defR=last.reps!==undefined?last.reps:re.reps;
     const actualWeight=[], actualReps=[];
@@ -6255,9 +7590,31 @@ function _startWithRoutine(rt){
     // current unit) rather than trusting last.history, which was baked in
     // raw kg at save time and can't be reinterpreted after the fact.
     const lastHistory=last.weight!==undefined||last.sets ? fmtLastWeightDisplay(last,re.id,isTimeTrackedEx(re.id)) : '';
-    return {type:'ex', id:re.id, name:ex.name, notes:ex.notes||'',
-      sets:re.sets, reps:re.reps, rest:re.rest,
-      tickedSets:[], actualReps, actualWeight, lastHistory};
+
+    // ── Progression ──
+    // Overwrite the prefill with the computed target, but ONLY where a target
+    // actually exists: progression on, this exercise nominated, a real PR to
+    // compute from, and not an all-out pass (which has no target by design).
+    // Everywhere else the prefill stays exactly what it always was, so
+    // turning progression on can never blank someone's numbers.
+    const step=currentProgressionStep();
+    const applies=step && progressionAppliesTo(re.id);
+    let progTarget=null, progSets=re.sets;
+    if(applies){
+      progTarget=progressionTargetWeight(re.id, re.reps, step);
+      if(progTarget!==null){ for(let s=0;s<actualWeight.length;s++) actualWeight[s]=progTarget; }
+      // A deload cuts volume, which is the part that actually sheds fatigue.
+      if(step.type==='deload' && step.setPct && step.setPct<100){
+        progSets=Math.max(1, Math.round(re.sets*(step.setPct/100)));
+      }
+    }
+    // lwKey rides along on the session item so finishWorkout() writes back to
+    // the same slot this was prefilled from, without re-deriving the count.
+    return {type:'ex', id:re.id, lwKey, name:ex.name, notes:ex.notes||'',
+      sets:progSets, reps:re.reps, rest:re.rest,
+      tickedSets:[], actualReps:actualReps.slice(0,progSets), actualWeight:actualWeight.slice(0,progSets),
+      lastHistory,
+      progStep: applies?step:null, progTarget};
   }
 
   // Build session items: group consecutive same-ssGroup exercises into ss blocks
@@ -6671,6 +8028,7 @@ const STRINGS = {
     settings_pr_visibility_title: 'PR Visibility',
     settings_pr_visibility_sub: 'Choose which lifts show on your profile',
     settings_weight_logging_label: 'Weight Logging',
+    settings_weight_logging_sub: 'Units, body weight, barbell and dumbbell',
     settings_data_label: 'Data',
     settings_export_title: 'Export Backup',
     settings_export_sub: 'Download your data as JSON',
@@ -6762,6 +8120,8 @@ const STRINGS = {
     alert_delete_error: 'Could not delete. Try again.',
     alert_ping_used_today: "You've used today's ping. Come back tomorrow.",
     alert_ping_send_error: 'Could not send ping. Try again.',
+    alert_ping_blocked: 'Pings are turned off.',
+    toast_pings_turned_off: "Pings turned off — you won't send or receive any.",
     alert_setting_update_error: 'Could not update this setting. Try again.',
     alert_google_signin_not_setup: 'Google sign-in is not set up yet: ',
     alert_follow_error: 'Could not follow. Try again.',
@@ -6802,6 +8162,104 @@ const STRINGS = {
     routines_empty_state_2: 'Tap + New to build one, or Browse to add one of ours.',
     routines_meta_exercises: 'exercises',
     routines_meta_sets: 'sets',
+    prog_section_label: 'Advanced',
+    prog_row_title: 'Progression',
+    prog_row_off: 'Off',
+    prog_row_of: 'Rotation {i} of {n}',
+    prog_title: 'Progression',
+    prog_guide_row: 'How this works',
+    prog_guide_row_sub: 'RIR, cycles, and when to use them',
+    prog_guide_title: 'Guide',
+    prog_enable: 'Use a training cycle',
+    prog_enable_sub: 'Vary how hard you push across rotations',
+    prog_presets_label: 'Start from a template',
+    prog_presets_note: 'Templates just fill in the cycle below. Nothing is locked — change any step before or after.',
+    prog_preset_loaded: 'Template loaded — edit it below',
+    prog_preset_alan: 'Build up, back off, then test',
+    prog_preset_alan_desc: 'Two harder rotations, an easy one, then an all-out rotation that sets your new baseline.',
+    prog_preset_ramp: 'Steady build with a rest week',
+    prog_preset_ramp_desc: 'Get gradually closer to failure across three rotations, then recover.',
+    prog_preset_simple: 'Simple: two efforts and a test',
+    prog_preset_simple_desc: 'The shortest cycle worth running. Good place to start.',
+    prog_rotations_word: 'rotations',
+    prog_cycle_label: 'Your cycle',
+    prog_add_step: '+ Rotation',
+    prog_add_short: 'Add',
+    prog_remove_step: 'Remove from cycle',
+    prog_short_max: 'Max',
+    prog_short_deload: 'Deload',
+    prog_cycle_summary: 'A cycle is {n} rotations of {w} workouts — {total} sessions, then it repeats.',
+    prog_now: 'Now',
+    prog_step_title: 'Rotation {n} effort',
+    prog_eff_easy: 'Easy',
+    prog_eff_moderate: 'Moderate',
+    prog_eff_hard: 'Hard',
+    prog_eff_max: 'Max',
+    prog_eff_deload: 'Deload',
+    prog_eff_allout: 'All-out',
+    prog_sub_rir: 'Stop {n} reps short of failure',
+    prog_sub_allout: 'No rep target — find your max',
+    prog_sub_deload_plain: 'Recover: easier sets',
+    prog_sub_sets: '{p}% of the sets',
+    prog_sub_load: '−{p}% weight',
+    prog_deload_sets: '% OF SETS',
+    prog_deload_load: '% OF WEIGHT',
+    prog_deload_note: 'A real deload cuts volume, not just effort. Half the sets is a good default.',
+    prog_applies_label: 'Scope',
+    prog_applies_row: 'Applies to',
+    prog_applies_title: 'Applies to',
+    prog_applies_all: 'Every exercise',
+    prog_applies_count: 'exercises',
+    prog_applies_all_row: 'Every exercise',
+    prog_applies_all_sub: 'Simplest option',
+    prog_applies_intro: 'Most people vary only their main lifts and leave accessories alone. Pick the ones this cycle should drive — or leave it on every exercise.',
+    prog_applies_empty: 'Add workouts to this rotation first.',
+    prog_shownums: 'Show the numbers',
+    prog_shownums_sub: 'Display RIR on every set',
+    prog_reset_note: 'Changed your mind mid-cycle?',
+    prog_reset_cycle: 'Restart the cycle',
+    prog_reset_done: 'Cycle restarted',
+    prog_try: 'Try',
+    prog_allout_cue: 'Max reps — go until you cannot',
+    prog_reseed_title: 'Cycle complete',
+    prog_reseed_intro: 'Your all-out rotation is done. Here is what it changed — check it before we build the next cycle on these numbers.',
+    prog_reseed_up: 'New best',
+    prog_reseed_kept: 'Kept',
+    prog_reseed_stall_note: 'Anything you did not beat stays where it was. A lower number just means a hard day, not a step backwards.',
+    prog_reseed_confirm: 'Confirm and start next cycle',
+    prog_reseed_later: 'Decide later',
+    prog_reseed_done: 'Baselines updated',
+    prog_reseed_none: 'Nothing to update yet — log a few sessions first.',
+    guide_intro: 'A training cycle just means not pushing equally hard every week. You go moderately hard, then harder, then take it easy, then test yourself — and repeat with better numbers.',
+    guide_what_t: 'Do I need this?',
+    guide_what_b: '<b>If you are new: no.</b> For your first six months to a year, simply adding a little weight whenever a session feels easy will out-perform any cycle. Leave this off and train.<br><br><b>If you have been lifting a year or more</b> and the weights have stopped moving, this is what usually fixes it. Pushing hard every single week stops working because fatigue builds faster than fitness — the cycle gives you somewhere to put the recovery.',
+    guide_rir_t: 'What is RIR?',
+    guide_rir_b: '<b>Reps In Reserve — how many more you had in you.</b><br><br><em>RIR 2</em> means you stopped with two reps left. <em>RIR 0</em> means you could not have done another one.<br><br>It measures effort, not weight, which is why it works better than fixed numbers: on a bad day RIR 2 is simply a lighter bar, and you still get the right training out of it.<br><br>Rough guide: <b>RIR 3</b> comfortable, <b>RIR 2</b> working, <b>RIR 1</b> hard, <b>RIR 0</b> everything you have.',
+    guide_cycle_t: 'How a cycle works here',
+    guide_cycle_b: 'One pass through all the workouts in your rotation = <b>one step</b> of the cycle. Finish the last workout and the app moves to the next step automatically.<br><br>A cycle can be any length. Four is common; three is plenty to start.<br><br>End a cycle on an <em>all-out</em> rotation and the app reads your best sets, updates your baseline, and computes the next cycle from the stronger numbers. That is where the progression actually comes from.',
+    guide_who_t: 'What should I pick?',
+    guide_who_b: '<b>First year lifting</b> — leave this off. Add weight when it feels easy.<br><br><b>One to three years</b> — "Simple: two efforts and a test". Three rotations, easy to follow, and you will feel the difference in the third one.<br><br><b>Experienced</b> — "Build up, back off, then test", and set it to apply only to your main lifts.<br><br><b>Coming back from a break or short on sleep</b> — use a cycle with a deload in it and do not skip that rotation.',
+    guide_safe_t: 'Going to failure — read this',
+    guide_safe_b: 'An <em>all-out</em> rotation is genuinely hard, and it is not free. Two things worth knowing:<br><br><b>Do not take everything to failure.</b> Pick your main lifts. Accessories give you almost nothing extra for the fatigue they cost.<br><br><b>Be careful with deadlifts.</b> Going to true failure on a heavy pull is where form breaks down under load, and it takes longer to recover from than anything else. Most coaches never program it. Leave it out unless you know exactly why you want it in.',
+    guide_foot: 'None of this is a rule. The app only ever suggests a weight — what you type is what gets saved.',
+    schedule_rotations_label: 'Rotations',
+    rotations_notice: 'Only the ticked rotation runs · Loops automatically',
+    rotation_new: '+ New',
+    rotation_default_name: 'My rotation',
+    rotation_edit: 'Edit',
+    rotation_edit_title: 'Rotation',
+    rotation_name_label: 'Rotation name',
+    rotation_workouts_label: 'Workouts in order',
+    rotation_set_active: 'Make this the active rotation',
+    rotation_active_label: 'Active',
+    rotation_make_active: 'Make active',
+    rotation_delete: 'Delete rotation',
+    rotation_workout_singular: 'workout',
+    rotation_workout_plural: 'workouts',
+    rotation_gone: 'This rotation no longer exists.',
+    rotations_empty_1: 'No rotations yet.',
+    rotations_empty_2: 'Tap + New to build one.',
+    confirm_delete_rotation_title: 'Delete Rotation?',
     schedule_empty_state_1: 'No schedule yet.',
     schedule_empty_state_2: 'Add routines to the rotation.',
     schedule_deleted_routine: '(deleted)',
@@ -6884,6 +8342,8 @@ const STRINGS = {
     account_handle_label: 'Handle',
     account_private_label: 'Private Account',
     account_private_sub: 'Only people you approve can follow you and see your Program and Log',
+    account_block_pings_label: 'Block Pings',
+    account_block_pings_sub: "You can't ping anyone, and nobody can ping you",
     account_email_label: 'Email',
     account_signed_in_with_label: 'Signed in with',
     account_plan_label: 'Plan',
@@ -6918,6 +8378,26 @@ const STRINGS = {
     plan_perk_trainer: 'Trainer tools',
     plan_perk_scan: 'Form scan',
     plan_footnote: 'Upgrades are coming soon.',
+    badge_req_sessions: 'sessions',
+    badge_req_not_yet: 'Not yet',
+    badge_tier_rookie: 'Rookie',
+    badge_tier_regular: 'Regular',
+    badge_tier_dedicated: 'Dedicated',
+    badge_tier_beast: 'Beast',
+    badge_tier_veteran: 'Veteran',
+    badge_tier_elite: 'Elite',
+    badge_tier_legend: 'Legend',
+    badge_founder: 'Founder',
+    badge_trainer: 'Trainer',
+    badge_og_member: 'OG Member',
+    badge_early_supporter: 'Early Supporter',
+    badge_tier_rookie_msg: '10 sessions done. Welcome to the iron game, Rookie.',
+    badge_tier_regular_msg: '25 sessions. You actually kept showing up. Respect.',
+    badge_tier_dedicated_msg: "50 sessions. Half a century of not skipping. That's dedication.",
+    badge_tier_beast_msg: "100 sessions. You're not trying anymore — this is just who you are.",
+    badge_tier_veteran_msg: "250 sessions. Most people quit at 10. You're on 250.",
+    badge_tier_elite_msg: '500 sessions. At this point the bar is scared of you.',
+    badge_tier_legend_msg: "1000 sessions. You're an absolute freak. We mean that as the highest compliment.",
     verified_tooltip: 'Verified',
     weight_units_label: 'Units',
     weight_units_sub: 'What every weight in the app is shown and typed in',
@@ -6992,6 +8472,21 @@ const STRINGS = {
     exd_prefill_note: 'This is what will pre-fill next time you do this exercise.',
     exd_duration_label: 'DURATION',
     exd_alltime_pr: 'All-time PR',
+    pr_fix_open: 'Correct this record',
+    pr_fix_edit: 'Fix',
+    pr_fix_title: 'Correct Record',
+    pr_fix_seconds: 'Seconds held',
+    pr_fix_note: 'Your estimated 1RM is calculated from this set, so a mistyped weight here affects every estimate for this lift.',
+    pr_fix_recalc: 'Recalculate from my sessions',
+    pr_fix_recalc_note: 'Rebuilds the record from your logged workouts. Use this if the record no longer matches what you actually lifted.',
+    pr_fix_invalid: 'Enter a weight and reps.',
+    pr_fix_confirm_title: 'Replace Record?',
+    pr_fix_confirm_msg: 'This overwrites your stored personal record for this exercise.',
+    pr_fix_saved: 'Record updated',
+    pr_fix_recalc_title: 'Recalculate Record?',
+    pr_fix_recalc_msg: 'This replaces the stored record with the best set found in your logged sessions.',
+    pr_fix_recalc_ok: 'Recalculate',
+    pr_fix_recalc_none: 'No logged sessions to rebuild from.',
     exd_video_demonstration_suffix: 'demonstration',
     analytics_no_exercises_logged: 'No exercises logged yet',
     analytics_no_workouts_logged: 'No workouts logged yet',
@@ -7027,6 +8522,12 @@ const STRINGS = {
     theme_light_mode: 'Light mode',
     theme_dark_mode: 'Dark mode',
   },
+  // Neutral international Spanish — deliberately NOT Argentine. Alan's
+  // call (2026-07-30), reversing the original voseo brief: the app should
+  // read as high-end and region-neutral, so no "vos", no "vosotros", no
+  // local slang. Direct address uses tú, and where an instruction reads
+  // naturally without a subject it stays impersonal/infinitive, which is
+  // the usual register for premium product Spanish.
   es: {
     back: '← Volver',
     cancel: 'Cancelar',
@@ -7056,11 +8557,12 @@ const STRINGS = {
     settings_account_label: 'Cuenta',
     settings_pr_visibility_label: 'Visibilidad de Récords',
     settings_pr_visibility_title: 'Visibilidad de Récords',
-    settings_pr_visibility_sub: 'Elegí qué levantamientos se ven en tu perfil',
+    settings_pr_visibility_sub: 'Elige qué levantamientos se ven en tu perfil',
     settings_weight_logging_label: 'Registro de Peso',
+    settings_weight_logging_sub: 'Unidades, peso corporal, barra y mancuernas',
     settings_data_label: 'Datos',
     settings_export_title: 'Exportar Copia de Seguridad',
-    settings_export_sub: 'Descargá tus datos como JSON',
+    settings_export_sub: 'Descarga tus datos como JSON',
     language_en: 'Inglés',
     language_es: 'Español',
     home_sessions_label: 'Sesiones',
@@ -7091,12 +8593,12 @@ const STRINGS = {
     analytics_stat_gain: 'Ganancia',
     analytics_stat_sessions: 'Sesiones',
     analytics_progress_by_routine: 'Progreso por Rutina',
-    analytics_routine_footnote: 'Centro = 0% (línea base de la primera sesión). Tocá los puntos para ver el detalle en kg.',
+    analytics_routine_footnote: 'Centro = 0% (línea base de la primera sesión). Toca los puntos para ver el detalle en kg.',
     picker_choose_workout: 'Elegir Entrenamiento',
     tier_modal_eyebrow: 'Nuevo Nivel Desbloqueado',
-    tier_modal_btn: 'Sigamos así',
+    tier_modal_btn: 'Seguimos así',
     requests_title: 'Solicitudes',
-    auth_tagline_welcome: 'Iniciá sesión para mantener tu historial seguro en todos tus dispositivos.',
+    auth_tagline_welcome: 'Inicia sesión para mantener tu historial seguro en todos tus dispositivos.',
     auth_btn_signin: 'Iniciar sesión',
     auth_btn_create_account: 'Crear cuenta',
     auth_divider_or: 'o',
@@ -7114,56 +8616,58 @@ const STRINGS = {
     auth_label_username: 'Nombre de Usuario',
     auth_placeholder_min_chars: 'Al menos 8 caracteres',
     auth_profile_title: 'Una Última Cosa',
-    auth_profile_tagline: 'Elegí un nombre de usuario para que la gente te encuentre después.',
+    auth_profile_tagline: 'Elige un nombre de usuario para que la gente te encuentre después.',
     auth_btn_continue: 'Continuar',
     auth_conflict_title: 'Se Encontraron Dos Conjuntos de Datos',
-    auth_conflict_tagline: 'Este dispositivo ya tiene datos de entrenamiento que todavía no forman parte de tu cuenta. Elegí cuál conservar — no se elimina nada de forma permanente en ningún caso.',
+    auth_conflict_tagline: 'Este dispositivo ya tiene datos de entrenamiento que todavía no forman parte de tu cuenta. Elige cuál conservar — no se elimina nada de forma permanente en ningún caso.',
     auth_conflict_cloud_title: 'Usar los Datos de Mi Cuenta',
     auth_conflict_cloud_sub: 'Reemplaza los datos locales de este dispositivo con lo que ya está guardado en tu cuenta. Los datos locales de este dispositivo se respaldan primero.',
     auth_conflict_device_title: 'Usar los Datos de Este Dispositivo',
     auth_conflict_device_sub: 'Sube lo que hay en este dispositivo a tu cuenta, reemplazando sus datos en la nube anteriores. Los datos anteriores de tu cuenta se respaldan primero.',
     auth_guest_limit_headline: '5 Sesiones Cumplidas',
-    auth_guest_limit_tagline: 'Ya usaste las sesiones de invitado disponibles en este dispositivo. Creá una cuenta gratis para conservar tu historial y seguir entrenando — todo lo que registraste hasta ahora viene con vos.',
+    auth_guest_limit_tagline: 'Ya usaste las sesiones de invitado disponibles en este dispositivo. Crea una cuenta gratis para conservar tu historial y seguir entrenando — todo lo que registraste hasta ahora se conserva.',
     auth_already_have_account: 'Ya tengo una cuenta',
     auth_reset_title: 'Establecer una Nueva Contraseña',
-    auth_reset_tagline: 'Elegí una nueva contraseña para tu cuenta.',
+    auth_reset_tagline: 'Elige una nueva contraseña para tu cuenta.',
     auth_label_new_password: 'Nueva Contraseña',
     auth_label_confirm_password: 'Confirmar Contraseña',
-    auth_placeholder_reenter: 'Volvé a escribir la contraseña',
+    auth_placeholder_reenter: 'Vuelve a escribir la contraseña',
     auth_btn_update_password: 'Actualizar contraseña',
     rest_label: 'Descanso',
     rest_skip: 'Saltar',
     active_label: 'Activo',
     alert_backup_restored: 'Copia de seguridad restaurada con éxito.',
     alert_backup_read_error: 'No se pudo leer el archivo de copia de seguridad.',
-    alert_name_routine: 'Ponele un nombre a tu rutina.',
+    alert_name_routine: 'Ponle un nombre a tu rutina.',
     alert_min_one_set: 'Se requiere al menos una serie.',
     alert_superset_min_two: 'Una superserie necesita al menos 2 ejercicios.',
     alert_min_one_round: 'Se requiere al menos una ronda.',
-    alert_add_one_exercise: 'Agregá al menos un ejercicio.',
-    alert_create_routines_first: 'Creá rutinas primero.',
-    alert_create_routine_first_assign: 'Creá una rutina primero para poder asignarla.',
+    alert_add_one_exercise: 'Agrega al menos un ejercicio.',
+    alert_create_routines_first: 'Crea rutinas primero.',
+    alert_create_routine_first_assign: 'Crea una rutina primero para poder asignarla.',
     alert_assign_routine_error: 'No se pudo asignar la rutina.',
     alert_connect_error: 'No se pudo conectar. El enlace puede ser inválido.',
-    alert_confirm_error: 'No se pudo confirmar. Intentá de nuevo.',
-    alert_delete_error: 'No se pudo eliminar. Intentá de nuevo.',
-    alert_ping_used_today: 'Ya usaste tu ping de hoy. Volvé mañana.',
-    alert_ping_send_error: 'No se pudo enviar el ping. Intentá de nuevo.',
-    alert_setting_update_error: 'No se pudo actualizar esta opción. Intentá de nuevo.',
+    alert_confirm_error: 'No se pudo confirmar. Inténtalo de nuevo.',
+    alert_delete_error: 'No se pudo eliminar. Inténtalo de nuevo.',
+    alert_ping_used_today: 'Ya usaste tu ping de hoy. Vuelve mañana.',
+    alert_ping_send_error: 'No se pudo enviar el ping. Inténtalo de nuevo.',
+    alert_ping_blocked: 'Los pings están desactivados.',
+    toast_pings_turned_off: 'Pings desactivados — no enviarás ni recibirás ninguno.',
+    alert_setting_update_error: 'No se pudo actualizar esta opción. Inténtalo de nuevo.',
     alert_google_signin_not_setup: 'El inicio de sesión con Google todavía no está configurado: ',
-    alert_follow_error: 'No se pudo seguir. Intentá de nuevo.',
-    alert_cancel_error: 'No se pudo cancelar. Intentá de nuevo.',
-    alert_unfollow_error: 'No se pudo dejar de seguir. Intentá de nuevo.',
+    alert_follow_error: 'No se pudo seguir. Inténtalo de nuevo.',
+    alert_cancel_error: 'No se pudo cancelar. Inténtalo de nuevo.',
+    alert_unfollow_error: 'No se pudo dejar de seguir. Inténtalo de nuevo.',
     follow_state_following: 'Siguiendo',
     follow_state_requested: 'Solicitado',
-    follow_state_follow_back: 'Seguir de vuelta',
+    follow_state_follow_back: 'Seguir también',
     follow_state_follow: 'Seguir',
     confirm_cancel_request_title: '¿Cancelar Solicitud?',
     confirm_cancel_request_msg: 'Esto retira tu solicitud de seguimiento.',
     confirm_cancel_request_keep: 'Seguir esperando',
     confirm_cancel_request_ok: 'Cancelar solicitud',
     confirm_unfollow_title: '¿Dejar de Seguir?',
-    confirm_unfollow_msg: 'Podés volver a seguirlo más adelante.',
+    confirm_unfollow_msg: 'Puedes volver a seguir a esta persona más adelante.',
     confirm_unfollow_ok: 'Dejar de seguir',
     confirm_ok_default: 'Aceptar',
     confirm_quit_workout_title: '¿Salir del Entrenamiento?',
@@ -7181,16 +8685,114 @@ const STRINGS = {
     interactions_now_following_you: 'ahora te sigue',
     follow_list_followers: 'Seguidores',
     follow_list_following: 'Siguiendo',
-    follow_list_empty_followers: 'Todavía no tenés seguidores.',
-    follow_list_empty_following: 'Todavía no seguís a nadie.',
+    follow_list_empty_followers: 'Todavía no tienes seguidores.',
+    follow_list_empty_following: 'Todavía no sigues a nadie.',
     loading_ellipsis: 'Cargando…',
     profile_stat_workouts: 'Entrenamientos',
-    routines_empty_state_1: 'Todavía no tenés rutinas.',
-    routines_empty_state_2: 'Tocá + Nueva para crear una, o Explorar para agregar una de las nuestras.',
+    routines_empty_state_1: 'Todavía no tienes rutinas.',
+    routines_empty_state_2: 'Toca + Nueva para crear una, o Explorar para agregar una de las nuestras.',
     routines_meta_exercises: 'ejercicios',
     routines_meta_sets: 'series',
+    prog_section_label: 'Avanzado',
+    prog_row_title: 'Progresión',
+    prog_row_off: 'Desactivada',
+    prog_row_of: 'Rotación {i} de {n}',
+    prog_title: 'Progresión',
+    prog_guide_row: 'Cómo funciona',
+    prog_guide_row_sub: 'RIR, ciclos y cuándo usarlos',
+    prog_guide_title: 'Guía',
+    prog_enable: 'Usar un ciclo de entrenamiento',
+    prog_enable_sub: 'Varía la exigencia entre rotaciones',
+    prog_presets_label: 'Empezar desde una plantilla',
+    prog_presets_note: 'Las plantillas solo completan el ciclo de abajo. Nada queda fijo: puedes cambiar cualquier paso antes o después.',
+    prog_preset_loaded: 'Plantilla cargada — edítala abajo',
+    prog_preset_alan: 'Subir, aflojar y luego medir',
+    prog_preset_alan_desc: 'Dos rotaciones más exigentes, una suave, y una rotación a tope que fija tu nueva base.',
+    prog_preset_ramp: 'Subida progresiva con semana de descarga',
+    prog_preset_ramp_desc: 'Acércate al fallo gradualmente durante tres rotaciones y después recupera.',
+    prog_preset_simple: 'Simple: dos esfuerzos y una medición',
+    prog_preset_simple_desc: 'El ciclo más corto que vale la pena. Buen punto de partida.',
+    prog_rotations_word: 'rotaciones',
+    prog_cycle_label: 'Tu ciclo',
+    prog_add_step: '+ Rotación',
+    prog_add_short: 'Agregar',
+    prog_remove_step: 'Quitar del ciclo',
+    prog_short_max: 'Máx',
+    prog_short_deload: 'Descarga',
+    prog_cycle_summary: 'Un ciclo son {n} rotaciones de {w} rutinas — {total} sesiones, y vuelve a empezar.',
+    prog_now: 'Ahora',
+    prog_step_title: 'Esfuerzo de la rotación {n}',
+    prog_eff_easy: 'Suave',
+    prog_eff_moderate: 'Moderado',
+    prog_eff_hard: 'Exigente',
+    prog_eff_max: 'Máximo',
+    prog_eff_deload: 'Descarga',
+    prog_eff_allout: 'A tope',
+    prog_sub_rir: 'Detente {n} repeticiones antes del fallo',
+    prog_sub_allout: 'Sin objetivo de repeticiones — busca tu máximo',
+    prog_sub_deload_plain: 'Recuperar: series más suaves',
+    prog_sub_sets: '{p}% de las series',
+    prog_sub_load: '−{p}% de peso',
+    prog_deload_sets: '% DE SERIES',
+    prog_deload_load: '% DE PESO',
+    prog_deload_note: 'Una descarga real reduce el volumen, no solo el esfuerzo. La mitad de las series es un buen valor por defecto.',
+    prog_applies_label: 'Alcance',
+    prog_applies_row: 'Se aplica a',
+    prog_applies_title: 'Se aplica a',
+    prog_applies_all: 'Todos los ejercicios',
+    prog_applies_count: 'ejercicios',
+    prog_applies_all_row: 'Todos los ejercicios',
+    prog_applies_all_sub: 'La opción más simple',
+    prog_applies_intro: 'La mayoría solo varía sus ejercicios principales y deja los accesorios igual. Elige cuáles debe manejar este ciclo, o déjalo en todos.',
+    prog_applies_empty: 'Primero agrega rutinas a esta rotación.',
+    prog_shownums: 'Mostrar los números',
+    prog_shownums_sub: 'Muestra el RIR en cada serie',
+    prog_reset_note: '¿Cambiaste de idea a mitad del ciclo?',
+    prog_reset_cycle: 'Reiniciar el ciclo',
+    prog_reset_done: 'Ciclo reiniciado',
+    prog_try: 'Prueba',
+    prog_allout_cue: 'Máximas repeticiones — hasta que no puedas más',
+    prog_reseed_title: 'Ciclo completo',
+    prog_reseed_intro: 'Terminaste tu rotación a tope. Esto es lo que cambió: revísalo antes de que armemos el próximo ciclo con estos números.',
+    prog_reseed_up: 'Nuevo récord',
+    prog_reseed_kept: 'Se mantiene',
+    prog_reseed_stall_note: 'Lo que no superaste se queda como estaba. Un número más bajo solo significa un día difícil, no un retroceso.',
+    prog_reseed_confirm: 'Confirmar y empezar el próximo ciclo',
+    prog_reseed_later: 'Decidir después',
+    prog_reseed_done: 'Bases actualizadas',
+    prog_reseed_none: 'Todavía no hay nada que actualizar — registra algunas sesiones primero.',
+    guide_intro: 'Un ciclo de entrenamiento significa simplemente no exigirte igual todas las semanas. Vas moderado, luego más fuerte, después aflojas, después te mides — y vuelves a empezar con mejores números.',
+    guide_what_t: '¿Necesito esto?',
+    guide_what_b: '<b>Si recién empiezas: no.</b> Durante los primeros seis meses o el primer año, simplemente sumar un poco de peso cuando una sesión se siente fácil funciona mejor que cualquier ciclo. Déjalo desactivado y entrena.<br><br><b>Si llevas un año o más</b> y los pesos dejaron de subir, esto suele ser lo que lo destraba. Exigirte al máximo todas las semanas deja de funcionar porque la fatiga se acumula más rápido que la forma física, y el ciclo te da dónde poner la recuperación.',
+    guide_rir_t: '¿Qué es el RIR?',
+    guide_rir_b: '<b>Repeticiones en reserva: cuántas más te quedaban.</b><br><br><em>RIR 2</em> significa que paraste con dos repeticiones de margen. <em>RIR 0</em> significa que no podías hacer ni una más.<br><br>Mide el esfuerzo, no el peso, y por eso funciona mejor que un número fijo: en un mal día RIR 2 es simplemente una barra más liviana, y aun así entrenas bien.<br><br>Referencia rápida: <b>RIR 3</b> cómodo, <b>RIR 2</b> trabajando, <b>RIR 1</b> exigente, <b>RIR 0</b> todo lo que tienes.',
+    guide_cycle_t: 'Cómo funciona un ciclo acá',
+    guide_cycle_b: 'Una vuelta completa a todas las rutinas de tu rotación = <b>un paso</b> del ciclo. Cuando terminas la última rutina, la app avanza sola al paso siguiente.<br><br>Un ciclo puede tener la cantidad de pasos que quieras. Cuatro es lo habitual; con tres alcanza para empezar.<br><br>Si terminas el ciclo con una rotación <em>a tope</em>, la app lee tus mejores series, actualiza tu base y calcula el ciclo siguiente con los números nuevos. De ahí sale la progresión.',
+    guide_who_t: '¿Qué elijo?',
+    guide_who_b: '<b>Primer año entrenando</b> — déjalo desactivado. Sube el peso cuando se sienta fácil.<br><br><b>De uno a tres años</b> — «Simple: dos esfuerzos y una medición». Tres rotaciones, fácil de seguir, y vas a notar la diferencia en la tercera.<br><br><b>Con experiencia</b> — «Subir, aflojar y luego medir», aplicándolo solo a tus ejercicios principales.<br><br><b>Volviendo de un parate o durmiendo poco</b> — usa un ciclo que incluya una descarga y no te saltees esa rotación.',
+    guide_safe_t: 'Llegar al fallo — lee esto',
+    guide_safe_b: 'Una rotación <em>a tope</em> es realmente exigente y tiene un costo. Dos cosas que conviene saber:<br><br><b>No lleves todo al fallo.</b> Elige tus ejercicios principales. Los accesorios casi no aportan nada extra para la fatiga que generan.<br><br><b>Cuidado con el peso muerto.</b> Llegar al fallo real en un tirón pesado es donde la técnica se rompe bajo carga, y es de lo que más cuesta recuperarse. La mayoría de los entrenadores nunca lo programa. Déjalo afuera salvo que sepas exactamente por qué lo quieres adentro.',
+    guide_foot: 'Nada de esto es una regla. La app solo sugiere un peso: lo que escribes es lo que se guarda.',
+    schedule_rotations_label: 'Rotaciones',
+    rotations_notice: 'Solo se ejecuta la rotación marcada · Se repite automáticamente',
+    rotation_new: '+ Nueva',
+    rotation_default_name: 'Mi rotación',
+    rotation_edit: 'Editar',
+    rotation_edit_title: 'Rotación',
+    rotation_name_label: 'Nombre de la rotación',
+    rotation_workouts_label: 'Rutinas en orden',
+    rotation_set_active: 'Hacer que esta sea la rotación activa',
+    rotation_active_label: 'Activa',
+    rotation_make_active: 'Activar',
+    rotation_delete: 'Eliminar rotación',
+    rotation_workout_singular: 'rutina',
+    rotation_workout_plural: 'rutinas',
+    rotation_gone: 'Esta rotación ya no existe.',
+    rotations_empty_1: 'Todavía no hay rotaciones.',
+    rotations_empty_2: 'Toca + Nueva para crear una.',
+    confirm_delete_rotation_title: '¿Eliminar Rotación?',
     schedule_empty_state_1: 'Todavía no hay rotación.',
-    schedule_empty_state_2: 'Agregá rutinas a la rotación.',
+    schedule_empty_state_2: 'Agrega rutinas a la rotación.',
     schedule_deleted_routine: '(eliminada)',
     schedule_next_badge: 'Próxima',
     schedule_modal_title: 'Agregar a la Rotación',
@@ -7226,27 +8828,27 @@ const STRINGS = {
     browse_add_to_my_workouts_title: 'Agregar a Mis Rutinas',
     browse_add_copy_note: 'Esto agrega tu propia copia — a partir de ahora registrará tus series y pesos de forma independiente.',
     browse_workouts_title: 'Explorar Rutinas',
-    browse_workouts_subtitle: 'Rutinas compartidas que podés agregar a tu propia lista',
-    share_check_out_workout: 'Mirá esta rutina:',
+    browse_workouts_subtitle: 'Rutinas compartidas que puedes agregar a tu propia lista',
+    share_check_out_workout: 'Mira esta rutina:',
     toast_link_copied: 'Enlace copiado',
     toast_copy_link_error: 'No se pudo copiar el enlace',
     toast_sharing_not_supported: 'Compartir no es compatible con este dispositivo',
     toast_workout_link_broken: 'Este enlace de rutina parece estar roto',
     import_shared_workout_title: 'Agregar Rutina Compartida',
-    import_shared_workout_note: 'Alguien compartió esta rutina con vos',
+    import_shared_workout_note: 'Alguien compartió esta rutina contigo',
     import_shared_workout_copy_note: 'Al agregarla, se crea tu propia copia que registra tus series y pesos de forma independiente a partir de ahora.',
     toast_workout_added: 'Rutina agregada',
     toast_routine_assigned: 'Rutina asignada',
-    trainer_invite_share_text: 'Conectate conmigo como tu entrenador',
+    trainer_invite_share_text: 'Conéctate conmigo como tu entrenador',
     toast_link_copied_one_student: 'Enlace copiado — válido para un alumno',
     toast_invite_link_error: 'No se pudo crear el enlace de invitación',
     toast_connected_with_trainer: 'Conectado con tu entrenador',
     log_empty_1: 'Todavía no hay sesiones registradas.',
-    log_empty_2: 'Salí de esta pantalla',
-    log_empty_3: 'y andá a entrenar.',
+    log_empty_2: 'Sal de esta pantalla',
+    log_empty_3: 'y ve a entrenar.',
     profile_tab_prs: 'Récords',
     profile_tab_log: 'Registro',
-    pr_add_bodyweight: 'Agregá tu peso corporal en Ajustes →',
+    pr_add_bodyweight: 'Agrega tu peso corporal en Ajustes →',
     pr_needs_bodyweight: 'Necesita tu peso corporal registrado',
     pr_not_logged_yet: 'Todavía no registrado',
     pr_tick_tooltip: 'Logrado — serie real registrada con este peso',
@@ -7266,11 +8868,13 @@ const STRINGS = {
     workout_add_notes_placeholder: 'Agregar notas...',
     account_email_password_provider: 'Correo y Contraseña',
     account_change_password: 'Cambiar tu contraseña',
-    account_add_password: 'Agregá una contraseña para poder iniciar sesión sin Google',
+    account_add_password: 'Agrega una contraseña para poder iniciar sesión sin Google',
     account_name_label: 'Nombre',
     account_handle_label: 'Usuario',
     account_private_label: 'Cuenta Privada',
-    account_private_sub: 'Solo las personas que aprobés pueden seguirte y ver tu Programa y Registro',
+    account_private_sub: 'Solo las personas que apruebes pueden seguirte y ver tu Programa y Registro',
+    account_block_pings_label: 'Bloquear Pings',
+    account_block_pings_sub: 'No puedes enviar pings a nadie y nadie puede enviártelos',
     account_email_label: 'Correo electrónico',
     account_signed_in_with_label: 'Sesión iniciada con',
     account_plan_label: 'Plan',
@@ -7281,21 +8885,21 @@ const STRINGS = {
     settings_legal_label: 'Legal',
     settings_privacy_title: 'Política de Privacidad',
     settings_terms_title: 'Términos de Uso',
-    auth_legal_prefix: 'Al crear una cuenta aceptás nuestros',
+    auth_legal_prefix: 'Al crear una cuenta aceptas nuestros',
     auth_legal_and: 'y la',
-    health_disclaimer: 'No es asesoramiento médico. Consultá a un profesional antes de empezar un nuevo programa de entrenamiento — sobre todo si tenés una lesión o condición previa.',
+    health_disclaimer: 'No es asesoramiento médico. Consulta a un profesional antes de empezar un nuevo programa de entrenamiento — sobre todo si tienes una lesión o condición previa.',
     account_delete_label: 'Eliminar cuenta',
     delete_account_title: 'Eliminar Cuenta',
     delete_account_warning: 'Esto es permanente. La cuenta no se puede recuperar.',
     delete_account_what_goes: 'Se borra de la nube: tu perfil, entrenamientos, récords, rutinas, seguidores y conexiones con entrenadores.',
-    delete_account_local_note: 'El historial que ya está en este dispositivo se queda — podés seguir entrenando como invitado. Si querés una copia, usá Exportar Copia de Seguridad en Datos primero.',
-    delete_account_confirm_label: 'Confirmá tu nombre de usuario',
+    delete_account_local_note: 'El historial que ya está en este dispositivo se queda — puedes seguir entrenando como invitado. Si quieres una copia, usa Exportar Copia de Seguridad en Datos primero.',
+    delete_account_confirm_label: 'Confirma tu nombre de usuario',
     delete_account_ok: 'Eliminar cuenta',
-    delete_account_mismatch: 'Eso no coincide con tu nombre de usuario. Revisá cómo lo escribiste e intentá de nuevo.',
+    delete_account_mismatch: 'Eso no coincide con tu nombre de usuario. Revisa cómo lo escribiste e inténtalo de nuevo.',
     delete_account_loading: 'Eliminando…',
-    delete_account_error: 'No se pudo eliminar tu cuenta. Revisá tu conexión e intentá de nuevo.',
+    delete_account_error: 'No se pudo eliminar tu cuenta. Revisa tu conexión e inténtalo de nuevo.',
     account_signin_row_title: 'Iniciar sesión',
-    account_signin_row_sub: 'Iniciá sesión para gestionar tu cuenta',
+    account_signin_row_sub: 'Inicia sesión para gestionar tu cuenta',
     plan_basic: 'Basic',
     plan_pro: 'Pro',
     plan_trainer: 'Trainer',
@@ -7305,6 +8909,26 @@ const STRINGS = {
     plan_perk_trainer: 'Herramientas de entrenador',
     plan_perk_scan: 'Escaneo de técnica',
     plan_footnote: 'Las mejoras de plan llegan pronto.',
+    badge_req_sessions: 'sesiones',
+    badge_req_not_yet: 'Todavía no',
+    badge_tier_rookie: 'Novato',
+    badge_tier_regular: 'Constante',
+    badge_tier_dedicated: 'Dedicado',
+    badge_tier_beast: 'Bestia',
+    badge_tier_veteran: 'Veterano',
+    badge_tier_elite: 'Élite',
+    badge_tier_legend: 'Leyenda',
+    badge_founder: 'Fundador',
+    badge_trainer: 'Entrenador',
+    badge_og_member: 'Miembro OG',
+    badge_early_supporter: 'Pionero',
+    badge_tier_rookie_msg: '10 sesiones. Bienvenido al fierro, Novato.',
+    badge_tier_regular_msg: '25 sesiones. Realmente seguiste apareciendo. Respeto.',
+    badge_tier_dedicated_msg: '50 sesiones. Medio centenar sin faltar. Eso es dedicación.',
+    badge_tier_beast_msg: '100 sesiones. Ya no lo estás intentando — esto es simplemente quien eres.',
+    badge_tier_veteran_msg: '250 sesiones. La mayoría abandona a las 10. Tú vas por 250.',
+    badge_tier_elite_msg: '500 sesiones. A esta altura la barra te tiene miedo.',
+    badge_tier_legend_msg: '1000 sesiones. Eres un fenómeno absoluto. Lo decimos como el mayor de los halagos.',
     verified_tooltip: 'Verificado',
     weight_units_label: 'Unidades',
     weight_units_sub: 'En qué unidad se muestra y se escribe cada peso en la app',
@@ -7315,43 +8939,43 @@ const STRINGS = {
     weight_bodyweight_placeholder_lb: 'ej. 175',
     weight_bodyweight_placeholder_kg: 'ej. 80',
     weight_barbell_label: 'Registro de Barra',
-    weight_barbell_sub: '¿Qué significa el número que ingresás, para ejercicios con barra?',
+    weight_barbell_sub: '¿Qué significa el número que ingresas, para ejercicios con barra?',
     weight_total_weight: 'Peso total',
     weight_per_side: 'Por lado',
     weight_bar_weight_label: 'PESO DE LA BARRA',
     weight_dumbbell_label: 'Registro de Mancuernas',
-    weight_dumbbell_sub: '¿Qué significa el número que ingresás, para ejercicios con mancuernas?',
+    weight_dumbbell_sub: '¿Qué significa el número que ingresas, para ejercicios con mancuernas?',
     weight_per_dumbbell: 'Por mancuerna',
     weight_total_both: 'Total (ambas)',
     account_password_modal_change_title: 'Cambiar Contraseña',
     account_password_modal_set_title: 'Establecer una Contraseña',
-    account_password_modal_add_note: 'Agregá una contraseña para poder iniciar sesión con tu correo incluso sin Google.',
+    account_password_modal_add_note: 'Agrega una contraseña para poder iniciar sesión con tu correo incluso sin Google.',
     error_password_min_length: 'La contraseña debe tener al menos 8 caracteres.',
     error_passwords_dont_match: 'Las contraseñas no coinciden.',
     loading_updating_password: 'Actualizando contraseña…',
-    error_enter_email_password: 'Ingresá tu correo electrónico y contraseña.',
+    error_enter_email_password: 'Ingresa tu correo electrónico y contraseña.',
     loading_signing_in: 'Iniciando sesión…',
     error_could_not_sign_in: 'No se pudo iniciar sesión.',
     error_username_format: 'El nombre de usuario debe tener entre 3 y 30 caracteres: solo letras, números, puntos y guiones bajos (sin puntos al inicio, al final, o dobles).',
-    error_valid_email_password: 'Ingresá un correo electrónico válido y una contraseña de al menos 8 caracteres.',
+    error_valid_email_password: 'Ingresa un correo electrónico válido y una contraseña de al menos 8 caracteres.',
     loading_checking_username: 'Verificando nombre de usuario…',
-    error_username_not_available: 'Ese nombre de usuario no está disponible. Probá con otro.',
+    error_username_not_available: 'Ese nombre de usuario no está disponible. Prueba con otro.',
     loading_creating_account: 'Creando cuenta…',
-    error_confirm_email_first: 'Revisá tu correo para confirmar tu cuenta y luego iniciá sesión.',
+    error_confirm_email_first: 'Revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
     error_could_not_create_account: 'No se pudo crear tu cuenta.',
-    error_enter_email_first: 'Ingresá tu correo electrónico arriba primero y volvé a tocar esto.',
-    info_reset_email_sent: 'Correo de restablecimiento enviado — revisá tu bandeja de entrada.',
+    error_enter_email_first: 'Ingresa tu correo electrónico arriba primero y vuelve a tocarlo.',
+    info_reset_email_sent: 'Correo de restablecimiento enviado — revisa tu bandeja de entrada.',
     error_could_not_send_reset: 'No se pudo enviar el correo de restablecimiento.',
     loading_setting_up_account: 'Configurando tu cuenta…',
     error_username_maybe_taken: 'Ese nombre de usuario ya puede estar en uso.',
-    error_sync_failed: 'Algo salió mal al sincronizar tus datos. Verificá tu conexión e intentá de nuevo.',
+    error_sync_failed: 'Algo salió mal al sincronizar tus datos. Verifica tu conexión e inténtalo de nuevo.',
     trainer_roster_load_error: 'No se pudo cargar tu lista de alumnos.',
     trainer_access_expired: 'Acceso vencido',
     trainer_active_until: 'Activo hasta',
     trainer_your_students: 'Tus Alumnos',
     trainer_add_student: 'Agregar Alumno',
-    trainer_no_students_1: 'Todavía no tenés alumnos.',
-    trainer_no_students_2: 'Compartí tu enlace de invitación para conectar uno.',
+    trainer_no_students_1: 'Todavía no tienes alumnos.',
+    trainer_no_students_2: 'Comparte tu enlace de invitación para conectar uno.',
     trainer_connection_gone: 'Esta conexión ya no existe.',
     trainer_assigned_on: 'asignada el',
     trainer_no_routines_assigned: 'Todavía no hay rutinas asignadas.',
@@ -7361,54 +8985,69 @@ const STRINGS = {
     trainer_assign_routine_title: 'Asignar Rutina',
     trainer_assign_routine_note: 'Esto envía una copia con las series, repeticiones y pesos de hoy. Los cambios posteriores a tu propia rutina no afectan lo que ellos ven.',
     trainer_invite_confirm_title: 'Conectar con Entrenador',
-    trainer_invite_confirm_note: 'Alguien te invitó a conectarte como su alumno. Va a poder asignarte rutinas y ver tus entrenamientos registrados.',
+    trainer_invite_confirm_note: 'Alguien te invitó a conectarte como su alumno. Podrá asignarte rutinas y ver tus entrenamientos registrados.',
     trainer_invite_not_now: 'Ahora no',
     trainer_invite_connect: 'Conectar',
     program_empty_state: 'Todavía no hay un programa configurado.',
     search_no_results: 'Sin resultados',
-    search_no_results_sub: 'Probá con otro nombre o usuario.',
+    search_no_results_sub: 'Prueba con otro nombre o usuario.',
     interactions_empty_1: 'Todavía no hay actividad.',
-    interactions_empty_2: 'Cuando alguien te siga o te mande un ping,',
-    interactions_empty_3: 'va a aparecer acá.',
+    interactions_empty_2: 'Cuando alguien te siga o te envíe un ping,',
+    interactions_empty_3: 'aparecerá aquí.',
     requests_empty_state: 'No hay solicitudes pendientes.',
     exd_notes_title: 'Notas del Ejercicio',
     exd_saved: 'Guardado',
     exd_notes_placeholder: 'ej. Posición: 11 · Codos: AFUERA',
     exd_starting_duration: 'Duración Inicial',
     exd_starting_weight: 'Peso Inicial',
-    exd_prefill_note: 'Esto es lo que se va a precargar la próxima vez que hagas este ejercicio.',
+    exd_prefill_note: 'Esto es lo que se precargará la próxima vez que hagas este ejercicio.',
     exd_duration_label: 'DURACIÓN',
     exd_alltime_pr: 'Récord histórico',
+    pr_fix_open: 'Corregir este récord',
+    pr_fix_edit: 'Corregir',
+    pr_fix_title: 'Corregir Récord',
+    pr_fix_seconds: 'Segundos sostenidos',
+    pr_fix_note: 'Tu 1RM estimado se calcula a partir de esta serie, así que un peso mal escrito acá afecta todas las estimaciones de este ejercicio.',
+    pr_fix_recalc: 'Recalcular desde mis sesiones',
+    pr_fix_recalc_note: 'Reconstruye el récord a partir de tus entrenamientos registrados. Úsalo si el récord ya no coincide con lo que realmente levantaste.',
+    pr_fix_invalid: 'Ingresa un peso y repeticiones.',
+    pr_fix_confirm_title: '¿Reemplazar Récord?',
+    pr_fix_confirm_msg: 'Esto sobrescribe tu récord personal guardado para este ejercicio.',
+    pr_fix_saved: 'Récord actualizado',
+    pr_fix_recalc_title: '¿Recalcular Récord?',
+    pr_fix_recalc_msg: 'Esto reemplaza el récord guardado por la mejor serie encontrada en tus sesiones registradas.',
+    pr_fix_recalc_ok: 'Recalcular',
+    pr_fix_recalc_none: 'No hay sesiones registradas para reconstruirlo.',
     exd_video_demonstration_suffix: 'demostración',
     analytics_no_exercises_logged: 'Todavía no hay ejercicios registrados',
     analytics_no_workouts_logged: 'Todavía no hay rutinas registradas',
     analytics_not_enough_data: 'No hay suficientes datos para este rango',
     analytics_overall_trend: 'General',
     analytics_vs_first_session: 'vs. primera sesión',
-    tip_first_open_title: 'Hacelo Tuyo',
-    tip_first_open_text: 'Elegí un estilo. Siempre podés cambiarlo después desde Ajustes.',
-    tip_first_open_note: 'Tema y color de acento, justo acá.',
+    tip_first_open_title: 'Hazlo Tuyo',
+    tip_first_open_text: 'Elige un estilo. Siempre puedes cambiarlo después desde Ajustes.',
+    tip_first_open_note: 'Tema y color de acento, justo aquí.',
     tip_first_open_apply: 'Aplicar',
-    tip_settings_theme: 'Cambiá entre modo oscuro y claro cuando quieras.',
-    tip_settings_accent: 'Elegí un color de acento. Colorea toda la app.',
-    tip_settings_units: 'Elegí kilogramos o libras. Todos los pesos de la app siguen esto.',
-    tip_program: 'Armá tus rutinas acá y después configurá tu rotación con + Agregar. Se repite automáticamente.',
-    tip_home_next: 'Esta es tu próxima sesión, según tu programa. Guardala y la rotación avanza a la siguiente.',
-    tip_ping: 'Mandale un ping diario para que sepa que estás pensando en él/ella. Uno por día.',
-    tip_trainer_tab: 'Tu lista de alumnos y herramientas de programa se lanzan acá pronto.',
-    tip_search: 'Conectate con otros atletas.',
-    tip_profile_prs: 'Tu 1RM se estima a partir de tu serie récord. Mantenelo preciso: configurá tu peso corporal, unidades y tipo de barra en Ajustes.',
-    error_profanity_name: 'Ese nombre contiene lenguaje no permitido. Por favor usá otro nombre.',
-    alert_profanity_routine_name: 'Ese nombre de rutina contiene lenguaje no permitido. Por favor usá otro nombre.',
+    tip_settings_theme: 'Cambia entre modo oscuro y claro cuando quieras.',
+    tip_settings_accent: 'Elige un color de acento. Colorea toda la app.',
+    tip_settings_units: 'Elige kilogramos o libras. Todos los pesos de la app siguen esto.',
+    tip_program: 'Arma tus rutinas aquí y después configura tu rotación con + Agregar. Se repite automáticamente.',
+    tip_home_next: 'Esta es tu próxima sesión, según tu programa. Guárdala y la rotación avanza a la siguiente.',
+    tip_ping: 'Envía un ping diario para que esa persona sepa que la tienes presente. Uno por día.',
+    tip_trainer_tab: 'Tu lista de alumnos y herramientas de programa se lanzan aquí pronto.',
+    tip_search: 'Conéctate con otros atletas.',
+    tip_profile_prs: 'Tu 1RM se estima a partir de tu serie récord. Mantenlo preciso: configura tu peso corporal, unidades y tipo de barra en Ajustes.',
+    error_profanity_name: 'Ese nombre contiene lenguaje no permitido. Elige otro nombre.',
+    alert_profanity_routine_name: 'Ese nombre de rutina contiene lenguaje no permitido. Elige otro nombre.',
     oprof_fallback_name: 'Este usuario',
     oprof_private_title: 'Esta cuenta es privada',
-    oprof_private_sub: 'Seguí a esta persona para ver su programa e historial de entrenamientos.',
+    oprof_private_sub: 'Sigue a esta persona para ver su programa e historial de entrenamientos.',
     analytics_avg_label: 'Prom',
     guest_session_label: 'Sesión de invitado',
     guest_workouts_logged_device: 'entrenamientos registrados en este dispositivo',
     guest_of: 'de',
     guest_free_workouts_used: 'entrenamientos gratis usados',
-    guest_create_account_note: 'Creá una cuenta gratis para tener un perfil, seguir a otros atletas y mantener tu historial a salvo.',
+    guest_create_account_note: 'Crea una cuenta gratis para tener un perfil, seguir a otros atletas y mantener tu historial a salvo.',
     theme_light_short: 'CLARO',
     theme_dark_short: 'OSCURO',
     theme_light_mode: 'Modo claro',
@@ -7586,6 +9225,25 @@ const TIERS = [
   {id:'tier_rookie',    at:10,   name:'Rookie',   icon:'bronze',   msg:"10 sessions done. Welcome to the iron game, Rookie."},
 ];
 
+// Display name for any rank or insignia, by id. The English `name` on TIERS
+// and INSIGNIA_CATALOG stays the canonical value — this is a display-time
+// lookup only, exactly like exerciseDisplayName(). Safe because nothing
+// compares or stores these names: equipped_insignia persists the ID, and
+// the only `.name ===` test in the file belongs to the accent swatches,
+// which are deliberately excluded from translation for that very reason.
+function badgeName(id){
+  if(!id) return '';
+  const key = 'badge_' + id;
+  const s = t(key);
+  if(s !== key) return s;
+  // Fall back to the canonical English if a key is ever missing, rather
+  // than rendering a raw "badge_tier_legend" at the user.
+  const tier = TIERS.find(x=>x.id===id);
+  if(tier) return tier.name;
+  const ins = INSIGNIA_CATALOG.find(x=>x.id===id);
+  return ins ? ins.name : '';
+}
+
 const TIER_ICONS = {
   bronze:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#cd7f32" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#cd7f32"/><line x1="15" y1="38" x2="22" y2="42" stroke="#cd7f32" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#cd7f32" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#cd7f32"/></svg>',
   silver:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#aaaaaa" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#aaaaaa"/><line x1="15" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#aaaaaa"/></svg>',
@@ -7617,7 +9275,12 @@ const SPECIAL_ICONS = {
 
 const INSIGNIA_CATALOG = [
   {id:'founder',         name:'Founder',         icon:SPECIAL_ICONS.founder, sizeMult:1.5},
-  {id:'trainer',         name:'Trainer',         icon:SPECIAL_ICONS.trainer, sizeMult:1.2},
+  // 1.55, not the 1.2 the others sit near: this artwork is 250x142 (1.76:1)
+  // while every other insignia is roughly square, and the badge scales
+  // icons to fit a SQUARE box — so it fits by width and leaves ~43% of the
+  // height empty. The larger multiplier makes it fill the circle's widest
+  // line instead of floating as a thin strip. Not a redraw.
+  {id:'trainer',         name:'Trainer',         icon:SPECIAL_ICONS.trainer, sizeMult:1.55},
   {id:'og_member',       name:'OG Member',       icon:SPECIAL_ICONS.og,      sizeMult:1.3},
   {id:'early_supporter', name:'Early Supporter', icon:SPECIAL_ICONS.rocket,  sizeMult:1},
 ];
@@ -7744,7 +9407,7 @@ function updateStreakDisplay() {
     document.getElementById('streak-tier').style.display = 'block';
     document.getElementById('streak-val2').textContent = count;
     document.getElementById('tier-icon-el').innerHTML = TIER_ICONS[tier.icon] || '';
-    document.getElementById('tier-name-el').textContent = tier.name;
+    document.getElementById('tier-name-el').textContent = badgeName(tier.id);
   } else {
     document.getElementById('streak-notier').style.display = 'block';
     document.getElementById('streak-tier').style.display = 'none';
@@ -7765,8 +9428,8 @@ function showTierModal(tier) {
   // Scale up the icon for modal
   const svg = document.querySelector('#tier-modal-icon svg');
   if (svg) { svg.setAttribute('width','56'); svg.setAttribute('height','56'); }
-  document.getElementById('tier-modal-name').textContent = tier.name;
-  document.getElementById('tier-modal-msg').textContent = '"' + tier.msg + '"';
+  document.getElementById('tier-modal-name').textContent = badgeName(tier.id);
+  document.getElementById('tier-modal-msg').textContent = '"' + t('badge_'+tier.id+'_msg') + '"';
   document.getElementById('tier-modal').classList.add('show');
 }
 
@@ -7836,14 +9499,17 @@ function getUnlockedInsignias() {
 // Returns every insignia (locked and unlocked) in that one fixed order.
 function getAllInsigniasInOrder() {
   const unlockedIds = new Set(getUnlockedInsignias().map(i => i.id));
-  const tierRows = [...TIERS].sort((a, b) => a.at - b.at).map(t => ({
-    id: t.id, name: t.name, icon: TIER_ICONS[t.icon] || '', sizeMult: 1,
-    unlocked: unlockedIds.has(t.id), req: t.at + ' sessions',
+  // Parameter is `tr`, not `t` — `t` is the i18n lookup, and naming the map
+  // parameter `t` shadowed it inside this callback, so any t('...') call
+  // here would have resolved to a TIERS row instead of a translation.
+  const tierRows = [...TIERS].sort((a, b) => a.at - b.at).map(tr => ({
+    id: tr.id, name: tr.name, icon: TIER_ICONS[tr.icon] || '', sizeMult: 1,
+    unlocked: unlockedIds.has(tr.id), req: tr.at + ' ' + t('badge_req_sessions'),
   }));
   const specialOrder = ['trainer', 'og_member', 'early_supporter', 'founder'];
   const specialRows = specialOrder.map(id => {
     const s = INSIGNIA_CATALOG.find(x => x.id === id);
-    return {id: s.id, name: s.name, icon: s.icon, sizeMult: s.sizeMult, unlocked: unlockedIds.has(s.id), req: 'Not yet'};
+    return {id: s.id, name: s.name, icon: s.icon, sizeMult: s.sizeMult, unlocked: unlockedIds.has(s.id), req: t('badge_req_not_yet')};
   });
   return [...tierRows, ...specialRows];
 }
@@ -7875,7 +9541,7 @@ function buildInsigniaBadgeHtml(insignia, clickable){
   const padding = Math.round(78 * (1 - innerPct) / 2);
   const icon = insignia ? insignia.icon : '<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--dim)" stroke-width="2"/></svg>';
   const plusHtml = clickable ? `<div class="insignia-badge-plus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>` : '';
-  const nameHtml = insignia ? `<div class="insignia-badge-lbl">${insignia.name}</div>` : '';
+  const nameHtml = insignia ? `<div class="insignia-badge-lbl">${badgeName(insignia.id)}</div>` : '';
   return `<div class="insignia-badge-col">
     <div class="insignia-badge-wrap" ${clickable?'onclick="openInsigniaPicker()"':''}>
       <div class="insignia-badge" style="padding:${padding}px;">${icon}</div>
@@ -7902,7 +9568,7 @@ function openInsigniaPicker() {
   document.getElementById('insignia-picker-grid').innerHTML = all.map(ins => `
     <div class="insignia-pick ${ins.unlocked ? '' : 'locked'} ${equipped && equipped.id===ins.id ? 'selected' : ''}" ${ins.unlocked ? `onclick="equipInsignia('${ins.id}')"` : ''}>
       <div class="insignia-pick-ic">${ins.icon}</div>
-      <div class="insignia-pick-lbl">${ins.name}</div>
+      <div class="insignia-pick-lbl">${badgeName(ins.id)}</div>
       ${ins.unlocked ? '' : `<div class="insignia-pick-req">${ins.req}</div>`}
     </div>`).join('');
   document.getElementById('insignia-picker-overlay').style.display = 'flex';
@@ -7930,6 +9596,18 @@ function escapeHtml(s){
 // fields (stats, no email/plan/password) — this one is deliberately kept
 // as its own function rather than shared, since the two will keep
 // diverging as more account-only vs profile-only fields get added.
+// The Account row's sub-line on the Settings screen. Cheap and independent
+// of renderAccountSection() so opening Settings doesn't have to build the
+// whole account body just to show one line.
+async function renderAccountRowSub(){
+  const el = document.getElementById('account-row-sub');
+  if(!el) return;
+  if(!currentUser){ el.textContent = t('account_signin_row_sub'); return; }
+  const profile = await getMyProfile();
+  const handle = profile && profile.username;
+  el.textContent = handle ? '@'+handle : (currentUser.email||'');
+}
+
 async function renderAccountSection(){
   const el = document.getElementById('account-section-body');
   if(!el) return;
@@ -7964,6 +9642,7 @@ async function renderAccountSection(){
   const hasPassword = !!(profile && profile.has_password);
   const passwordLabel = hasPassword ? t('account_change_password') : t('account_add_password');
   const isPrivate = !!(profile && profile.is_private);
+  const pingsBlocked = !!(profile && profile.pings_blocked);
 
   el.innerHTML = `
     <div class="settings-group">
@@ -7986,6 +9665,22 @@ async function renderAccountSection(){
         </div></div>
         <div class="switch" onclick="togglePrivateAccount()">
           <div class="switch-track ${isPrivate?'on':''}" id="private-toggle-track"><div class="switch-thumb"></div></div>
+        </div>
+      </div>
+      <!-- Ping blocking sits directly under Private account: same shape of
+           setting (an account-level social switch, server-enforced, on =
+           more restricted), so it reads as part of the same group rather
+           than a stray toggle somewhere else in Settings. The reciprocal
+           rule — blocking receipt also blocks sending — is stated in the
+           sub-line, because a switch labelled only "block pings" would not
+           lead anyone to expect it takes their own away too. -->
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon filled-icon">${PING_ICON_SVG}</div><div>
+          <div class="settings-row-title">${t('account_block_pings_label')}</div>
+          <div class="settings-row-sub">${t('account_block_pings_sub')}</div>
+        </div></div>
+        <div class="switch" onclick="toggleBlockPings()">
+          <div class="switch-track ${pingsBlocked?'on':''}" id="block-pings-toggle-track"><div class="switch-thumb"></div></div>
         </div>
       </div>
       <div class="settings-row">
@@ -8122,6 +9817,38 @@ async function togglePrivateAccount(){
     const { error } = await supabaseClient.from('profiles').update({ is_private: newVal }).eq('id', currentUser.id);
     if(error) throw error;
     if(_myProfileCache) _myProfileCache.is_private = newVal;
+  }catch(e){
+    track.classList.toggle('on', wasOn); // revert
+    alert(t('alert_setting_update_error'));
+  }
+}
+
+// Opt out of pings entirely — you receive none, and you can send none.
+// Like togglePrivateAccount above, this flag is only a flag: the actual
+// enforcement is the pings INSERT policy (20260730000002_ping_blocking),
+// which checks pings_blocked on BOTH sides of every attempted ping. That
+// matters because the anon key is public, so a UI-only block would stop
+// nobody who didn't want to be stopped.
+//
+// _otherProfileHtmlCache is cleared because it holds pre-rendered profile
+// markup that includes (or omits) the Ping button — leaving it would show
+// a stale button on the next profile opened until it refetched.
+async function toggleBlockPings(){
+  if(!currentUser) return;
+  const track = document.getElementById('block-pings-toggle-track');
+  const wasOn = track.classList.contains('on');
+  const newVal = !wasOn;
+  track.classList.toggle('on', newVal); // optimistic
+  try{
+    const { error } = await supabaseClient.from('profiles').update({ pings_blocked: newVal }).eq('id', currentUser.id);
+    if(error) throw error;
+    if(_myProfileCache) _myProfileCache.pings_blocked = newVal;
+    _otherProfileHtmlCache = {};
+    // Only on the way ON. The consequence — the Ping button vanishing from
+    // every profile — shows up far away from this screen and much later,
+    // so state it once here, at the moment of the decision. Turning it back
+    // off needs no toast: the button simply reappears where it's expected.
+    if(newVal) showToast(t('toast_pings_turned_off'));
   }catch(e){
     track.classList.toggle('on', wasOn); // revert
     alert(t('alert_setting_update_error'));
@@ -9068,8 +10795,13 @@ async function pushLocalDataToCloud(){
     theme: (settingsRaw ? !!settingsRaw.lightMode : true) ? 'light' : 'dark',
     accent: (settingsRaw && settingsRaw.accent) || 'Navy',
     lang: (settingsRaw && settingsRaw.lang) || 'en',
+    // schedule/schedule_pos stay the ACTIVE rotation, unchanged — that's what
+    // other users' profile program view reads, and what an older client
+    // expects to find. rotations carries the full set alongside it.
     schedule: db.schedule || [],
     schedule_pos: db.schedulePos || 0,
+    rotations: db.rotations || [],
+    active_rotation_id: db.activeRotationId || null,
     last_notes: db.lastNotes || {},
     weight_prefs: db.weightPrefs || DEFAULT_DB.weightPrefs,
   });
@@ -9099,16 +10831,26 @@ async function pushLocalDataToCloud(){
       target_reps: ex.reps || 8,
       target_weight: ex.weight || 0,
       rest_seconds: ex.rest || 90,
+      // Superset grouping and per-set targets used to be client-only, so a
+      // cloud hydrate flattened every superset into loose exercises and
+      // collapsed differing per-round weights into one number. Both now
+      // round-trip. null (not undefined) so the column is written explicitly.
+      ss_group: ex.ssGroup || null,
+      ss_group_rest: ex.ssGroupRest || null,
+      set_rows: ex.setRows || null,
     }));
     if(rows.length) await supabaseClient.from('routine_exercises').insert(rows);
   }
 
   const lw = db.lastWeights || {};
-  const lwRows = Object.keys(lw).map(exId=>({
-    user_id: uid, exercise_id: exId,
-    weight: lw[exId].weight || 0, reps: lw[exId].reps || 0,
-    sets: lw[exId].sets || [], history: lw[exId].history || '',
-  }));
+  const lwRows = Object.keys(lw).map(key=>{
+    const { id, slot } = parseLastWeightsKey(key);
+    return {
+      user_id: uid, exercise_id: id, slot,
+      weight: lw[key].weight || 0, reps: lw[key].reps || 0,
+      sets: lw[key].sets || [], history: lw[key].history || '',
+    };
+  });
   if(lwRows.length) await supabaseClient.from('last_weights').upsert(lwRows);
 
   const prs = db.allTimePRs || {};
@@ -9133,7 +10875,7 @@ async function pullCloudDataToLocal(){
   const [settingsRes, notesRes, routinesRes, lwRes, prsRes, logsRes, insigniaRes, profileRes] = await Promise.all([
     supabaseClient.from('user_settings').select('*').eq('user_id', uid).maybeSingle(),
     supabaseClient.from('user_exercise_notes').select('*').eq('user_id', uid),
-    supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', uid),
+    supabaseClient.from('routines').select('id, client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds, ss_group, ss_group_rest, set_rows)').eq('user_id', uid),
     supabaseClient.from('last_weights').select('*').eq('user_id', uid),
     supabaseClient.from('all_time_prs').select('*').eq('user_id', uid),
     supabaseClient.from('workout_logs').select('id, client_id, routine_id, routine_name, performed_at, duration_seconds, note, workout_log_exercises(id, exercise_id, exercise_name, position, workout_log_sets(set_index, weight, reps))').eq('user_id', uid).order('performed_at', {ascending:true}),
@@ -9157,12 +10899,23 @@ async function pullCloudDataToLocal(){
     name: r.name,
     exercises: (r.routine_exercises||[])
       .sort((a,b)=>a.position-b.position)
-      .map(re=>({ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds })),
+      // Only attach ssGroup/setRows when the row actually carries them, so a
+      // routine written by an older client hydrates to exactly the shape it
+      // had before (no ssGroup key at all) rather than one with explicit
+      // nulls that the superset-grouping loops would have to special-case.
+      .map(re=>{
+        const ex={ id: re.exercise_id, sets: re.target_sets, reps: re.target_reps, weight: re.target_weight, rest: re.rest_seconds };
+        if(re.ss_group) ex.ssGroup=re.ss_group;
+        if(re.ss_group_rest) ex.ssGroupRest=re.ss_group_rest;
+        if(re.set_rows) ex.setRows=re.set_rows;
+        return ex;
+      }),
   }));
 
   const lastWeights = {};
   (lwRes.data||[]).forEach(row=>{
-    lastWeights[row.exercise_id] = { weight: row.weight, reps: row.reps, sets: row.sets || [], history: row.history || '' };
+    // slot 0 keys back to the bare exercise id — see lastWeightsKey().
+    lastWeights[lastWeightsKey(row.exercise_id, row.slot||0)] = { weight: row.weight, reps: row.reps, sets: row.sets || [], history: row.history || '' };
   });
 
   const allTimePRs = {};
@@ -9211,6 +10964,13 @@ async function pullCloudDataToLocal(){
     // which stores cloud UUIDs in workout_logs.routine_id and does need it.
     db.schedule = s.schedule || [];
     db.schedulePos = s.schedule_pos || 0;
+    // Cloud rotations win when present. When they're absent (account last
+    // synced by a pre-rotations client) migrateRotations() wraps the
+    // schedule/schedule_pos just hydrated above into a single rotation, so
+    // the NEXT position survives the round trip either way.
+    db.rotations = Array.isArray(s.rotations) ? s.rotations : [];
+    db.activeRotationId = s.active_rotation_id || null;
+    migrateRotations();
     db.lastNotes = s.last_notes || {};
     db.weightPrefs = {...DEFAULT_DB.weightPrefs, ...(s.weight_prefs||{})};
     try{
@@ -9232,7 +10992,7 @@ async function fetchCloudNonLogSnapshot(){
   const [settingsRes, notesRes, routinesRes, lwRes, prsRes] = await Promise.all([
     supabaseClient.from('user_settings').select('*').eq('user_id', uid).maybeSingle(),
     supabaseClient.from('user_exercise_notes').select('*').eq('user_id', uid),
-    supabaseClient.from('routines').select('client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds)').eq('user_id', uid),
+    supabaseClient.from('routines').select('client_id, name, routine_exercises(exercise_id, position, target_sets, target_reps, target_weight, rest_seconds, ss_group, ss_group_rest, set_rows)').eq('user_id', uid),
     supabaseClient.from('last_weights').select('*').eq('user_id', uid),
     supabaseClient.from('all_time_prs').select('*').eq('user_id', uid),
   ]);
@@ -9640,7 +11400,11 @@ function restExpand() {
     showSpotlightSequence([
       { target: document.getElementById('theme-toggle'), text: t('tip_settings_theme') },
       { target: document.getElementById('accent-swatches'), text: t('tip_settings_accent') },
-      { target: document.querySelector('#weight-prefs-section-body .prog-time-pills'), text: t('tip_settings_units') },
+      // Was '#weight-prefs-section-body .prog-time-pills' — the units pills
+      // themselves. Weight Logging is now a drill-down, so those pills are
+      // no longer on this screen and that selector returned null. Points at
+      // the row that opens them instead.
+      { target: document.getElementById('weight-logging-row'), text: t('tip_settings_units') },
     ], 'settings');
   };
 
@@ -9672,6 +11436,10 @@ function restExpand() {
   // ── First time viewing someone else's profile — what the PING button does.
   window.__maybeShowPingTip = async function(){
     if(_tipOpen || !currentUser) return;
+    // The button is absent when either side blocked pings (see canPing in
+    // renderOtherProfile). Bail WITHOUT marking the tip seen, so it still
+    // appears the first time they open a profile that does have one.
+    if(!document.getElementById('oprof-ping-btn')) return;
     if(await hasSeenTip('other_profile_ping')) return;
     showSpotlightTip({
       targets: [document.getElementById('oprof-ping-btn')],
