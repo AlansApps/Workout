@@ -276,6 +276,78 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
   border:1px solid var(--line2);border-radius:999px;padding:2px 8px;margin-left:auto;transition:.15s;}
 .exd-pr-line:hover .exd-pr-edit{border-color:var(--gold3);color:var(--gold);}
 
+/* ── PROGRESSION ── effort chips carry a WORD and a NUMBER together, which
+   is the whole novice/expert story: read whichever half you understand. */
+.chip{display:inline-block;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;
+  padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap;}
+.c-easy{color:var(--info,#5b8dd6);border-color:color-mix(in srgb,var(--info,#5b8dd6) 45%,transparent);background:color-mix(in srgb,var(--info,#5b8dd6) 10%,transparent);}
+.c-mod{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 10%,transparent);}
+.c-hard{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 10%,transparent);}
+.c-max{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent);background:color-mix(in srgb,var(--danger) 10%,transparent);}
+
+.prog-presets{display:flex;flex-direction:column;gap:8px;padding:0 18px;}
+.prog-preset{text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:6px;
+  padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;transition:.15s;font-family:var(--body);}
+.prog-preset:hover{border-color:var(--gold3);}
+.pp-name{font-size:14px;font-weight:700;color:var(--text);letter-spacing:.2px;}
+.pp-desc{font-size:12px;color:var(--dim);line-height:1.45;}
+.pp-steps{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;
+  display:flex;align-items:center;gap:5px;margin-top:3px;}
+.pp-dot{width:7px;height:7px;border-radius:50%;border:1px solid;display:inline-block;}
+.pp-dot.c-easy{background:var(--info,#5b8dd6);border-color:var(--info,#5b8dd6);}
+.pp-dot.c-mod{background:var(--ok);border-color:var(--ok);}
+.pp-dot.c-hard{background:var(--gold);border-color:var(--gold);}
+.pp-dot.c-max{background:var(--danger);border-color:var(--danger);}
+.prog-hint{padding:10px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;}
+.prog-linkbtn{background:none;border:none;color:var(--gold);font-family:var(--body);font-size:12px;
+  font-weight:700;cursor:pointer;padding:0;text-decoration:underline;}
+
+.cyc-row{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--line);}
+.cyc-row.now{background:color-mix(in srgb,var(--gold) 5%,transparent);}
+.cyc-num{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--dim);flex-shrink:0;}
+.cyc-main{flex:1;min-width:0;cursor:pointer;}
+.cyc-sub{font-size:10px;color:var(--muted);letter-spacing:1.2px;margin-top:4px;text-transform:uppercase;font-weight:600;}
+.cyc-badge{font-size:7px;letter-spacing:2.5px;color:var(--void);background:var(--gold);padding:3px 7px;
+  font-weight:700;text-transform:uppercase;flex-shrink:0;}
+
+.prog-optlist{display:flex;flex-direction:column;gap:7px;}
+.prog-opt{text-align:left;background:var(--surface);border:1px solid var(--line2);border-radius:6px;
+  padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:5px;font-family:var(--body);transition:.15s;}
+.prog-opt.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent);}
+.po-sub{font-size:11px;color:var(--dim);}
+
+/* one line under an exercise while progression is driving it */
+.ex-prog-line{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.ex-prog-target{font-size:11px;color:var(--gold);letter-spacing:.4px;font-weight:600;}
+
+/* ── GUIDE ── opens as a contents list; you expand only what you need */
+.guide-intro{padding:2px 18px 14px;font-size:14px;color:var(--soft);line-height:1.6;}
+.guide-sec{border-bottom:1px solid var(--line);}
+.guide-hd{width:100%;display:flex;align-items:center;gap:12px;padding:15px 18px;background:none;border:none;
+  cursor:pointer;font-family:var(--body);text-align:left;}
+.guide-ico{width:22px;height:22px;flex-shrink:0;color:var(--gold);}
+.guide-ico svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.guide-t{flex:1;font-size:15px;font-weight:700;color:var(--text);letter-spacing:.2px;}
+.guide-chev{font-size:18px;color:var(--muted);font-weight:400;line-height:1;}
+.guide-bd{display:none;padding:0 18px 18px 52px;font-size:13.5px;color:var(--soft);line-height:1.65;}
+.guide-sec.open .guide-bd{display:block;}
+.guide-bd b{color:var(--bright);font-weight:700;}
+.guide-bd em{color:var(--gold2);font-style:normal;font-weight:600;}
+.guide-foot{padding:18px;font-size:12px;color:var(--muted);line-height:1.6;}
+
+/* ── CYCLE-END RE-SEED ── */
+.reseed-row{display:flex;flex-direction:column;gap:6px;padding:13px 18px;border-bottom:1px solid var(--line);}
+.reseed-name{font-size:14px;font-weight:600;color:var(--text);}
+.reseed-nums{display:flex;align-items:center;gap:8px;font-size:13px;}
+.reseed-old{color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums;}
+.reseed-arrow{color:var(--muted);}
+.reseed-new{color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums;}
+.reseed-row.flat .reseed-old{text-decoration:none;}
+.reseed-row.flat .reseed-new{color:var(--dim);}
+.reseed-tag{margin-left:auto;font-size:8px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);}
+.reseed-row.up .reseed-tag{color:var(--ok);}
+
 /* ── ROTATIONS LIST ── one row per rotation, a tick marking the single
    active one. Built on the same panel/line tokens as .sched-row rather
    than a new visual language. */
@@ -1651,6 +1723,39 @@ body.light-mode .auth-choice-title{color:#111;}
     <div class="pg-title" data-i18n="rotation_edit_title">Rotation</div>
   </div>
   <div id="rotation-edit-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ ADVANCED SETTINGS (per rotation) ══ periodization lives here -->
+<div id="screen-progression" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('rotation-edit')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="prog_title">Advanced</div>
+  </div>
+  <div id="progression-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ GUIDE ══ read-only explainer, opened from Advanced -->
+<div id="screen-prog-guide" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('progression')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="prog_guide_title">Guide</div>
+  </div>
+  <div id="prog-guide-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ WHICH EXERCISES ══ -->
+<div id="screen-prog-applies" class="screen">
+  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('progression')" data-i18n="back">← Back</button>
+    <div class="pg-title" data-i18n="prog_applies_title">Applies to</div>
+  </div>
+  <div id="prog-applies-body" class="list-scroll"></div>
+</div>
+
+<!-- ══ CYCLE END ══ confirm the new baselines -->
+<div id="screen-reseed" class="screen">
+  <div class="pg-header"><div class="pg-title" data-i18n="prog_reseed_title">Cycle complete</div></div>
+  <div id="reseed-body" class="list-scroll"></div>
 </div>
 
 <!-- ══ ANALYTICS ══ (was the Log screen's "Progress" tab — moved into
@@ -3093,7 +3198,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','rotation-edit','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','rotation-edit','progression','prog-guide','prog-applies','reseed','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -3106,6 +3211,10 @@ function showScreen(id){
   if(id==='routines') renderRoutines();
   if(id==='schedule') renderRotations();
   if(id==='rotation-edit') renderRotationEditor();
+  if(id==='progression') renderProgression();
+  if(id==='prog-guide') renderProgGuide();
+  if(id==='prog-applies') renderProgApplies();
+  if(id==='reseed') renderReseed();
   if(id==='exercises') renderExercisesDB();
   // Settings only needs the Account ROW's sub-line now; the sections
   // themselves live on their own screens and render when opened.
@@ -3360,7 +3469,17 @@ function renderWoScreen(){
       const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="${t('workout_edit_notes')}"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>`;
       const lastHtml=item.lastHistory?`<div class="ex-card-last">${ICON_LAST} ${t('ex_db_last_label')}: ${item.lastHistory}</div>`:'';
       const videoBtnHtml=buildExerciseVideoBtnHtml(item.id, 26);
-      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${exerciseDisplayNameById(item.id, item.name)}</div>${videoBtnHtml}</div>${notesHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
+      // One line under the exercise when progression is driving it. The
+      // effort word always shows; the target weight only when there is one
+      // (all-out has none) and the RIR/% detail only in expert mode.
+      const pStep=item.progStep;
+      const progHtml = pStep ? `<div class="ex-prog-line">
+          <span class="chip ${stepClass(pStep)}">${stepLabel(pStep)}</span>
+          ${item.progTarget!==null && item.progTarget!==undefined
+              ? `<span class="ex-prog-target">${t('prog_try')} ${toDisplayWeight(item.progTarget)}${unitLabel()}</span>`
+              : (pStep.type==='allout' ? `<span class="ex-prog-target">${t('prog_allout_cue')}</span>` : '')}
+        </div>` : '';
+      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${exerciseDisplayNameById(item.id, item.name)}</div>${videoBtnHtml}</div>${notesHtml}${progHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
       body.appendChild(card);
     } else if(item.type==='ss'){
       // Superset block
@@ -4124,6 +4243,10 @@ function finishWorkout(){
       const idx = db.schedule.indexOf(entry.routineId);
       if(idx !== -1) db.schedulePos=(idx+1)%db.schedule.length;
     }
+    // Wrapping back to the first workout means one full pass through the
+    // rotation just finished — which is exactly one step of the cycle.
+    // No-ops entirely when progression is off.
+    if(db.schedulePos===0) advanceProgressionCycle();
   }
 
   // Save now (before showing finish screen)
@@ -4771,6 +4894,202 @@ function deleteRotation(id){
   });
 }
 
+// ═══════════════════════════════════════════
+//  PROGRESSION / PERIODIZATION
+// ═══════════════════════════════════════════
+// Lives on the ROTATION, not the person — one lifter can keep a hard block
+// and an easy one and switch between them. Off by default, so nothing about
+// the app changes until it is deliberately turned on.
+//
+// A CYCLE is an ordered list of efforts, one per pass through the rotation.
+// Alan's: RIR 2 → RIR 1 → deload → all-out. Cycle length is just the number
+// of steps, so 4 or 8 or 3 all work with no special casing. cyclePos advances
+// when the rotation wraps back to its first workout (see finishWorkout), and
+// wrapping the CYCLE is what triggers the re-seed.
+//
+// Step shapes:
+//   {type:'rir',    rir:N}                     work N reps short of failure
+//   {type:'deload', rir:N, setPct:%, loadPct:%} same, with volume/load cut
+//   {type:'allout'}                            no rep target — find your max
+const PROGRESSION_PRESETS=[
+  { id:'alan',   nameKey:'prog_preset_alan',   descKey:'prog_preset_alan_desc',
+    cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'deload',rir:3,setPct:50,loadPct:90},{type:'allout'}] },
+  { id:'ramp',   nameKey:'prog_preset_ramp',   descKey:'prog_preset_ramp_desc',
+    cycle:[{type:'rir',rir:3},{type:'rir',rir:2},{type:'rir',rir:1},{type:'deload',rir:3,setPct:50,loadPct:90}] },
+  { id:'simple', nameKey:'prog_preset_simple', descKey:'prog_preset_simple_desc',
+    cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'allout'}] },
+];
+function defaultProgression(){
+  return { mode:'off', cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'allout'}],
+           cyclePos:0, appliesTo:[], showNumbers:false };
+}
+function rotationProgression(rot){
+  if(!rot) return null;
+  if(!rot.progression) rot.progression=defaultProgression();
+  const p=rot.progression;
+  // Repair rather than trust — this object round-trips through JSON and the
+  // cloud, and a malformed cycle would break every workout screen.
+  if(!Array.isArray(p.cycle) || !p.cycle.length) p.cycle=defaultProgression().cycle;
+  if(!Array.isArray(p.appliesTo)) p.appliesTo=[];
+  if(typeof p.cyclePos!=='number' || p.cyclePos<0) p.cyclePos=0;
+  p.cyclePos = p.cyclePos % p.cycle.length;
+  return p;
+}
+function progressionOn(rot){ const p=rot&&rot.progression; return !!(p && p.mode==='on'); }
+// The step the ACTIVE rotation is currently on, or null when progression is
+// off. Everything in the workout screen funnels through this one accessor.
+function currentProgressionStep(){
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return null;
+  const p=rotationProgression(rot);
+  return p.cycle[p.cyclePos % p.cycle.length] || null;
+}
+function progressionAppliesTo(exId){
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return false;
+  const p=rotationProgression(rot);
+  return p.appliesTo.length===0 ? true : p.appliesTo.indexOf(exId)!==-1;
+}
+// Short label + the number, always together: the novice reads the word, the
+// experienced lifter reads the RIR. Same string serves both.
+function stepLabel(step){
+  if(!step) return '';
+  if(step.type==='allout') return t('prog_eff_allout');
+  if(step.type==='deload')  return t('prog_eff_deload')+' · RIR '+step.rir;
+  const names={0:'prog_eff_max',1:'prog_eff_hard',2:'prog_eff_moderate',3:'prog_eff_easy'};
+  return t(names[step.rir]||'prog_eff_moderate')+' · RIR '+step.rir;
+}
+function stepClass(step){
+  if(!step) return '';
+  if(step.type==='allout') return 'c-max';
+  if(step.type==='deload') return 'c-easy';
+  return step.rir<=1?'c-hard':(step.rir>=3?'c-easy':'c-mod');
+}
+
+// ── The maths ──
+// A set of X reps at Y RIR uses the weight you could do for (X+Y) reps all
+// out. Inverting the Epley formula calc1RM() already uses keeps the app on
+// ONE strength model rather than two that disagree:
+//     e1RM = w × (1 + reps/30)   →   w = e1RM / (1 + (reps+RIR)/30)
+// Returns a RAW weight in the same convention as everything stored, or null
+// when there's no record to work from (a brand-new lift), in which case the
+// workout screen just shows last time's number as it always did.
+function progressionTargetWeight(exId, reps, step){
+  if(!step || step.type==='allout') return null;      // all-out has no target
+  if(isTimeTrackedEx(exId)) return null;
+  const pr=db.allTimePRs && db.allTimePRs[exId];
+  if(!pr || !(pr.weight>0) || !(pr.reps>0)) return null;
+  const e1rm=recordToOneRM(exId, pr.weight, pr.reps);
+  if(!(e1rm>0)) return null;
+  const effReps=Math.max(1,(reps||8)+(step.rir||0));
+  let w=e1rm/(1+effReps/30);
+  if(step.type==='deload' && step.loadPct) w=w*(step.loadPct/100);
+  // Back out of "true weight" into the number the user actually types for
+  // this exercise (per-side, per-dumbbell, bodyweight-assisted), then round
+  // to something loadable. getFormulaWeight is the forward transform, so
+  // this undoes it via the same helper the PR maths uses.
+  const raw=trueWeightToRaw(exId, w);
+  return raw>0 ? roundToPlate(raw) : null;
+}
+// Smallest sensible increment in the user's own unit: 2.5kg or 5lb.
+function roundToPlate(rawKg){
+  const stepKg = (db.weightPrefs&&db.weightPrefs.units==='lb') ? 2.267962 : 2.5;
+  return Math.max(stepKg, Math.round(rawKg/stepKg)*stepKg);
+}
+// Inverse of getFormulaWeight() for the target computation above.
+// getFormulaWeight is affine in the entered number — y = a·x + b, where a is
+// 2 for a per-side barbell or the dumbbell count, and b is the bar weight or
+// the lifter's body weight. Both come from user preferences, so rather than
+// duplicating that branching here (and drifting when it changes) the slope
+// and intercept are measured from two real samples of the function itself.
+// Probing at 0 would NOT work: getTrueWeight short-circuits on a falsy
+// weight and returns 0, which hides the bar-weight intercept entirely.
+function trueWeightToRaw(exId, trueW){
+  const y1=getFormulaWeight(exId,100), y2=getFormulaWeight(exId,200);
+  const a=(y2-y1)/100;
+  if(!(a>0)) return trueW;                  // unknown shape — pass through
+  const b=y1-a*100;
+  return (trueW-b)/a;
+}
+
+// ── Cycle advance + re-seed ──
+// Called from finishWorkout the moment the rotation wraps to its first
+// workout. Advancing the cycle is what turns "6 workouts" into "one pass".
+function advanceProgressionCycle(){
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return;
+  const p=rotationProgression(rot);
+  const finishedStep=p.cycle[p.cyclePos % p.cycle.length];
+  p.cyclePos=(p.cyclePos+1)%p.cycle.length;
+  saveDB();
+  // Finishing an all-out pass is what re-seeds the baseline. Queued rather
+  // than shown immediately — finishWorkout still has a finish screen to
+  // display, and stacking two takeovers would be hostile.
+  if(finishedStep && finishedStep.type==='allout') _pendingReseed=true;
+}
+let _pendingReseed=false;
+function maybeShowReseed(){
+  if(!_pendingReseed) return false;
+  _pendingReseed=false;
+  openReseedScreen();
+  return true;
+}
+// One screen, once per cycle: every lift the progression applies to, its old
+// baseline and what the all-out pass produced. Nothing is adopted until it's
+// confirmed here — which is also the answer to "someone logged a PR wrong".
+function openReseedScreen(){
+  const rot=activeRotation(); if(!rot) return;
+  const p=rotationProgression(rot);
+  const ids=(p.appliesTo.length?p.appliesTo:Object.keys(db.allTimePRs||{}))
+              .filter(id=>!isTimeTrackedEx(id));
+  const rows=ids.map(id=>{
+    const pr=db.allTimePRs[id]; if(!pr||!(pr.weight>0)) return null;
+    const best=bestSetForExercise(db.workoutLog||[], id);
+    if(!best || best.needsBodyweight) return null;
+    const oldRM=recordToOneRM(id, pr.weight, pr.reps);
+    const newRM=recordToOneRM(id, best.rawWeight, best.reps);
+    return { id, pr, best, oldRM, newRM, improved:newRM>oldRM+0.01 };
+  }).filter(Boolean);
+  _reseedRows=rows;
+  showScreen('reseed');
+}
+let _reseedRows=[];
+function renderReseed(){
+  const el=document.getElementById('reseed-body'); if(!el) return;
+  if(!_reseedRows.length){
+    el.innerHTML=`<div class="empty-state"><p>${t('prog_reseed_none')}</p></div>
+      <div style="padding:14px 18px;"><button class="btn-cta" onclick="showScreen('home')">${t('done')}</button></div>`;
+    return;
+  }
+  el.innerHTML=`
+    <div style="padding:0 18px 4px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_reseed_intro')}</div>
+    ${_reseedRows.map((r,i)=>{
+      const ex=db.exercises.find(e=>e.id===r.id);
+      return `<div class="reseed-row ${r.improved?'up':'flat'}">
+        <div class="reseed-name">${escapeHtml(ex?exerciseDisplayName(ex):r.id)}</div>
+        <div class="reseed-nums">
+          <span class="reseed-old">${Math.round(toDisplayWeight(r.oldRM))}${unitLabel()}</span>
+          <span class="reseed-arrow">→</span>
+          <span class="reseed-new">${Math.round(toDisplayWeight(r.improved?r.newRM:r.oldRM))}${unitLabel()}</span>
+          <span class="reseed-tag">${r.improved?t('prog_reseed_up'):t('prog_reseed_kept')}</span>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="padding:14px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;">${t('prog_reseed_stall_note')}</div>
+    <div style="padding:14px 18px 0;"><button class="btn-cta" onclick="confirmReseed()">${t('prog_reseed_confirm')}</button></div>
+    <div style="padding:10px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="showScreen('home')">${t('prog_reseed_later')}</button></div>`;
+}
+function confirmReseed(){
+  // Only ever upward. A lower all-out result means a bad day, not a weaker
+  // lifter — adopting it would quietly drop every target next cycle, which
+  // is the one behaviour that could de-train someone. Alan confirmed this.
+  _reseedRows.forEach(r=>{
+    if(r.improved) db.allTimePRs[r.id]={weight:r.best.rawWeight, reps:r.best.reps, date:r.best.date};
+  });
+  saveDB(); _reseedRows=[];
+  showToast(t('prog_reseed_done')); showScreen('home');
+}
+
 // ── Rotations list (Program tab) ──
 function renderRotations(){
   const el=document.getElementById('schedule-list');
@@ -4841,11 +5160,304 @@ function renderRotationEditor(){
           }).join('')
     }</div>
     <div class="notice">${t('schedule_notice')}</div>
-    ${isActive?'':`<div style="padding:6px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="setActiveRotation('${rot.id}')">${t('rotation_make_active')}</button></div>`}
+    <div class="settings-section-label" style="padding:16px 18px 6px;">${t('prog_section_label')}</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="openProgressionSettings()" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div>
+          <div>
+            <div class="settings-row-title">${t('prog_row_title')}</div>
+            <div class="settings-row-sub">${progressionOn(rot)
+                ? stepLabel(rotationProgression(rot).cycle[rotationProgression(rot).cyclePos]) + ' · ' +
+                  t('prog_row_of').replace('{i}',rotationProgression(rot).cyclePos+1).replace('{n}',rotationProgression(rot).cycle.length)
+                : t('prog_row_off')}</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+    ${isActive?'':`<div style="padding:14px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="setActiveRotation('${rot.id}')">${t('rotation_make_active')}</button></div>`}
     <div style="padding:14px 18px 0;">
       <button class="btn-ghost" style="width:100%;border-color:var(--danger);color:var(--danger);" onclick="deleteRotation('${rot.id}')">${t('rotation_delete')}</button>
     </div>`;
 }
+// ── The guide ──
+// Deliberately short. Everything a beginner needs to make a decision, and
+// nothing a beginner doesn't. Sections are collapsed so the screen opens as
+// a table of contents rather than a wall — you read the one you care about.
+const PROG_GUIDE=[
+  { id:'what',  icon:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/>' },
+  { id:'rir',   icon:'<path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/>' },
+  { id:'cycle', icon:'<path d="M4 12a8 8 0 1 1 2.5 5.8"/><path d="M4 19v-5h5"/>' },
+  { id:'who',   icon:'<circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.13-7 7-7s7 3.1 7 7"/>' },
+  { id:'safe',  icon:'<path d="M12 3.5l7 2.6v5.4c0 4.6-3 7.9-7 9-4-1.1-7-4.4-7-9V6.1z"/>' },
+];
+let _guideOpen=null;
+function renderProgGuide(){
+  const el=document.getElementById('prog-guide-body'); if(!el) return;
+  el.innerHTML=`
+    <div class="guide-intro">${t('guide_intro')}</div>
+    ${PROG_GUIDE.map(sec=>{
+      const open=_guideOpen===sec.id;
+      return `<div class="guide-sec ${open?'open':''}">
+        <button class="guide-hd" onclick="toggleGuide('${sec.id}')">
+          <span class="guide-ico"><svg viewBox="0 0 24 24">${sec.icon}</svg></span>
+          <span class="guide-t">${t('guide_'+sec.id+'_t')}</span>
+          <span class="guide-chev">${open?'−':'+'}</span>
+        </button>
+        <div class="guide-bd">${t('guide_'+sec.id+'_b')}</div>
+      </div>`;
+    }).join('')}
+    <div class="guide-foot">${t('guide_foot')}</div>`;
+}
+function toggleGuide(id){ _guideOpen = _guideOpen===id ? null : id; renderProgGuide(); }
+
+// ── Advanced settings screen (per rotation) ──
+function openProgressionSettings(){ showScreen('progression'); }
+function renderProgression(){
+  const el=document.getElementById('progression-body'); if(!el) return;
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const p=rotationProgression(rot);
+  const on=p.mode==='on';
+  const total=p.cycle.length, wk=(rot.schedule||[]).length;
+  el.innerHTML=`
+    <!-- The guide comes FIRST, before any control: nobody should have to
+         guess what RIR means to use this screen. -->
+    <div class="settings-group" style="margin-bottom:4px;">
+      <div class="settings-row" onclick="showScreen('prog-guide')" style="cursor:pointer;">
+        <div class="settings-row-left">
+          <div class="settings-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg></div>
+          <div>
+            <div class="settings-row-title">${t('prog_guide_row')}</div>
+            <div class="settings-row-sub">${t('prog_guide_row_sub')}</div>
+          </div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></div><div>
+          <div class="settings-row-title">${t('prog_enable')}</div>
+          <div class="settings-row-sub">${t('prog_enable_sub')}</div>
+        </div></div>
+        <div class="switch" onclick="toggleProgression()">
+          <div class="switch-track ${on?'on':''}" id="prog-toggle-track"><div class="switch-thumb"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="prog-detail" style="${on?'':'display:none;'}">
+      <!-- Presets LOAD the fields, they don't commit anything. You review
+           the cycle below and it is already yours to edit. -->
+      <div class="settings-section-label" style="padding:18px 18px 6px;">${t('prog_presets_label')}</div>
+      <div class="prog-presets">
+        ${PROGRESSION_PRESETS.map(pr=>`
+          <button class="prog-preset" onclick="loadProgressionPreset('${pr.id}')">
+            <span class="pp-name">${t(pr.nameKey)}</span>
+            <span class="pp-desc">${t(pr.descKey)}</span>
+            <span class="pp-steps">${pr.cycle.map(s=>`<i class="pp-dot ${stepClass(s)}"></i>`).join('')} ${pr.cycle.length} ${t('prog_rotations_word')}</span>
+          </button>`).join('')}
+      </div>
+      <div class="prog-hint">${t('prog_presets_note')}</div>
+
+      <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:18px 18px 6px;">
+        <span>${t('prog_cycle_label')}</span>
+        <button class="btn-new" onclick="addCycleStep()">${t('prog_add_step')}</button>
+      </div>
+      ${p.cycle.map((s,i)=>`
+        <div class="cyc-row ${i===p.cyclePos?'now':''}">
+          <span class="cyc-num">${i+1}</span>
+          <div class="cyc-main" onclick="editCycleStep(${i})">
+            <span class="chip ${stepClass(s)}">${stepLabel(s)}</span>
+            <div class="cyc-sub">${cycleStepSub(s)}</div>
+          </div>
+          ${i===p.cyclePos?`<span class="cyc-badge">${t('prog_now')}</span>`:''}
+          ${p.cycle.length>1?`<button class="btn-ico del" onclick="removeCycleStep(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:''}
+        </div>`).join('')}
+      <div class="prog-hint">${t('prog_cycle_summary')
+          .replace('{n}',total).replace('{w}',wk).replace('{total}',total*wk)}</div>
+
+      <div class="settings-section-label" style="padding:18px 18px 6px;">${t('prog_applies_label')}</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="showScreen('prog-applies')" style="cursor:pointer;">
+          <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div>
+            <div class="settings-row-title">${t('prog_applies_row')}</div>
+            <div class="settings-row-sub">${p.appliesTo.length?p.appliesTo.length+' '+t('prog_applies_count'):t('prog_applies_all')}</div>
+          </div></div>
+          <div class="settings-row-arrow">›</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg></div><div>
+            <div class="settings-row-title">${t('prog_shownums')}</div>
+            <div class="settings-row-sub">${t('prog_shownums_sub')}</div>
+          </div></div>
+          <div class="switch" onclick="toggleProgShowNumbers()">
+            <div class="switch-track ${p.showNumbers?'on':''}" id="prog-nums-track"><div class="switch-thumb"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="prog-hint" style="padding-bottom:24px;">${t('prog_reset_note')}
+        <button class="prog-linkbtn" onclick="resetCyclePos()">${t('prog_reset_cycle')}</button></div>
+    </div>`;
+}
+function cycleStepSub(s){
+  if(s.type==='allout') return t('prog_sub_allout');
+  if(s.type==='deload'){
+    const bits=[];
+    if(s.setPct && s.setPct<100) bits.push(t('prog_sub_sets').replace('{p}',s.setPct));
+    if(s.loadPct && s.loadPct<100) bits.push(t('prog_sub_load').replace('{p}',100-s.loadPct));
+    return bits.length?bits.join(' · '):t('prog_sub_deload_plain');
+  }
+  return t('prog_sub_rir').replace('{n}',s.rir);
+}
+function toggleProgression(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.mode = p.mode==='on' ? 'off' : 'on';
+  saveDB(); renderProgression();
+}
+function toggleProgShowNumbers(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.showNumbers=!p.showNumbers; saveDB(); renderProgression();
+}
+// Loads the preset's steps into the editable cycle and leaves you there.
+// Deliberately NOT a commit — Alan's point was that people should end up
+// with a cycle they chose, not one they were handed.
+function loadProgressionPreset(id){
+  const preset=PROGRESSION_PRESETS.find(x=>x.id===id); if(!preset) return;
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.cycle=JSON.parse(JSON.stringify(preset.cycle));
+  p.cyclePos=0;
+  saveDB(); renderProgression();
+  showToast(t('prog_preset_loaded'));
+}
+function addCycleStep(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.cycle.push({type:'rir',rir:2}); saveDB(); renderProgression();
+}
+function removeCycleStep(i){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  if(p.cycle.length<=1) return;
+  p.cycle.splice(i,1);
+  if(p.cyclePos>=p.cycle.length) p.cyclePos=0;
+  saveDB(); renderProgression();
+}
+function resetCyclePos(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  rotationProgression(rot).cyclePos=0; saveDB(); renderProgression();
+  showToast(t('prog_reset_done'));
+}
+// One editor for every step type. Effort is a single choice; the deload
+// extras only appear once Deload is selected, so the screen stays short.
+function editCycleStep(i){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  const s=p.cycle[i]; if(!s) return;
+  const opts=[
+    {type:'rir',rir:3},{type:'rir',rir:2},{type:'rir',rir:1},
+    {type:'deload',rir:3,setPct:50,loadPct:90},{type:'allout'}
+  ];
+  const same=(a,b)=>a.type===b.type && (a.type!=='rir' || a.rir===b.rir);
+  document.getElementById('modal-title').textContent=t('prog_step_title').replace('{n}',i+1);
+  document.getElementById('modal-body').innerHTML=`
+    <div class="prog-optlist">
+      ${opts.map((o,oi)=>`
+        <button class="prog-opt ${same(o,s)?'on':''}" onclick="pickCycleStep(${i},${oi})">
+          <span class="chip ${stepClass(o)}">${stepLabel(o)}</span>
+          <span class="po-sub">${cycleStepSub(o)}</span>
+        </button>`).join('')}
+    </div>
+    <div id="prog-deload-extra" style="${s.type==='deload'?'':'display:none;'}margin-top:16px;">
+      <div style="display:flex;gap:10px;">
+        <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('prog_deload_sets')}</label>
+          <input class="form-inp" id="dl-sets" type="number" min="10" max="100" value="${s.setPct||50}"></div>
+        <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('prog_deload_load')}</label>
+          <input class="form-inp" id="dl-load" type="number" min="50" max="100" value="${s.loadPct||90}"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('prog_deload_note')}</div>
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveCycleStep(${i})">${t('save')}</button>`;
+  window._progStepOpts=opts;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function pickCycleStep(i,oi){
+  const o=window._progStepOpts[oi];
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  // Keep any deload numbers the user already tuned rather than resetting
+  // them every time they tap the same row.
+  const prev=p.cycle[i];
+  p.cycle[i]= o.type==='deload'
+    ? {type:'deload', rir:o.rir, setPct:(prev.setPct||o.setPct), loadPct:(prev.loadPct||o.loadPct)}
+    : JSON.parse(JSON.stringify(o));
+  editCycleStep(i);   // re-render so selection + deload fields update
+}
+function saveCycleStep(i){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  const s=p.cycle[i];
+  if(s && s.type==='deload'){
+    const sp=parseInt(document.getElementById('dl-sets').value);
+    const lp=parseInt(document.getElementById('dl-load').value);
+    if(sp>=10&&sp<=100) s.setPct=sp;
+    if(lp>=50&&lp<=100) s.loadPct=lp;
+  }
+  saveDB(); closeModal(); renderProgression();
+}
+
+// ── Which exercises the progression applies to ──
+function renderProgApplies(){
+  const el=document.getElementById('prog-applies-body'); if(!el) return;
+  const rot=db.rotations.find(r=>r.id===_editingRotationId);
+  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const p=rotationProgression(rot);
+  // Only exercises actually IN this rotation — offering the full 150-entry
+  // catalogue here would be noise.
+  const ids=[];
+  (rot.schedule||[]).forEach(rId=>{
+    const r=db.routines.find(x=>x.id===rId);
+    (r?r.exercises:[]).forEach(e=>{ if(ids.indexOf(e.id)===-1 && !isTimeTrackedEx(e.id)) ids.push(e.id); });
+  });
+  if(!ids.length){ el.innerHTML=`<div class="empty-state"><p>${t('prog_applies_empty')}</p></div>`; return; }
+  const all=p.appliesTo.length===0;
+  el.innerHTML=`
+    <div style="padding:0 18px 10px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_applies_intro')}</div>
+    <div class="rot-row ${all?'active':''}">
+      <button class="rot-check ${all?'on':''}" onclick="progAppliesAll()">${all?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
+      <div class="rot-main" onclick="progAppliesAll()"><div class="rot-name">${t('prog_applies_all_row')}</div>
+        <div class="rot-meta">${t('prog_applies_all_sub')}</div></div>
+    </div>
+    ${ids.map(id=>{
+      const ex=db.exercises.find(e=>e.id===id);
+      const on=p.appliesTo.indexOf(id)!==-1;
+      return `<div class="rot-row ${on?'active':''}">
+        <button class="rot-check ${on?'on':''}" onclick="toggleProgApplies('${id}')">${on?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
+        <div class="rot-main" onclick="toggleProgApplies('${id}')"><div class="rot-name">${escapeHtml(ex?exerciseDisplayName(ex):id)}</div></div>
+      </div>`;
+    }).join('')}`;
+}
+function toggleProgApplies(id){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  const i=p.appliesTo.indexOf(id);
+  if(i===-1) p.appliesTo.push(id); else p.appliesTo.splice(i,1);
+  saveDB(); renderProgApplies();
+}
+function progAppliesAll(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  rotationProgression(rot).appliesTo=[];   // empty means "everything"
+  saveDB(); renderProgApplies();
+}
+
 function renameActiveEditingRotation(v){
   const rot=db.rotations.find(r=>r.id===_editingRotationId);
   if(!rot) return;
@@ -6804,11 +7416,31 @@ function _startWithRoutine(rt){
     // current unit) rather than trusting last.history, which was baked in
     // raw kg at save time and can't be reinterpreted after the fact.
     const lastHistory=last.weight!==undefined||last.sets ? fmtLastWeightDisplay(last,re.id,isTimeTrackedEx(re.id)) : '';
+
+    // ── Progression ──
+    // Overwrite the prefill with the computed target, but ONLY where a target
+    // actually exists: progression on, this exercise nominated, a real PR to
+    // compute from, and not an all-out pass (which has no target by design).
+    // Everywhere else the prefill stays exactly what it always was, so
+    // turning progression on can never blank someone's numbers.
+    const step=currentProgressionStep();
+    const applies=step && progressionAppliesTo(re.id);
+    let progTarget=null, progSets=re.sets;
+    if(applies){
+      progTarget=progressionTargetWeight(re.id, re.reps, step);
+      if(progTarget!==null){ for(let s=0;s<actualWeight.length;s++) actualWeight[s]=progTarget; }
+      // A deload cuts volume, which is the part that actually sheds fatigue.
+      if(step.type==='deload' && step.setPct && step.setPct<100){
+        progSets=Math.max(1, Math.round(re.sets*(step.setPct/100)));
+      }
+    }
     // lwKey rides along on the session item so finishWorkout() writes back to
     // the same slot this was prefilled from, without re-deriving the count.
     return {type:'ex', id:re.id, lwKey, name:ex.name, notes:ex.notes||'',
-      sets:re.sets, reps:re.reps, rest:re.rest,
-      tickedSets:[], actualReps, actualWeight, lastHistory};
+      sets:progSets, reps:re.reps, rest:re.rest,
+      tickedSets:[], actualReps:actualReps.slice(0,progSets), actualWeight:actualWeight.slice(0,progSets),
+      lastHistory,
+      progStep: applies?step:null, progTarget};
   }
 
   // Build session items: group consecutive same-ssGroup exercises into ss blocks
@@ -7356,6 +7988,82 @@ const STRINGS = {
     routines_empty_state_2: 'Tap + New to build one, or Browse to add one of ours.',
     routines_meta_exercises: 'exercises',
     routines_meta_sets: 'sets',
+    prog_section_label: 'Advanced',
+    prog_row_title: 'Progression',
+    prog_row_off: 'Off',
+    prog_row_of: 'Rotation {i} of {n}',
+    prog_title: 'Advanced',
+    prog_guide_row: 'How this works',
+    prog_guide_row_sub: 'Read this first — 2 minutes',
+    prog_guide_title: 'Guide',
+    prog_enable: 'Use a training cycle',
+    prog_enable_sub: 'Vary how hard you push across rotations',
+    prog_presets_label: 'Start from a template',
+    prog_presets_note: 'Templates just fill in the cycle below. Nothing is locked — change any step before or after.',
+    prog_preset_loaded: 'Template loaded — edit it below',
+    prog_preset_alan: 'Build up, back off, then test',
+    prog_preset_alan_desc: 'Two harder rotations, an easy one, then an all-out rotation that sets your new baseline.',
+    prog_preset_ramp: 'Steady build with a rest week',
+    prog_preset_ramp_desc: 'Get gradually closer to failure across three rotations, then recover.',
+    prog_preset_simple: 'Simple: two efforts and a test',
+    prog_preset_simple_desc: 'The shortest cycle worth running. Good place to start.',
+    prog_rotations_word: 'rotations',
+    prog_cycle_label: 'Your cycle',
+    prog_add_step: '+ Rotation',
+    prog_cycle_summary: 'A cycle is {n} rotations of {w} workouts — {total} sessions, then it repeats.',
+    prog_now: 'Now',
+    prog_step_title: 'Rotation {n} effort',
+    prog_eff_easy: 'Easy',
+    prog_eff_moderate: 'Moderate',
+    prog_eff_hard: 'Hard',
+    prog_eff_max: 'Max',
+    prog_eff_deload: 'Deload',
+    prog_eff_allout: 'All-out',
+    prog_sub_rir: 'Stop {n} reps short of failure',
+    prog_sub_allout: 'No rep target — find your max',
+    prog_sub_deload_plain: 'Recover: easier sets',
+    prog_sub_sets: '{p}% of the sets',
+    prog_sub_load: '−{p}% weight',
+    prog_deload_sets: '% OF SETS',
+    prog_deload_load: '% OF WEIGHT',
+    prog_deload_note: 'A real deload cuts volume, not just effort. Half the sets is a good default.',
+    prog_applies_label: 'Scope',
+    prog_applies_row: 'Applies to',
+    prog_applies_title: 'Applies to',
+    prog_applies_all: 'Every exercise',
+    prog_applies_count: 'exercises',
+    prog_applies_all_row: 'Every exercise',
+    prog_applies_all_sub: 'Simplest option',
+    prog_applies_intro: 'Most people vary only their main lifts and leave accessories alone. Pick the ones this cycle should drive — or leave it on every exercise.',
+    prog_applies_empty: 'Add workouts to this rotation first.',
+    prog_shownums: 'Show the numbers',
+    prog_shownums_sub: 'Display RIR on every set',
+    prog_reset_note: 'Changed your mind mid-cycle?',
+    prog_reset_cycle: 'Restart the cycle',
+    prog_reset_done: 'Cycle restarted',
+    prog_try: 'Try',
+    prog_allout_cue: 'Max reps — go until you cannot',
+    prog_reseed_title: 'Cycle complete',
+    prog_reseed_intro: 'Your all-out rotation is done. Here is what it changed — check it before we build the next cycle on these numbers.',
+    prog_reseed_up: 'New best',
+    prog_reseed_kept: 'Kept',
+    prog_reseed_stall_note: 'Anything you did not beat stays where it was. A lower number just means a hard day, not a step backwards.',
+    prog_reseed_confirm: 'Confirm and start next cycle',
+    prog_reseed_later: 'Decide later',
+    prog_reseed_done: 'Baselines updated',
+    prog_reseed_none: 'Nothing to update yet — log a few sessions first.',
+    guide_intro: 'A training cycle just means not pushing equally hard every week. You go moderately hard, then harder, then take it easy, then test yourself — and repeat with better numbers.',
+    guide_what_t: 'Do I need this?',
+    guide_what_b: '<b>If you are new: no.</b> For your first six months to a year, simply adding a little weight whenever a session feels easy will out-perform any cycle. Leave this off and train.<br><br><b>If you have been lifting a year or more</b> and the weights have stopped moving, this is what usually fixes it. Pushing hard every single week stops working because fatigue builds faster than fitness — the cycle gives you somewhere to put the recovery.',
+    guide_rir_t: 'What is RIR?',
+    guide_rir_b: '<b>Reps In Reserve — how many more you had in you.</b><br><br><em>RIR 2</em> means you stopped with two reps left. <em>RIR 0</em> means you could not have done another one.<br><br>It measures effort, not weight, which is why it works better than fixed numbers: on a bad day RIR 2 is simply a lighter bar, and you still get the right training out of it.<br><br>Rough guide: <b>RIR 3</b> comfortable, <b>RIR 2</b> working, <b>RIR 1</b> hard, <b>RIR 0</b> everything you have.',
+    guide_cycle_t: 'How a cycle works here',
+    guide_cycle_b: 'One pass through all the workouts in your rotation = <b>one step</b> of the cycle. Finish the last workout and the app moves to the next step automatically.<br><br>A cycle can be any length. Four is common; three is plenty to start.<br><br>End a cycle on an <em>all-out</em> rotation and the app reads your best sets, updates your baseline, and computes the next cycle from the stronger numbers. That is where the progression actually comes from.',
+    guide_who_t: 'What should I pick?',
+    guide_who_b: '<b>First year lifting</b> — leave this off. Add weight when it feels easy.<br><br><b>One to three years</b> — "Simple: two efforts and a test". Three rotations, easy to follow, and you will feel the difference in the third one.<br><br><b>Experienced</b> — "Build up, back off, then test", and set it to apply only to your main lifts.<br><br><b>Coming back from a break or short on sleep</b> — use a cycle with a deload in it and do not skip that rotation.',
+    guide_safe_t: 'Going to failure — read this',
+    guide_safe_b: 'An <em>all-out</em> rotation is genuinely hard, and it is not free. Two things worth knowing:<br><br><b>Do not take everything to failure.</b> Pick your main lifts. Accessories give you almost nothing extra for the fatigue they cost.<br><br><b>Be careful with deadlifts.</b> Going to true failure on a heavy pull is where form breaks down under load, and it takes longer to recover from than anything else. Most coaches never program it. Leave it out unless you know exactly why you want it in.',
+    guide_foot: 'None of this is a rule. The app only ever suggests a weight — what you type is what gets saved.',
     schedule_rotations_label: 'Rotations',
     rotations_notice: 'Only the ticked rotation runs · Loops automatically',
     rotation_new: '+ New',
@@ -7807,6 +8515,82 @@ const STRINGS = {
     routines_empty_state_2: 'Toca + Nueva para crear una, o Explorar para agregar una de las nuestras.',
     routines_meta_exercises: 'ejercicios',
     routines_meta_sets: 'series',
+    prog_section_label: 'Avanzado',
+    prog_row_title: 'Progresión',
+    prog_row_off: 'Desactivada',
+    prog_row_of: 'Rotación {i} de {n}',
+    prog_title: 'Avanzado',
+    prog_guide_row: 'Cómo funciona',
+    prog_guide_row_sub: 'Lee esto primero — 2 minutos',
+    prog_guide_title: 'Guía',
+    prog_enable: 'Usar un ciclo de entrenamiento',
+    prog_enable_sub: 'Varía la exigencia entre rotaciones',
+    prog_presets_label: 'Empezar desde una plantilla',
+    prog_presets_note: 'Las plantillas solo completan el ciclo de abajo. Nada queda fijo: puedes cambiar cualquier paso antes o después.',
+    prog_preset_loaded: 'Plantilla cargada — edítala abajo',
+    prog_preset_alan: 'Subir, aflojar y luego medir',
+    prog_preset_alan_desc: 'Dos rotaciones más exigentes, una suave, y una rotación a tope que fija tu nueva base.',
+    prog_preset_ramp: 'Subida progresiva con semana de descarga',
+    prog_preset_ramp_desc: 'Acércate al fallo gradualmente durante tres rotaciones y después recupera.',
+    prog_preset_simple: 'Simple: dos esfuerzos y una medición',
+    prog_preset_simple_desc: 'El ciclo más corto que vale la pena. Buen punto de partida.',
+    prog_rotations_word: 'rotaciones',
+    prog_cycle_label: 'Tu ciclo',
+    prog_add_step: '+ Rotación',
+    prog_cycle_summary: 'Un ciclo son {n} rotaciones de {w} rutinas — {total} sesiones, y vuelve a empezar.',
+    prog_now: 'Ahora',
+    prog_step_title: 'Esfuerzo de la rotación {n}',
+    prog_eff_easy: 'Suave',
+    prog_eff_moderate: 'Moderado',
+    prog_eff_hard: 'Exigente',
+    prog_eff_max: 'Máximo',
+    prog_eff_deload: 'Descarga',
+    prog_eff_allout: 'A tope',
+    prog_sub_rir: 'Detente {n} repeticiones antes del fallo',
+    prog_sub_allout: 'Sin objetivo de repeticiones — busca tu máximo',
+    prog_sub_deload_plain: 'Recuperar: series más suaves',
+    prog_sub_sets: '{p}% de las series',
+    prog_sub_load: '−{p}% de peso',
+    prog_deload_sets: '% DE SERIES',
+    prog_deload_load: '% DE PESO',
+    prog_deload_note: 'Una descarga real reduce el volumen, no solo el esfuerzo. La mitad de las series es un buen valor por defecto.',
+    prog_applies_label: 'Alcance',
+    prog_applies_row: 'Se aplica a',
+    prog_applies_title: 'Se aplica a',
+    prog_applies_all: 'Todos los ejercicios',
+    prog_applies_count: 'ejercicios',
+    prog_applies_all_row: 'Todos los ejercicios',
+    prog_applies_all_sub: 'La opción más simple',
+    prog_applies_intro: 'La mayoría solo varía sus ejercicios principales y deja los accesorios igual. Elige cuáles debe manejar este ciclo, o déjalo en todos.',
+    prog_applies_empty: 'Primero agrega rutinas a esta rotación.',
+    prog_shownums: 'Mostrar los números',
+    prog_shownums_sub: 'Muestra el RIR en cada serie',
+    prog_reset_note: '¿Cambiaste de idea a mitad del ciclo?',
+    prog_reset_cycle: 'Reiniciar el ciclo',
+    prog_reset_done: 'Ciclo reiniciado',
+    prog_try: 'Prueba',
+    prog_allout_cue: 'Máximas repeticiones — hasta que no puedas más',
+    prog_reseed_title: 'Ciclo completo',
+    prog_reseed_intro: 'Terminaste tu rotación a tope. Esto es lo que cambió: revísalo antes de que armemos el próximo ciclo con estos números.',
+    prog_reseed_up: 'Nuevo récord',
+    prog_reseed_kept: 'Se mantiene',
+    prog_reseed_stall_note: 'Lo que no superaste se queda como estaba. Un número más bajo solo significa un día difícil, no un retroceso.',
+    prog_reseed_confirm: 'Confirmar y empezar el próximo ciclo',
+    prog_reseed_later: 'Decidir después',
+    prog_reseed_done: 'Bases actualizadas',
+    prog_reseed_none: 'Todavía no hay nada que actualizar — registra algunas sesiones primero.',
+    guide_intro: 'Un ciclo de entrenamiento significa simplemente no exigirte igual todas las semanas. Vas moderado, luego más fuerte, después aflojas, después te mides — y vuelves a empezar con mejores números.',
+    guide_what_t: '¿Necesito esto?',
+    guide_what_b: '<b>Si recién empiezas: no.</b> Durante los primeros seis meses o el primer año, simplemente sumar un poco de peso cuando una sesión se siente fácil funciona mejor que cualquier ciclo. Déjalo desactivado y entrena.<br><br><b>Si llevas un año o más</b> y los pesos dejaron de subir, esto suele ser lo que lo destraba. Exigirte al máximo todas las semanas deja de funcionar porque la fatiga se acumula más rápido que la forma física, y el ciclo te da dónde poner la recuperación.',
+    guide_rir_t: '¿Qué es el RIR?',
+    guide_rir_b: '<b>Repeticiones en reserva: cuántas más te quedaban.</b><br><br><em>RIR 2</em> significa que paraste con dos repeticiones de margen. <em>RIR 0</em> significa que no podías hacer ni una más.<br><br>Mide el esfuerzo, no el peso, y por eso funciona mejor que un número fijo: en un mal día RIR 2 es simplemente una barra más liviana, y aun así entrenas bien.<br><br>Referencia rápida: <b>RIR 3</b> cómodo, <b>RIR 2</b> trabajando, <b>RIR 1</b> exigente, <b>RIR 0</b> todo lo que tienes.',
+    guide_cycle_t: 'Cómo funciona un ciclo acá',
+    guide_cycle_b: 'Una vuelta completa a todas las rutinas de tu rotación = <b>un paso</b> del ciclo. Cuando terminas la última rutina, la app avanza sola al paso siguiente.<br><br>Un ciclo puede tener la cantidad de pasos que quieras. Cuatro es lo habitual; con tres alcanza para empezar.<br><br>Si terminas el ciclo con una rotación <em>a tope</em>, la app lee tus mejores series, actualiza tu base y calcula el ciclo siguiente con los números nuevos. De ahí sale la progresión.',
+    guide_who_t: '¿Qué elijo?',
+    guide_who_b: '<b>Primer año entrenando</b> — déjalo desactivado. Sube el peso cuando se sienta fácil.<br><br><b>De uno a tres años</b> — «Simple: dos esfuerzos y una medición». Tres rotaciones, fácil de seguir, y vas a notar la diferencia en la tercera.<br><br><b>Con experiencia</b> — «Subir, aflojar y luego medir», aplicándolo solo a tus ejercicios principales.<br><br><b>Volviendo de un parate o durmiendo poco</b> — usa un ciclo que incluya una descarga y no te saltees esa rotación.',
+    guide_safe_t: 'Llegar al fallo — lee esto',
+    guide_safe_b: 'Una rotación <em>a tope</em> es realmente exigente y tiene un costo. Dos cosas que conviene saber:<br><br><b>No lleves todo al fallo.</b> Elige tus ejercicios principales. Los accesorios casi no aportan nada extra para la fatiga que generan.<br><br><b>Cuidado con el peso muerto.</b> Llegar al fallo real en un tirón pesado es donde la técnica se rompe bajo carga, y es de lo que más cuesta recuperarse. La mayoría de los entrenadores nunca lo programa. Déjalo afuera salvo que sepas exactamente por qué lo quieres adentro.',
+    guide_foot: 'Nada de esto es una regla. La app solo sugiere un peso: lo que escribes es lo que se guarda.',
     schedule_rotations_label: 'Rotaciones',
     rotations_notice: 'Solo se ejecuta la rotación marcada · Se repite automáticamente',
     rotation_new: '+ Nueva',
