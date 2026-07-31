@@ -4365,8 +4365,17 @@ function delRoutine(id){
     danger:true,
     onOk:()=>{
       db.routines=db.routines.filter(r=>r.id!==id);
-      db.schedule=db.schedule.filter(i=>i!==id);
-      saveDB(); renderRoutines();
+      // Purge from EVERY rotation, not just the active one. Before rotations
+      // existed there was only one schedule and filtering db.schedule was the
+      // whole job; now an inactive rotation would keep a dangling id, render
+      // it as "(deleted)", and — worse — its NEXT could end up pointing at a
+      // different workout than before. purgeRoutineFromRotations() carries
+      // each rotation's NEXT across, then we re-link the active one.
+      purgeRoutineFromRotations(id);
+      const _rot=activeRotation();
+      if(_rot){ db.schedule=_rot.schedule; db.schedulePos=_rot.pos||0; }
+      else db.schedule=db.schedule.filter(i=>i!==id);
+      saveDB(); renderRoutines(); renderHome();
       syncOfflineVideoCache(); // deleted routine may have been the last one referencing some cached videos
     }
   });
@@ -4878,6 +4887,24 @@ function migrateRotations(){
   // Re-link identities so later mutation of db.schedule hits the rotation too.
   db.schedule = rot.schedule;
   db.schedulePos = rot.pos || 0;
+}
+// Remove a deleted routine from every rotation, keeping each one's NEXT on
+// the same WORKOUT rather than the same index — the same rule rmSched()
+// follows. Called from delRoutine(); the caller re-links db.schedule to the
+// active rotation afterwards, since this replaces the arrays.
+function purgeRoutineFromRotations(routineId){
+  (db.rotations||[]).forEach(rot=>{
+    const sch=rot.schedule||[];
+    if(sch.indexOf(routineId)===-1) return;
+    const curIdx = sch.length ? (rot.pos||0)%sch.length : -1;
+    const curId  = curIdx>=0 ? sch[curIdx] : null;
+    rot.schedule = sch.filter(i=>i!==routineId);
+    if(!rot.schedule.length){ rot.pos=0; return; }
+    // If the workout that was NEXT survived, follow it. If NEXT was the one
+    // deleted, the slot it vacated now holds whatever came after it.
+    const ni = (curId!==null && curId!==routineId) ? rot.schedule.indexOf(curId) : -1;
+    rot.pos = ni!==-1 ? ni : Math.min(Math.max(curIdx,0), rot.schedule.length-1);
+  });
 }
 function setActiveRotation(id){
   if(id===db.activeRotationId) return;
