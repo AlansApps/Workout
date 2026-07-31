@@ -381,18 +381,6 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .guide-bd em{color:var(--gold-ink,var(--gold));font-style:normal;font-weight:600;}
 .guide-foot{padding:18px;font-size:12px;color:var(--muted);line-height:1.6;}
 
-/* ── CYCLE-END RE-SEED ── */
-.reseed-row{display:flex;flex-direction:column;gap:6px;padding:13px 18px;border-bottom:1px solid var(--line);}
-.reseed-name{font-size:14px;font-weight:600;color:var(--text);}
-.reseed-nums{display:flex;align-items:center;gap:8px;font-size:13px;}
-.reseed-old{color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums;}
-.reseed-arrow{color:var(--muted);}
-.reseed-new{color:var(--gold-ink,var(--gold));font-weight:700;font-variant-numeric:tabular-nums;}
-.reseed-row.flat .reseed-old{text-decoration:none;}
-.reseed-row.flat .reseed-new{color:var(--dim);}
-.reseed-tag{margin-left:auto;font-size:8px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);}
-.reseed-row.up .reseed-tag{color:var(--ok);}
-
 /* ── ROTATIONS LIST ── one row per rotation, a tick marking the single
    active one. Built on the same panel/line tokens as .sched-row rather
    than a new visual language. */
@@ -1302,7 +1290,6 @@ input, select, textarea {
   #screen-progression .pg-header,
   #screen-prog-guide .pg-header,
   #screen-prog-applies .pg-header,
-  #screen-reseed .pg-header,
   .oprof-topbar {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
@@ -1805,11 +1792,6 @@ body.light-mode .auth-choice-title{color:#111;}
   <div id="prog-applies-body" class="list-scroll"></div>
 </div>
 
-<!-- ══ CYCLE END ══ confirm the new baselines -->
-<div id="screen-reseed" class="screen">
-  <div class="pg-header"><div class="pg-title" data-i18n="prog_reseed_title">Cycle complete</div></div>
-  <div id="reseed-body" class="list-scroll"></div>
-</div>
 
 <!-- ══ ANALYTICS ══ (was the Log screen's "Progress" tab — moved into
      Settings since Alan doesn't want PR/progress data visible to other
@@ -3251,7 +3233,7 @@ function importBackup() {
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
-const SCR=['home','workout','finish','routines','schedule','rotation-edit','progression','prog-guide','prog-applies','reseed','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
+const SCR=['home','workout','finish','routines','schedule','rotation-edit','progression','prog-guide','prog-applies','exercises','ex-detail','settings','profile','search','analytics','pr-visibility','language','plan','account','weight-prefs','other-profile','requests','trainer'];
 // Screens that show the floating nav (the top-level destinations). 'trainer'
 // is always in this list — the nav ITEM for it is what's conditionally
 // hidden (see updateTrainerNavVisibility()), not the screen/destination
@@ -3267,7 +3249,6 @@ function showScreen(id){
   if(id==='progression') renderProgression();
   if(id==='prog-guide') renderProgGuide();
   if(id==='prog-applies') renderProgApplies();
-  if(id==='reseed') renderReseed();
   if(id==='exercises') renderExercisesDB();
   // Settings only needs the Account ROW's sub-line now; the sections
   // themselves live on their own screens and render when opened.
@@ -4348,15 +4329,7 @@ async function updateNote(){
   }
 }
 
-// Leaving the finish screen is where a queued cycle-end re-seed surfaces.
-// It is deliberately NOT shown from advanceProgressionCycle() itself —
-// finishWorkout still has its own screen to display, and stacking two
-// takeovers on top of each other would be hostile. maybeShowReseed()
-// returns true when it took over, in which case we don't also go home.
-function goHome(){
-  if(typeof maybeShowReseed === 'function' && maybeShowReseed()) return;
-  showScreen('home');
-}
+function goHome(){ showScreen('home'); }
 
 // ═══════════════════════════════════════════
 //  ROUTINES
@@ -5107,125 +5080,25 @@ function trueWeightToRaw(exId, trueW){
   return (trueW-b)/a;
 }
 
-// ── Cycle advance + re-seed ──
+// ── Cycle advance ──
 // Called from finishWorkout the moment the rotation wraps to its first
 // workout. Advancing the cycle is what turns "6 workouts" into "one pass".
+//
+// That is the whole mechanism. There is deliberately no end-of-cycle
+// ceremony: no baseline snapshot, no confirmation step, no "new best"
+// screen. Targets are computed from db.allTimePRs as it stands at the
+// moment a session is built (see progressionTargetWeight), so a PR set on
+// ANY day — an RIR 1 pass, not just the all-out one — is what the next
+// session works from. The idea that a cycle "starts from a new max" is a
+// description of what usually happens, not a rule the code enforces.
 function advanceProgressionCycle(){
   const rot=activeRotation();
   if(!rot || !progressionOn(rot)) return;
   const p=rotationProgression(rot);
-  const finishedStep=p.cycle[p.cyclePos % p.cycle.length];
   p.cyclePos=(p.cyclePos+1)%p.cycle.length;
-  // Entering an all-out pass: photograph the baselines FIRST. finishWorkout()
-  // adopts a new PR the moment you hit it — which is right, you shouldn't have
-  // to wait a fortnight to see a lift you actually made — but it means that by
-  // the end of the rotation the stored PR IS the new number, and comparing it
-  // against itself made the cycle-end screen report "Kept" for everything even
-  // when you'd added 10kg. The snapshot is what lets it honestly say 117 → 123.
-  const nextStep=p.cycle[p.cyclePos];
-  if(nextStep && nextStep.type==='allout') snapshotProgressionBaseline(p);
   saveDB();
-  // Finishing an all-out pass is what re-seeds the baseline. Queued rather
-  // than shown immediately — finishWorkout still has a finish screen to
-  // display, and stacking two takeovers would be hostile.
-  // Persisted on the rotation, not in a module variable: the prompt appears
-  // when you LEAVE the finish screen, and closing the app in between (or a
-  // PWA reload) would otherwise drop it and you'd never be asked to confirm
-  // the cycle you just finished.
-  if(finishedStep && finishedStep.type==='allout'){ p.pendingReseed=true; saveDB(); }
 }
-// Estimated 1RM per applied lift, as it stood the moment the all-out pass
-// began. Read back by the cycle-end screen as the "before" column.
-function snapshotProgressionBaseline(p){
-  const ids = p.appliesTo.length ? p.appliesTo : Object.keys(db.allTimePRs||{});
-  const snap={};
-  ids.forEach(id=>{
-    if(isTimeTrackedEx(id)) return;
-    const pr=db.allTimePRs[id];
-    if(pr && pr.weight>0 && pr.reps>0) snap[id]=recordToOneRM(id,pr.weight,pr.reps);
-  });
-  p.baseline=snap;
-}
-function maybeShowReseed(){
-  const rot=activeRotation();
-  if(!rot || !progressionOn(rot)) return false;
-  const p=rotationProgression(rot);
-  if(!p.pendingReseed) return false;
-  openReseedScreen();
-  return true;
-}
-// Cleared only once the user has actually dealt with the screen — either by
-// confirming or by explicitly choosing "decide later" — so merely navigating
-// away doesn't silently lose the prompt.
-function dismissReseed(){
-  const rot=activeRotation();
-  if(rot && rot.progression){ rot.progression.pendingReseed=false; saveDB(); }
-  _reseedRows=[];
-  showScreen('home');
-}
-// One screen, once per cycle: every lift the progression applies to, its old
-// baseline and what the all-out pass produced. Nothing is adopted until it's
-// confirmed here — which is also the answer to "someone logged a PR wrong".
-function openReseedScreen(){
-  const rot=activeRotation(); if(!rot) return;
-  const p=rotationProgression(rot);
-  const ids=(p.appliesTo.length?p.appliesTo:Object.keys(db.allTimePRs||{}))
-              .filter(id=>!isTimeTrackedEx(id));
-  const rows=ids.map(id=>{
-    const pr=db.allTimePRs[id]; if(!pr||!(pr.weight>0)||!(pr.reps>0)) return null;
-    // "After" is simply the stored PR — finishWorkout already adopted it the
-    // day it was hit. "Before" is the snapshot taken when this pass started;
-    // without it the two would be the same number and every row would read
-    // "Kept" no matter how much you added.
-    const newRM=recordToOneRM(id, pr.weight, pr.reps);
-    const oldRM=(p.baseline && p.baseline[id]!==undefined) ? p.baseline[id] : newRM;
-    return { id, pr, oldRM, newRM, improved:newRM>oldRM+0.01 };
-  }).filter(Boolean);
-  _reseedRows=rows;
-  showScreen('reseed');
-}
-let _reseedRows=[];
-function renderReseed(){
-  const el=document.getElementById('reseed-body'); if(!el) return;
-  if(!_reseedRows.length){
-    el.innerHTML=`<div class="empty-state"><p>${t('prog_reseed_none')}</p></div>
-      <div style="padding:14px 18px;"><button class="btn-cta" onclick="dismissReseed()">${t('done')}</button></div>`;
-    return;
-  }
-  el.innerHTML=`
-    <div style="padding:0 18px 4px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_reseed_intro')}</div>
-    ${_reseedRows.map((r,i)=>{
-      const ex=db.exercises.find(e=>e.id===r.id);
-      // Tappable: this is the one screen where a mis-typed all-out set is
-      // obvious, so it's the right place to reach the PR correction modal.
-      return `<div class="reseed-row ${r.improved?'up':'flat'}" onclick="openPRCorrectModal('${r.id}')">
-        <div class="reseed-name">${escapeHtml(ex?exerciseDisplayName(ex):r.id)}</div>
-        <div class="reseed-nums">
-          <span class="reseed-old">${Math.round(toDisplayWeight(r.oldRM))}${unitLabel()}</span>
-          <span class="reseed-arrow">→</span>
-          <span class="reseed-new">${Math.round(toDisplayWeight(r.newRM))}${unitLabel()}</span>
-          <span class="reseed-tag">${r.improved?t('prog_reseed_up'):t('prog_reseed_kept')}</span>
-        </div>
-      </div>`;
-    }).join('')}
-    <div style="padding:14px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;">${t('prog_reseed_stall_note')}</div>
-    <div style="padding:14px 18px 0;"><button class="btn-cta" onclick="confirmReseed()">${t('prog_reseed_confirm')}</button></div>
-    <div style="padding:10px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="dismissReseed()">${t('prog_reseed_later')}</button></div>`;
-}
-function confirmReseed(){
-  // Only ever upward. A lower all-out result means a bad day, not a weaker
-  // lifter — adopting it would quietly drop every target next cycle, which
-  // is the one behaviour that could de-train someone. Alan confirmed this.
-  // Nothing to write: every improvement was already adopted by finishWorkout
-  // on the day it happened. This screen's job is to SHOW you what the pass
-  // changed and give you one place to correct a bad entry before the next
-  // cycle computes off it — which is exactly what Alan asked for. Confirming
-  // just closes the loop and drops the snapshot.
-  const rot=activeRotation();
-  if(rot && rot.progression){ rot.progression.pendingReseed=false; delete rot.progression.baseline; }
-  saveDB(); _reseedRows=[];
-  showToast(t('prog_reseed_done')); showScreen('home');
-}
+
 
 // ── Rotations list (Program tab) ──
 function renderRotations(){
@@ -8176,7 +8049,7 @@ const STRINGS = {
     prog_presets_note: 'Templates just fill in the cycle below. Nothing is locked — change any step before or after.',
     prog_preset_loaded: 'Template loaded — edit it below',
     prog_preset_alan: 'Build up, back off, then test',
-    prog_preset_alan_desc: 'Two harder rotations, an easy one, then an all-out rotation that sets your new baseline.',
+    prog_preset_alan_desc: 'Two harder rotations, an easy one, then an all-out rotation.',
     prog_preset_ramp: 'Steady build with a rest week',
     prog_preset_ramp_desc: 'Get gradually closer to failure across three rotations, then recover.',
     prog_preset_simple: 'Simple: two efforts and a test',
@@ -8221,15 +8094,6 @@ const STRINGS = {
     prog_reset_done: 'Cycle restarted',
     prog_try: 'Try',
     prog_allout_cue: 'Max reps — go until you cannot',
-    prog_reseed_title: 'Cycle complete',
-    prog_reseed_intro: 'Your all-out rotation is done. Here is what it changed — check it before we build the next cycle on these numbers.',
-    prog_reseed_up: 'New best',
-    prog_reseed_kept: 'Kept',
-    prog_reseed_stall_note: 'Anything you did not beat stays where it was. A lower number just means a hard day, not a step backwards.',
-    prog_reseed_confirm: 'Confirm and start next cycle',
-    prog_reseed_later: 'Decide later',
-    prog_reseed_done: 'Baselines updated',
-    prog_reseed_none: 'Nothing to update yet — log a few sessions first.',
     guide_intro: 'A training cycle just means not pushing equally hard every week. You go moderately hard, then harder, then take it easy, then test yourself — and repeat with better numbers.',
     guide_what_t: 'Do I need this?',
     guide_what_b: '<b>If you are new: no.</b> For your first six months to a year, simply adding a little weight whenever a session feels easy will out-perform any cycle. Leave this off and train.<br><br><b>If you have been lifting a year or more</b> and the weights have stopped moving, this is what usually fixes it. Pushing hard every single week stops working because fatigue builds faster than fitness — the cycle gives you somewhere to put the recovery.',
@@ -8707,7 +8571,7 @@ const STRINGS = {
     prog_presets_note: 'Las plantillas solo completan el ciclo de abajo. Nada queda fijo: puedes cambiar cualquier paso antes o después.',
     prog_preset_loaded: 'Plantilla cargada — edítala abajo',
     prog_preset_alan: 'Subir, aflojar y luego medir',
-    prog_preset_alan_desc: 'Dos rotaciones más exigentes, una suave, y una rotación a tope que fija tu nueva base.',
+    prog_preset_alan_desc: 'Dos rotaciones más exigentes, una suave, y una rotación a tope.',
     prog_preset_ramp: 'Subida progresiva con semana de descarga',
     prog_preset_ramp_desc: 'Acércate al fallo gradualmente durante tres rotaciones y después recupera.',
     prog_preset_simple: 'Simple: dos esfuerzos y una medición',
@@ -8752,15 +8616,6 @@ const STRINGS = {
     prog_reset_done: 'Ciclo reiniciado',
     prog_try: 'Prueba',
     prog_allout_cue: 'Máximas repeticiones — hasta que no puedas más',
-    prog_reseed_title: 'Ciclo completo',
-    prog_reseed_intro: 'Terminaste tu rotación a tope. Esto es lo que cambió: revísalo antes de que armemos el próximo ciclo con estos números.',
-    prog_reseed_up: 'Nuevo récord',
-    prog_reseed_kept: 'Se mantiene',
-    prog_reseed_stall_note: 'Lo que no superaste se queda como estaba. Un número más bajo solo significa un día difícil, no un retroceso.',
-    prog_reseed_confirm: 'Confirmar y empezar el próximo ciclo',
-    prog_reseed_later: 'Decidir después',
-    prog_reseed_done: 'Bases actualizadas',
-    prog_reseed_none: 'Todavía no hay nada que actualizar — registra algunas sesiones primero.',
     guide_intro: 'Un ciclo de entrenamiento significa simplemente no exigirte igual todas las semanas. Vas moderado, luego más fuerte, después aflojas, después te mides — y vuelves a empezar con mejores números.',
     guide_what_t: '¿Necesito esto?',
     guide_what_b: '<b>Si recién empiezas: no.</b> Durante los primeros seis meses o el primer año, simplemente sumar un poco de peso cuando una sesión se siente fácil funciona mejor que cualquier ciclo. Déjalo desactivado y entrena.<br><br><b>Si llevas un año o más</b> y los pesos dejaron de subir, esto suele ser lo que lo destraba. Exigirte al máximo todas las semanas deja de funcionar porque la fatiga se acumula más rápido que la forma física, y el ciclo te da dónde poner la recuperación.',
