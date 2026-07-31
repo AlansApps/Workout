@@ -278,12 +278,31 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 
 /* ── PROGRESSION ── effort chips carry a WORD and a NUMBER together, which
    is the whole novice/expert story: read whichever half you understand. */
+/* Effort is encoded as INTENSITY of the user's own accent, not as four
+   separate hues. The first attempt used --ok / --gold / --danger, which
+   broke on 5 of the 8 accent presets — including Navy, the default for a
+   new account, where the "Deload" blue and the accent were the same colour.
+   Worse, .c-hard literally WAS var(--gold), so on a Red or Emerald theme
+   the effort scale collapsed.
+
+   A single-hue ramp can't collide with anything, works on every preset, and
+   stays readable for a colour-blind user because the signal is density and
+   not hue. --gold-ink is used for text per the light-mode legibility rule:
+   raw accent as ink is under 3:1 on light backgrounds for every preset. */
 .chip{display:inline-block;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;
   padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap;}
-.c-easy{color:var(--info,#5b8dd6);border-color:color-mix(in srgb,var(--info,#5b8dd6) 45%,transparent);background:color-mix(in srgb,var(--info,#5b8dd6) 10%,transparent);}
-.c-mod{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 10%,transparent);}
-.c-hard{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 10%,transparent);}
-.c-max{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent);background:color-mix(in srgb,var(--danger) 10%,transparent);}
+/* Deload — quietest: neutral, no accent at all. It is a rest step. */
+.c-easy{color:var(--dim);border-color:var(--line2);background:none;}
+/* Moderate — accent present but faint. */
+.c-mod{color:var(--gold-ink,var(--gold));border-color:color-mix(in srgb,var(--gold) 32%,transparent);
+  background:color-mix(in srgb,var(--gold) 7%,transparent);}
+/* Hard — accent at full strength. */
+.c-hard{color:var(--gold-ink,var(--gold));border-color:var(--gold);
+  background:color-mix(in srgb,var(--gold) 14%,transparent);}
+/* All-out — inverted: solid accent, knocked-out text. The loudest thing the
+   palette can say without introducing a second colour. */
+.c-max{color:var(--void);border-color:var(--gold);background:var(--gold);}
+.light-mode .c-max{color:#fff;}
 
 .prog-presets{display:flex;flex-direction:column;gap:8px;padding:0 18px;}
 .prog-preset{text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:6px;
@@ -293,13 +312,17 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .pp-desc{font-size:12px;color:var(--dim);line-height:1.45;}
 .pp-steps{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;
   display:flex;align-items:center;gap:5px;margin-top:3px;}
-.pp-dot{width:7px;height:7px;border-radius:50%;border:1px solid;display:inline-block;}
-.pp-dot.c-easy{background:var(--info,#5b8dd6);border-color:var(--info,#5b8dd6);}
-.pp-dot.c-mod{background:var(--ok);border-color:var(--ok);}
-.pp-dot.c-hard{background:var(--gold);border-color:var(--gold);}
-.pp-dot.c-max{background:var(--danger);border-color:var(--danger);}
+/* Preset preview: little bars, not dots. Height carries the same shape
+   language as the real chart, so the preview is informative rather than
+   four indistinguishable circles — which is also what makes it legible to
+   a colour-blind user, since intensity alone was doing all the work. */
+.pp-dot{width:5px;border-radius:1px;border:1px solid;display:inline-block;vertical-align:bottom;}
+.pp-dot.c-easy{height:5px;background:none;border-color:var(--line2);}
+.pp-dot.c-mod{height:9px;background:color-mix(in srgb,var(--gold) 26%,transparent);border-color:color-mix(in srgb,var(--gold) 55%,transparent);}
+.pp-dot.c-hard{height:13px;background:color-mix(in srgb,var(--gold) 55%,transparent);border-color:var(--gold);}
+.pp-dot.c-max{height:16px;background:var(--gold);border-color:var(--gold);}
 .prog-hint{padding:10px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;}
-.prog-linkbtn{background:none;border:none;color:var(--gold);font-family:var(--body);font-size:12px;
+.prog-linkbtn{background:none;border:none;color:var(--gold-ink,var(--gold));font-family:var(--body);font-size:12px;
   font-weight:700;cursor:pointer;padding:0;text-decoration:underline;}
 
 /* Cycle chart — bar height is proximity to failure, so the block's shape
@@ -311,12 +334,13 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .bwb{width:100%;border-radius:4px 4px 0 0;border:1px solid;transition:box-shadow .2s,filter .15s;}
 .bw:active .bwb{filter:brightness(1.25);}
 .bwb.cur{box-shadow:0 0 14px var(--glow-color,rgba(212,168,67,.5));}
-.bwb.c-mod{background:color-mix(in srgb,var(--ok) 55%,transparent);border-color:var(--ok);}
-.bwb.c-hard{background:color-mix(in srgb,var(--gold) 60%,transparent);border-color:var(--gold);}
-.bwb.c-easy{background:color-mix(in srgb,var(--info,#5b8dd6) 45%,transparent);border-color:var(--info,#5b8dd6);}
-.bwb.c-max{background:color-mix(in srgb,var(--danger) 60%,transparent);border-color:var(--danger);}
+/* Same single-hue ramp as the chips: ghost → faint → strong → solid. */
+.bwb.c-easy{background:none;border-color:var(--line2);border-style:dashed;}
+.bwb.c-mod{background:color-mix(in srgb,var(--gold) 26%,transparent);border-color:color-mix(in srgb,var(--gold) 55%,transparent);}
+.bwb.c-hard{background:color-mix(in srgb,var(--gold) 55%,transparent);border-color:var(--gold);}
+.bwb.c-max{background:var(--gold);border-color:var(--gold);}
 .bwn{font-size:10px;color:var(--dim);font-weight:700;line-height:1;}
-.bwn.cur{color:var(--gold);}
+.bwn.cur{color:var(--gold-ink,var(--gold));}
 .bwl{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .bw.add .bwplus{width:100%;height:34px;border:1px dashed var(--line2);border-radius:4px;display:flex;
@@ -340,7 +364,7 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 
 /* one line under an exercise while progression is driving it */
 .ex-prog-line{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;}
-.ex-prog-target{font-size:11px;color:var(--gold);letter-spacing:.4px;font-weight:600;}
+.ex-prog-target{font-size:11px;color:var(--gold-ink,var(--gold));letter-spacing:.4px;font-weight:600;}
 
 /* ── GUIDE ── opens as a contents list; you expand only what you need */
 .guide-intro{padding:2px 18px 14px;font-size:14px;color:var(--soft);line-height:1.6;}
@@ -354,7 +378,7 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .guide-bd{display:none;padding:0 18px 18px 52px;font-size:13.5px;color:var(--soft);line-height:1.65;}
 .guide-sec.open .guide-bd{display:block;}
 .guide-bd b{color:var(--bright);font-weight:700;}
-.guide-bd em{color:var(--gold2);font-style:normal;font-weight:600;}
+.guide-bd em{color:var(--gold-ink,var(--gold));font-style:normal;font-weight:600;}
 .guide-foot{padding:18px;font-size:12px;color:var(--muted);line-height:1.6;}
 
 /* ── CYCLE-END RE-SEED ── */
@@ -363,7 +387,7 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .reseed-nums{display:flex;align-items:center;gap:8px;font-size:13px;}
 .reseed-old{color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums;}
 .reseed-arrow{color:var(--muted);}
-.reseed-new{color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums;}
+.reseed-new{color:var(--gold-ink,var(--gold));font-weight:700;font-variant-numeric:tabular-nums;}
 .reseed-row.flat .reseed-old{text-decoration:none;}
 .reseed-row.flat .reseed-new{color:var(--dim);}
 .reseed-tag{margin-left:auto;font-size:8px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);}
@@ -1271,6 +1295,14 @@ input, select, textarea {
      here when it was built; Trainer shipped later and was never added, which
      is why its title sat noticeably higher than every other screen's. */
   #screen-trainer .pg-header,
+  /* Same again for the rotations/progression screens: each opens with a bare
+     .pg-header and no .back-row, so without being listed here their titles
+     would sit under the notch exactly the way Trainer's did. */
+  #screen-rotation-edit .pg-header,
+  #screen-progression .pg-header,
+  #screen-prog-guide .pg-header,
+  #screen-prog-applies .pg-header,
+  #screen-reseed .pg-header,
   .oprof-topbar {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
@@ -3494,8 +3526,9 @@ function renderWoScreen(){
       // effort word always shows; the target weight only when there is one
       // (all-out has none) and the RIR/% detail only in expert mode.
       const pStep=item.progStep;
+      const _showRir = (()=>{ const r=activeRotation(); return !!(r && r.progression && r.progression.showNumbers); })();
       const progHtml = pStep ? `<div class="ex-prog-line">
-          <span class="chip ${stepClass(pStep)}">${stepLabel(pStep)}</span>
+          <span class="chip ${stepClass(pStep)}">${stepLabel(pStep,_showRir)}</span>
           ${item.progTarget!==null && item.progTarget!==undefined
               ? `<span class="ex-prog-target">${t('prog_try')} ${toDisplayWeight(item.progTarget)}${unitLabel()}</span>`
               : (pStep.type==='allout' ? `<span class="ex-prog-target">${t('prog_allout_cue')}</span>` : '')}
@@ -4315,7 +4348,15 @@ async function updateNote(){
   }
 }
 
-function goHome(){ showScreen('home'); }
+// Leaving the finish screen is where a queued cycle-end re-seed surfaces.
+// It is deliberately NOT shown from advanceProgressionCycle() itself —
+// finishWorkout still has its own screen to display, and stacking two
+// takeovers on top of each other would be hostile. maybeShowReseed()
+// returns true when it took over, in which case we don't also go home.
+function goHome(){
+  if(typeof maybeShowReseed === 'function' && maybeShowReseed()) return;
+  showScreen('home');
+}
 
 // ═══════════════════════════════════════════
 //  ROUTINES
@@ -5000,12 +5041,18 @@ function progressionAppliesTo(exId){
 }
 // Short label + the number, always together: the novice reads the word, the
 // experienced lifter reads the RIR. Same string serves both.
-function stepLabel(step){
+// `showRir` controls whether the numeric half is appended. The settings and
+// cycle screens always pass true — that is where you are configuring the
+// thing and the number is the point. The workout screen passes the
+// rotation's showNumbers preference, which is what makes the expert toggle
+// mean something instead of being a switch that does nothing.
+function stepLabel(step, showRir){
   if(!step) return '';
+  const rir = (showRir===false) ? '' : ' · RIR '+step.rir;
   if(step.type==='allout') return t('prog_eff_allout');
-  if(step.type==='deload')  return t('prog_eff_deload')+' · RIR '+step.rir;
+  if(step.type==='deload')  return t('prog_eff_deload')+rir;
   const names={0:'prog_eff_max',1:'prog_eff_hard',2:'prog_eff_moderate',3:'prog_eff_easy'};
-  return t(names[step.rir]||'prog_eff_moderate')+' · RIR '+step.rir;
+  return t(names[step.rir]||'prog_eff_moderate')+rir;
 }
 function stepClass(step){
   if(!step) return '';
@@ -5073,14 +5120,28 @@ function advanceProgressionCycle(){
   // Finishing an all-out pass is what re-seeds the baseline. Queued rather
   // than shown immediately — finishWorkout still has a finish screen to
   // display, and stacking two takeovers would be hostile.
-  if(finishedStep && finishedStep.type==='allout') _pendingReseed=true;
+  // Persisted on the rotation, not in a module variable: the prompt appears
+  // when you LEAVE the finish screen, and closing the app in between (or a
+  // PWA reload) would otherwise drop it and you'd never be asked to confirm
+  // the cycle you just finished.
+  if(finishedStep && finishedStep.type==='allout'){ p.pendingReseed=true; saveDB(); }
 }
-let _pendingReseed=false;
 function maybeShowReseed(){
-  if(!_pendingReseed) return false;
-  _pendingReseed=false;
+  const rot=activeRotation();
+  if(!rot || !progressionOn(rot)) return false;
+  const p=rotationProgression(rot);
+  if(!p.pendingReseed) return false;
   openReseedScreen();
   return true;
+}
+// Cleared only once the user has actually dealt with the screen — either by
+// confirming or by explicitly choosing "decide later" — so merely navigating
+// away doesn't silently lose the prompt.
+function dismissReseed(){
+  const rot=activeRotation();
+  if(rot && rot.progression){ rot.progression.pendingReseed=false; saveDB(); }
+  _reseedRows=[];
+  showScreen('home');
 }
 // One screen, once per cycle: every lift the progression applies to, its old
 // baseline and what the all-out pass produced. Nothing is adopted until it's
@@ -5106,7 +5167,7 @@ function renderReseed(){
   const el=document.getElementById('reseed-body'); if(!el) return;
   if(!_reseedRows.length){
     el.innerHTML=`<div class="empty-state"><p>${t('prog_reseed_none')}</p></div>
-      <div style="padding:14px 18px;"><button class="btn-cta" onclick="showScreen('home')">${t('done')}</button></div>`;
+      <div style="padding:14px 18px;"><button class="btn-cta" onclick="dismissReseed()">${t('done')}</button></div>`;
     return;
   }
   el.innerHTML=`
@@ -5125,7 +5186,7 @@ function renderReseed(){
     }).join('')}
     <div style="padding:14px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;">${t('prog_reseed_stall_note')}</div>
     <div style="padding:14px 18px 0;"><button class="btn-cta" onclick="confirmReseed()">${t('prog_reseed_confirm')}</button></div>
-    <div style="padding:10px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="showScreen('home')">${t('prog_reseed_later')}</button></div>`;
+    <div style="padding:10px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="dismissReseed()">${t('prog_reseed_later')}</button></div>`;
 }
 function confirmReseed(){
   // Only ever upward. A lower all-out result means a bad day, not a weaker
@@ -5134,6 +5195,8 @@ function confirmReseed(){
   _reseedRows.forEach(r=>{
     if(r.improved) db.allTimePRs[r.id]={weight:r.best.rawWeight, reps:r.best.reps, date:r.best.date};
   });
+  const rot=activeRotation();
+  if(rot && rot.progression) rot.progression.pendingReseed=false;
   saveDB(); _reseedRows=[];
   showToast(t('prog_reseed_done')); showScreen('home');
 }
@@ -5331,7 +5394,7 @@ function renderProgression(){
         </div>
       </div>
       <div class="prog-hint" style="text-align:center;">
-        <span style="color:var(--gold);font-weight:700;">${stepLabel(p.cycle[p.cyclePos])}</span><br>
+        <span style="color:var(--gold-ink,var(--gold));font-weight:700;">${stepLabel(p.cycle[p.cyclePos])}</span><br>
         ${t('prog_row_of').replace('{i}',p.cyclePos+1).replace('{n}',total)} ·
         ${t('prog_cycle_summary').replace('{n}',total).replace('{w}',wk).replace('{total}',total*wk)}
       </div>
@@ -5430,10 +5493,15 @@ function resetCyclePos(){
 }
 // One editor for every step type. Effort is a single choice; the deload
 // extras only appear once Deload is selected, so the screen stays short.
-function editCycleStep(i){
+let _stepDraft=null;
+function editCycleStep(i, keepDraft){
   const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
   const p=rotationProgression(rot);
-  const s=p.cycle[i]; if(!s) return;
+  if(!keepDraft){
+    if(!p.cycle[i]) return;
+    _stepDraft=JSON.parse(JSON.stringify(p.cycle[i]));   // fresh draft on open
+  }
+  const s=_stepDraft; if(!s) return;
   const opts=[
     {type:'rir',rir:3},{type:'rir',rir:2},{type:'rir',rir:1},
     {type:'deload',rir:3,setPct:50,loadPct:90},{type:'allout'}
@@ -5465,28 +5533,32 @@ function editCycleStep(i){
   window._progStepOpts=opts;
   document.getElementById('modal-overlay').classList.add('active');
 }
+// Tapping an option edits a DRAFT, not the live cycle. Previously it wrote
+// straight into p.cycle[i], so Cancel didn't cancel — the change stayed in
+// memory and got persisted by the next saveDB() from anywhere in the app,
+// while the chart behind still showed the old bar. A sheet with Save and
+// Cancel has to mean it.
 function pickCycleStep(i,oi){
   const o=window._progStepOpts[oi];
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  // Keep any deload numbers the user already tuned rather than resetting
-  // them every time they tap the same row.
-  const prev=p.cycle[i];
-  p.cycle[i]= o.type==='deload'
+  if(!_stepDraft) return;
+  // Keep any deload numbers already tuned rather than resetting them every
+  // time the same row is tapped.
+  const prev=_stepDraft;
+  _stepDraft = o.type==='deload'
     ? {type:'deload', rir:o.rir, setPct:(prev.setPct||o.setPct), loadPct:(prev.loadPct||o.loadPct)}
     : JSON.parse(JSON.stringify(o));
-  editCycleStep(i);   // re-render so selection + deload fields update
+  editCycleStep(i, true);   // re-render from the draft, don't reset it
 }
 function saveCycleStep(i){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot || !_stepDraft) return;
   const p=rotationProgression(rot);
-  const s=p.cycle[i];
-  if(s && s.type==='deload'){
+  if(_stepDraft.type==='deload'){
     const sp=parseInt(document.getElementById('dl-sets').value);
     const lp=parseInt(document.getElementById('dl-load').value);
-    if(sp>=10&&sp<=100) s.setPct=sp;
-    if(lp>=50&&lp<=100) s.loadPct=lp;
+    if(sp>=10&&sp<=100) _stepDraft.setPct=sp;
+    if(lp>=50&&lp<=100) _stepDraft.loadPct=lp;
   }
+  p.cycle[i]=_stepDraft; _stepDraft=null;
   saveDB(); closeModal(); renderProgression();
 }
 
@@ -8068,9 +8140,9 @@ const STRINGS = {
     prog_row_title: 'Progression',
     prog_row_off: 'Off',
     prog_row_of: 'Rotation {i} of {n}',
-    prog_title: 'Advanced',
+    prog_title: 'Progression',
     prog_guide_row: 'How this works',
-    prog_guide_row_sub: 'Read this first — 2 minutes',
+    prog_guide_row_sub: 'RIR, cycles, and when to use them',
     prog_guide_title: 'Guide',
     prog_enable: 'Use a training cycle',
     prog_enable_sub: 'Vary how hard you push across rotations',
@@ -8087,7 +8159,7 @@ const STRINGS = {
     prog_cycle_label: 'Your cycle',
     prog_add_step: '+ Rotation',
     prog_add_short: 'Add',
-    prog_remove_step: 'Remove this rotation',
+    prog_remove_step: 'Remove from cycle',
     prog_short_max: 'Max',
     prog_short_deload: 'Deload',
     prog_cycle_summary: 'A cycle is {n} rotations of {w} workouts — {total} sessions, then it repeats.',
@@ -8599,9 +8671,9 @@ const STRINGS = {
     prog_row_title: 'Progresión',
     prog_row_off: 'Desactivada',
     prog_row_of: 'Rotación {i} de {n}',
-    prog_title: 'Avanzado',
+    prog_title: 'Progresión',
     prog_guide_row: 'Cómo funciona',
-    prog_guide_row_sub: 'Lee esto primero — 2 minutos',
+    prog_guide_row_sub: 'RIR, ciclos y cuándo usarlos',
     prog_guide_title: 'Guía',
     prog_enable: 'Usar un ciclo de entrenamiento',
     prog_enable_sub: 'Varía la exigencia entre rotaciones',
@@ -8618,7 +8690,7 @@ const STRINGS = {
     prog_cycle_label: 'Tu ciclo',
     prog_add_step: '+ Rotación',
     prog_add_short: 'Agregar',
-    prog_remove_step: 'Eliminar esta rotación',
+    prog_remove_step: 'Quitar del ciclo',
     prog_short_max: 'Máx',
     prog_short_deload: 'Descarga',
     prog_cycle_summary: 'Un ciclo son {n} rotaciones de {w} rutinas — {total} sesiones, y vuelve a empezar.',
