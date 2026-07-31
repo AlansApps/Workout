@@ -5116,6 +5116,14 @@ function advanceProgressionCycle(){
   const p=rotationProgression(rot);
   const finishedStep=p.cycle[p.cyclePos % p.cycle.length];
   p.cyclePos=(p.cyclePos+1)%p.cycle.length;
+  // Entering an all-out pass: photograph the baselines FIRST. finishWorkout()
+  // adopts a new PR the moment you hit it — which is right, you shouldn't have
+  // to wait a fortnight to see a lift you actually made — but it means that by
+  // the end of the rotation the stored PR IS the new number, and comparing it
+  // against itself made the cycle-end screen report "Kept" for everything even
+  // when you'd added 10kg. The snapshot is what lets it honestly say 117 → 123.
+  const nextStep=p.cycle[p.cyclePos];
+  if(nextStep && nextStep.type==='allout') snapshotProgressionBaseline(p);
   saveDB();
   // Finishing an all-out pass is what re-seeds the baseline. Queued rather
   // than shown immediately — finishWorkout still has a finish screen to
@@ -5125,6 +5133,18 @@ function advanceProgressionCycle(){
   // PWA reload) would otherwise drop it and you'd never be asked to confirm
   // the cycle you just finished.
   if(finishedStep && finishedStep.type==='allout'){ p.pendingReseed=true; saveDB(); }
+}
+// Estimated 1RM per applied lift, as it stood the moment the all-out pass
+// began. Read back by the cycle-end screen as the "before" column.
+function snapshotProgressionBaseline(p){
+  const ids = p.appliesTo.length ? p.appliesTo : Object.keys(db.allTimePRs||{});
+  const snap={};
+  ids.forEach(id=>{
+    if(isTimeTrackedEx(id)) return;
+    const pr=db.allTimePRs[id];
+    if(pr && pr.weight>0 && pr.reps>0) snap[id]=recordToOneRM(id,pr.weight,pr.reps);
+  });
+  p.baseline=snap;
 }
 function maybeShowReseed(){
   const rot=activeRotation();
@@ -5152,12 +5172,14 @@ function openReseedScreen(){
   const ids=(p.appliesTo.length?p.appliesTo:Object.keys(db.allTimePRs||{}))
               .filter(id=>!isTimeTrackedEx(id));
   const rows=ids.map(id=>{
-    const pr=db.allTimePRs[id]; if(!pr||!(pr.weight>0)) return null;
-    const best=bestSetForExercise(db.workoutLog||[], id);
-    if(!best || best.needsBodyweight) return null;
-    const oldRM=recordToOneRM(id, pr.weight, pr.reps);
-    const newRM=recordToOneRM(id, best.rawWeight, best.reps);
-    return { id, pr, best, oldRM, newRM, improved:newRM>oldRM+0.01 };
+    const pr=db.allTimePRs[id]; if(!pr||!(pr.weight>0)||!(pr.reps>0)) return null;
+    // "After" is simply the stored PR — finishWorkout already adopted it the
+    // day it was hit. "Before" is the snapshot taken when this pass started;
+    // without it the two would be the same number and every row would read
+    // "Kept" no matter how much you added.
+    const newRM=recordToOneRM(id, pr.weight, pr.reps);
+    const oldRM=(p.baseline && p.baseline[id]!==undefined) ? p.baseline[id] : newRM;
+    return { id, pr, oldRM, newRM, improved:newRM>oldRM+0.01 };
   }).filter(Boolean);
   _reseedRows=rows;
   showScreen('reseed');
@@ -5174,12 +5196,14 @@ function renderReseed(){
     <div style="padding:0 18px 4px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_reseed_intro')}</div>
     ${_reseedRows.map((r,i)=>{
       const ex=db.exercises.find(e=>e.id===r.id);
-      return `<div class="reseed-row ${r.improved?'up':'flat'}">
+      // Tappable: this is the one screen where a mis-typed all-out set is
+      // obvious, so it's the right place to reach the PR correction modal.
+      return `<div class="reseed-row ${r.improved?'up':'flat'}" onclick="openPRCorrectModal('${r.id}')">
         <div class="reseed-name">${escapeHtml(ex?exerciseDisplayName(ex):r.id)}</div>
         <div class="reseed-nums">
           <span class="reseed-old">${Math.round(toDisplayWeight(r.oldRM))}${unitLabel()}</span>
           <span class="reseed-arrow">→</span>
-          <span class="reseed-new">${Math.round(toDisplayWeight(r.improved?r.newRM:r.oldRM))}${unitLabel()}</span>
+          <span class="reseed-new">${Math.round(toDisplayWeight(r.newRM))}${unitLabel()}</span>
           <span class="reseed-tag">${r.improved?t('prog_reseed_up'):t('prog_reseed_kept')}</span>
         </div>
       </div>`;
@@ -5192,11 +5216,13 @@ function confirmReseed(){
   // Only ever upward. A lower all-out result means a bad day, not a weaker
   // lifter — adopting it would quietly drop every target next cycle, which
   // is the one behaviour that could de-train someone. Alan confirmed this.
-  _reseedRows.forEach(r=>{
-    if(r.improved) db.allTimePRs[r.id]={weight:r.best.rawWeight, reps:r.best.reps, date:r.best.date};
-  });
+  // Nothing to write: every improvement was already adopted by finishWorkout
+  // on the day it happened. This screen's job is to SHOW you what the pass
+  // changed and give you one place to correct a bad entry before the next
+  // cycle computes off it — which is exactly what Alan asked for. Confirming
+  // just closes the loop and drops the snapshot.
   const rot=activeRotation();
-  if(rot && rot.progression) rot.progression.pendingReseed=false;
+  if(rot && rot.progression){ rot.progression.pendingReseed=false; delete rot.progression.baseline; }
   saveDB(); _reseedRows=[];
   showToast(t('prog_reseed_done')); showScreen('home');
 }
