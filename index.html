@@ -266,6 +266,16 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 #rest-overlay{display:flex;position:fixed;inset:0;background:transparent;z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:translateY(100%);transition:transform .42s cubic-bezier(.16,1,.3,1);will-change:transform;overflow:hidden;pointer-events:none;}
 #rest-overlay.active::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.008) 3px,rgba(255,255,255,.008) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.004) 3px,rgba(255,255,255,.004) 4px);pointer-events:none;}
 #rest-overlay.active{transform:translateY(0)!important;pointer-events:all;background:var(--overlay-bg-heavy);}
+/* The all-time PR line doubles as the way in to correcting it — see
+   openPRCorrectModal(). It carries the number every progression target will
+   be computed from, so a mistyped set has to be fixable from where the
+   number is shown, not buried in Settings. */
+.exd-pr-line{margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;
+  cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.exd-pr-edit{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);
+  border:1px solid var(--line2);border-radius:999px;padding:2px 8px;margin-left:auto;transition:.15s;}
+.exd-pr-line:hover .exd-pr-edit{border-color:var(--gold3);color:var(--gold);}
+
 /* ── ROTATIONS LIST ── one row per rotation, a tick marking the single
    active one. Built on the same panel/line tokens as .sched-row rather
    than a new visual language. */
@@ -2918,6 +2928,84 @@ function loadDB() {
 // so just calling it again is simpler than tracking staleness. Time-tracked
 // exercises are untouched — their allTimePRs entry was always reps(=
 // seconds)-based, nothing to fix there.
+// ── PR CORRECTION ────────────────────────────────────────────────────────
+// allTimePRs holds the single number every progression target will be
+// computed from, so one mistyped set (200 instead of 100) would poison every
+// suggested weight for that lift. Two ways out, both reached from the PR line
+// on Exercise Detail where the number is actually shown:
+//
+//   Edit       — retype weight × reps. For when the bad value is ONLY in the
+//                PR record and the session log is fine.
+//   Recalculate — rebuild from db.workoutLog via bestSetForExercise(), the
+//                same scan migratePRsToV2() uses. For when the PR drifted
+//                from the sessions, or after deleting a bad session.
+//
+// Both are destructive to a stored record, so both confirm. Values are stored
+// RAW (as typed), matching workoutLog/lastWeights — normalization happens on
+// read via getTrueWeight()/recordToOneRM(), and writing a normalized number
+// here would double-apply it.
+function openPRCorrectModal(exId){
+  const pr=db.allTimePRs[exId];
+  if(!pr) return;
+  const timed=isTimeTrackedEx(exId);
+  const ex=db.exercises.find(e=>e.id===exId);
+  document.getElementById('modal-title').textContent=t('pr_fix_title');
+  document.getElementById('modal-body').innerHTML=`
+    <div style="font-size:12px;color:var(--dim);margin-bottom:14px;letter-spacing:.3px;">
+      ${escapeHtml(ex?exerciseDisplayName(ex):exId)}
+    </div>
+    ${timed
+      ? `<div class="form-grp"><label class="form-lbl">${t('pr_fix_seconds')}</label>
+           <input class="form-inp" id="prfix-reps" type="number" inputmode="numeric" value="${pr.reps||0}"></div>`
+      : `<div style="display:flex;gap:10px;">
+           <div class="form-grp" style="flex:1;"><label class="form-lbl">${unitLabel().toUpperCase()}</label>
+             <input class="form-inp" id="prfix-w" type="text" inputmode="decimal" value="${pr.weight?toDisplayWeight(pr.weight):''}"></div>
+           <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('builder_col_reps')}</label>
+             <input class="form-inp" id="prfix-reps" type="number" inputmode="numeric" value="${pr.reps||0}"></div>
+         </div>`}
+    <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-top:4px;">${t('pr_fix_note')}</div>
+    <button class="btn-ghost" style="width:100%;margin-top:16px;" onclick="recalcPRFromHistory('${exId}')">${t('pr_fix_recalc')}</button>
+    <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-top:8px;">${t('pr_fix_recalc_note')}</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="savePRCorrection('${exId}')">${t('save')}</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function savePRCorrection(exId){
+  const timed=isTimeTrackedEx(exId);
+  const reps=parseInt(document.getElementById('prfix-reps').value)||0;
+  const rawW=timed?0:fromDisplayUnit(parseKg(document.getElementById('prfix-w').value));
+  if(reps<=0 || (!timed && !(rawW>0))){ showToast(t('pr_fix_invalid')); return; }
+  closeModal();
+  showConfirm({
+    title:t('pr_fix_confirm_title'), message:t('pr_fix_confirm_msg'),
+    okLabel:t('save'), danger:true,
+    onOk:()=>{
+      // Date is left alone: this corrects WHAT was lifted, not when.
+      db.allTimePRs[exId]={weight:rawW, reps, date:db.allTimePRs[exId].date||Date.now()};
+      saveDB(); renderExDetail(exId); showToast(t('pr_fix_saved'));
+    }
+  });
+}
+function recalcPRFromHistory(exId){
+  closeModal();
+  showConfirm({
+    title:t('pr_fix_recalc_title'), message:t('pr_fix_recalc_msg'),
+    okLabel:t('pr_fix_recalc_ok'), danger:true,
+    onOk:()=>{
+      const best=bestSetForExercise(db.workoutLog||[],exId);
+      if(!best || best.needsBodyweight){
+        // Nothing derivable — either no logged sessions, or a bodyweight-
+        // assisted lift with no body weight on file. Leave the record alone
+        // rather than writing a wrong or empty one.
+        showToast(t('pr_fix_recalc_none')); return;
+      }
+      db.allTimePRs[exId]={weight:best.rawWeight, reps:best.reps, date:best.date};
+      saveDB(); renderExDetail(exId); showToast(t('pr_fix_saved'));
+    }
+  });
+}
+
 function migratePRsToV2(){
   if(!db.workoutLog || !db.workoutLog.length) return;
   const exIds=new Set();
@@ -6558,7 +6646,7 @@ function renderExDetail(exId){
               </div>
             </div>`
         )}
-        ${pr?`<div style="margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;">${ICON_PR} ${t('exd_alltime_pr')}: ${timed?fmtDuration(pr.reps)+' '+t('ex_db_held_suffix'):fmtPRWeight(pr,exId)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`:''}
+        ${pr?`<div class="exd-pr-line" onclick="openPRCorrectModal('${exId}')" title="${escapeHtml(t('pr_fix_open'))}">${ICON_PR} ${t('exd_alltime_pr')}: ${timed?fmtDuration(pr.reps)+' '+t('ex_db_held_suffix'):fmtPRWeight(pr,exId)} &mdash; ${new Date(pr.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}<span class="exd-pr-edit">${t('pr_fix_edit')}</span></div>`:''}
       </div>
     </div>
 
@@ -7498,6 +7586,21 @@ const STRINGS = {
     exd_prefill_note: 'This is what will pre-fill next time you do this exercise.',
     exd_duration_label: 'DURATION',
     exd_alltime_pr: 'All-time PR',
+    pr_fix_open: 'Correct this record',
+    pr_fix_edit: 'Fix',
+    pr_fix_title: 'Correct Record',
+    pr_fix_seconds: 'Seconds held',
+    pr_fix_note: 'Your estimated 1RM is calculated from this set, so a mistyped weight here affects every estimate for this lift.',
+    pr_fix_recalc: 'Recalculate from my sessions',
+    pr_fix_recalc_note: 'Rebuilds the record from your logged workouts. Use this if the record no longer matches what you actually lifted.',
+    pr_fix_invalid: 'Enter a weight and reps.',
+    pr_fix_confirm_title: 'Replace Record?',
+    pr_fix_confirm_msg: 'This overwrites your stored personal record for this exercise.',
+    pr_fix_saved: 'Record updated',
+    pr_fix_recalc_title: 'Recalculate Record?',
+    pr_fix_recalc_msg: 'This replaces the stored record with the best set found in your logged sessions.',
+    pr_fix_recalc_ok: 'Recalculate',
+    pr_fix_recalc_none: 'No logged sessions to rebuild from.',
     exd_video_demonstration_suffix: 'demonstration',
     analytics_no_exercises_logged: 'No exercises logged yet',
     analytics_no_workouts_logged: 'No workouts logged yet',
@@ -7934,6 +8037,21 @@ const STRINGS = {
     exd_prefill_note: 'Esto es lo que se precargará la próxima vez que hagas este ejercicio.',
     exd_duration_label: 'DURACIÓN',
     exd_alltime_pr: 'Récord histórico',
+    pr_fix_open: 'Corregir este récord',
+    pr_fix_edit: 'Corregir',
+    pr_fix_title: 'Corregir Récord',
+    pr_fix_seconds: 'Segundos sostenidos',
+    pr_fix_note: 'Tu 1RM estimado se calcula a partir de esta serie, así que un peso mal escrito acá afecta todas las estimaciones de este ejercicio.',
+    pr_fix_recalc: 'Recalcular desde mis sesiones',
+    pr_fix_recalc_note: 'Reconstruye el récord a partir de tus entrenamientos registrados. Úsalo si el récord ya no coincide con lo que realmente levantaste.',
+    pr_fix_invalid: 'Ingresa un peso y repeticiones.',
+    pr_fix_confirm_title: '¿Reemplazar Récord?',
+    pr_fix_confirm_msg: 'Esto sobrescribe tu récord personal guardado para este ejercicio.',
+    pr_fix_saved: 'Récord actualizado',
+    pr_fix_recalc_title: '¿Recalcular Récord?',
+    pr_fix_recalc_msg: 'Esto reemplaza el récord guardado por la mejor serie encontrada en tus sesiones registradas.',
+    pr_fix_recalc_ok: 'Recalcular',
+    pr_fix_recalc_none: 'No hay sesiones registradas para reconstruirlo.',
     exd_video_demonstration_suffix: 'demostración',
     analytics_no_exercises_logged: 'Todavía no hay ejercicios registrados',
     analytics_no_workouts_logged: 'Todavía no hay rutinas registradas',
