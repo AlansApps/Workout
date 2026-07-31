@@ -302,6 +302,27 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .prog-linkbtn{background:none;border:none;color:var(--gold);font-family:var(--body);font-size:12px;
   font-weight:700;cursor:pointer;padding:0;text-decoration:underline;}
 
+/* Cycle chart — bar height is proximity to failure, so the block's shape
+   (build, back off, peak) reads without parsing any text. Tapping a bar
+   opens the step editor. */
+.bigwave{display:flex;gap:8px;align-items:flex-end;padding:14px 18px 0;}
+.bw{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.bwb{width:100%;border-radius:4px 4px 0 0;border:1px solid;transition:box-shadow .2s,filter .15s;}
+.bw:active .bwb{filter:brightness(1.25);}
+.bwb.cur{box-shadow:0 0 14px var(--glow-color,rgba(212,168,67,.5));}
+.bwb.c-mod{background:color-mix(in srgb,var(--ok) 55%,transparent);border-color:var(--ok);}
+.bwb.c-hard{background:color-mix(in srgb,var(--gold) 60%,transparent);border-color:var(--gold);}
+.bwb.c-easy{background:color-mix(in srgb,var(--info,#5b8dd6) 45%,transparent);border-color:var(--info,#5b8dd6);}
+.bwb.c-max{background:color-mix(in srgb,var(--danger) 60%,transparent);border-color:var(--danger);}
+.bwn{font-size:10px;color:var(--dim);font-weight:700;line-height:1;}
+.bwn.cur{color:var(--gold);}
+.bwl{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.bw.add .bwplus{width:100%;height:34px;border:1px dashed var(--line2);border-radius:4px;display:flex;
+  align-items:center;justify-content:center;color:var(--muted);font-size:17px;line-height:1;}
+.bw.add:active .bwplus{border-color:var(--gold3);color:var(--gold);}
+
 .cyc-row{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--line);}
 .cyc-row.now{background:color-mix(in srgb,var(--gold) 5%,transparent);}
 .cyc-num{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1px solid var(--line2);
@@ -5263,22 +5284,30 @@ function renderProgression(){
       </div>
       <div class="prog-hint">${t('prog_presets_note')}</div>
 
-      <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:18px 18px 6px;">
-        <span>${t('prog_cycle_label')}</span>
-        <button class="btn-new" onclick="addCycleStep()">${t('prog_add_step')}</button>
+      <!-- The cycle as a bar chart rather than a list: the SHAPE of the block
+           is the thing you want to read here — build, back off, peak — and a
+           row of chips makes you reconstruct it line by line. Bar height is
+           proximity to failure, so harder is taller. Tapping a bar opens the
+           same step editor the list rows used; removing a step lives in that
+           editor rather than as an X on every bar, which would clutter the
+           chart and be easy to hit by accident. -->
+      <div class="settings-section-label" style="padding:18px 18px 4px;">${t('prog_cycle_label')}</div>
+      <div class="bigwave">
+        ${p.cycle.map((s,i)=>`
+          <div class="bw" onclick="editCycleStep(${i})" title="${escapeHtml(stepLabel(s)+' — '+cycleStepSub(s))}">
+            <div class="bwb ${stepClass(s)} ${i===p.cyclePos?'cur':''}" style="height:${stepBarHeight(s)}px"></div>
+            <div class="bwn ${i===p.cyclePos?'cur':''}">${i+1}</div>
+            <div class="bwl">${stepShortLabel(s)}</div>
+          </div>`).join('')}
+        <div class="bw add" onclick="addCycleStep()" title="${escapeHtml(t('prog_add_step'))}">
+          <div class="bwplus">+</div><div class="bwn">&nbsp;</div><div class="bwl">${t('prog_add_short')}</div>
+        </div>
       </div>
-      ${p.cycle.map((s,i)=>`
-        <div class="cyc-row ${i===p.cyclePos?'now':''}">
-          <span class="cyc-num">${i+1}</span>
-          <div class="cyc-main" onclick="editCycleStep(${i})">
-            <span class="chip ${stepClass(s)}">${stepLabel(s)}</span>
-            <div class="cyc-sub">${cycleStepSub(s)}</div>
-          </div>
-          ${i===p.cyclePos?`<span class="cyc-badge">${t('prog_now')}</span>`:''}
-          ${p.cycle.length>1?`<button class="btn-ico del" onclick="removeCycleStep(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`:''}
-        </div>`).join('')}
-      <div class="prog-hint">${t('prog_cycle_summary')
-          .replace('{n}',total).replace('{w}',wk).replace('{total}',total*wk)}</div>
+      <div class="prog-hint" style="text-align:center;">
+        <span style="color:var(--gold);font-weight:700;">${stepLabel(p.cycle[p.cyclePos])}</span><br>
+        ${t('prog_row_of').replace('{i}',p.cyclePos+1).replace('{n}',total)} ·
+        ${t('prog_cycle_summary').replace('{n}',total).replace('{w}',wk).replace('{total}',total*wk)}
+      </div>
 
       <div class="settings-section-label" style="padding:18px 18px 6px;">${t('prog_applies_label')}</div>
       <div class="settings-group">
@@ -5302,6 +5331,24 @@ function renderProgression(){
       <div class="prog-hint" style="padding-bottom:24px;">${t('prog_reset_note')}
         <button class="prog-linkbtn" onclick="resetCyclePos()">${t('prog_reset_cycle')}</button></div>
     </div>`;
+}
+// Bar height encodes proximity to failure — harder is taller — so the chart
+// reads as the shape of the block at a glance. Deliberately not linear in
+// RIR: a deload should look obviously different from "RIR 3 as written",
+// because it also cuts sets.
+function stepBarHeight(s){
+  if(!s) return 40;
+  if(s.type==='allout') return 92;
+  if(s.type==='deload')  return 28;
+  return {0:88,1:72,2:54,3:40}[s.rir] || 54;
+}
+// Two or three characters — the bar is narrow and the full label lives in
+// the chip under the chart and in the step editor.
+function stepShortLabel(s){
+  if(!s) return '';
+  if(s.type==='allout') return t('prog_short_max');
+  if(s.type==='deload') return t('prog_short_deload');
+  return 'RIR '+s.rir;
 }
 function cycleStepSub(s){
   if(s.type==='allout') return t('prog_sub_allout');
@@ -5347,7 +5394,7 @@ function removeCycleStep(i){
   if(p.cycle.length<=1) return;
   p.cycle.splice(i,1);
   if(p.cyclePos>=p.cycle.length) p.cyclePos=0;
-  saveDB(); renderProgression();
+  saveDB(); closeModal(); renderProgression();
 }
 function resetCyclePos(){
   const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
@@ -5382,7 +5429,9 @@ function editCycleStep(i){
           <input class="form-inp" id="dl-load" type="number" min="50" max="100" value="${s.loadPct||90}"></div>
       </div>
       <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('prog_deload_note')}</div>
-    </div>`;
+    </div>
+    ${p.cycle.length>1?`<button class="btn-ghost" style="width:100%;margin-top:18px;border-color:var(--danger);color:var(--danger);"
+        onclick="removeCycleStep(${i})">${t('prog_remove_step')}</button>`:''}`;
   document.getElementById('modal-footer').innerHTML=`
     <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
     <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveCycleStep(${i})">${t('save')}</button>`;
@@ -8010,6 +8059,10 @@ const STRINGS = {
     prog_rotations_word: 'rotations',
     prog_cycle_label: 'Your cycle',
     prog_add_step: '+ Rotation',
+    prog_add_short: 'Add',
+    prog_remove_step: 'Remove this rotation',
+    prog_short_max: 'Max',
+    prog_short_deload: 'Deload',
     prog_cycle_summary: 'A cycle is {n} rotations of {w} workouts — {total} sessions, then it repeats.',
     prog_now: 'Now',
     prog_step_title: 'Rotation {n} effort',
@@ -8537,6 +8590,10 @@ const STRINGS = {
     prog_rotations_word: 'rotaciones',
     prog_cycle_label: 'Tu ciclo',
     prog_add_step: '+ Rotación',
+    prog_add_short: 'Agregar',
+    prog_remove_step: 'Eliminar esta rotación',
+    prog_short_max: 'Máx',
+    prog_short_deload: 'Descarga',
     prog_cycle_summary: 'Un ciclo son {n} rotaciones de {w} rutinas — {total} sesiones, y vuelve a empezar.',
     prog_now: 'Ahora',
     prog_step_title: 'Esfuerzo de la rotación {n}',
