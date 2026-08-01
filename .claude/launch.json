@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["-y", "http-server", "-p", "8080", "-c-1"],
       "port": 8080
+    },
+    {
+      "name": "scratchpad-server",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "http-server", "C:\\Users\\alana\\AppData\\Local\\Temp\\claude\\C--Users-alana-OneDrive---albrecht-es-Desktop-WORK-EXECUTIVE-SEARCH--08-AI--08-WORKOUT-CLAUDE-WORKOUT\\53de336f-69ca-47d6-ae2e-cb8419b0f452\\scratchpad", "-p", "8081", "-c-1"],
+      "port": 8081
     }
   ]
 }
