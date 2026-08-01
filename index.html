@@ -85,6 +85,15 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .hero-arrow{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:20px;opacity:.6;}
 
 .last-card{background:var(--panel);border:1px solid var(--line);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;}
+/* External trainer notes, shown to the STUDENT — the one surface outside
+   the Trainer tab this feature needs. Same rounded-card + left glow
+   language as .hero-card so it reads as "the app told you this", not a
+   different visual system for a different feature. */
+.coach-note-banner{background:var(--panel);border:1px solid var(--line2);border-radius:16px;position:relative;overflow:hidden;padding:14px 16px 14px 20px;margin-top:10px;}
+.coach-note-banner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold2),var(--gold3));box-shadow:0 0 10px var(--gold);}
+.coach-note-eyebrow{font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:6px;}
+body.light-mode .coach-note-eyebrow{color:var(--gold-ink);}
+.coach-note-body{font-size:12.5px;color:var(--soft);line-height:1.5;white-space:pre-wrap;}
 .lc-label{font-size:8px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;font-weight:600;}
 .lc-val{font-size:12px;color:#cccccc;font-weight:500;letter-spacing:1px;}
 
@@ -386,8 +395,16 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 /* ── ROTATIONS LIST ── one row per rotation, a tick marking the single
    active one. Built on the same panel/line tokens as .sched-row rather
    than a new visual language. */
-.rot-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);}
+.rot-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);position:relative;}
 .rot-row.active{background:color-mix(in srgb,var(--gold) 5%,transparent);}
+/* Same glowing left edge as .hero-card's active-rotation cue on Home — this
+   list is where that rotation actually gets chosen, so it gets the same
+   "this one's live" mark rather than a plain flat accent. Scoped to the
+   Rotations list only: .rot-row is reused on the Applies-to screen (below)
+   where "active" means "checked", not "the live rotation". */
+#schedule-list .rot-row.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold2),var(--gold3));
+  box-shadow:0 0 12px var(--gold),0 0 24px var(--glow-color, rgba(212,168,67,.3));}
 .rot-check{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--line2);
   background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:.15s;}
 .rot-check.on{border-color:var(--gold);background:var(--gold);}
@@ -661,15 +678,34 @@ select.form-inp option{background:var(--panel);}
 /* ── Trainer roster + student detail ── */
 .trainer-header-row{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 10px;}
 .trainer-header-title{font-size:8px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;font-weight:700;}
-.trainer-roster-list{padding:0 12px;}
-.trainer-roster-row{display:flex;align-items:center;gap:12px;padding:13px 8px;border-radius:12px;cursor:pointer;transition:background .15s;}
-.trainer-roster-row:hover{background:var(--surface);}
-.trainer-roster-avatar{width:38px;height:38px;border-radius:50%;background:var(--lift);border:1px solid var(--line2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--hd);font-size:14px;font-weight:700;color:var(--dim);}
-.trainer-roster-name{font-size:13px;font-weight:600;color:var(--text);}
-.trainer-roster-status{font-size:10.5px;color:var(--gold);margin-top:2px;}
-body.light-mode .trainer-roster-status{color:var(--gold-ink);}
-.trainer-roster-status.expired{color:var(--muted);}
-.trainer-roster-arrow{color:var(--muted);font-size:18px;flex-shrink:0;}
+/* 2-col grid of rounded cards, same corner language as .hero-card, per
+   Alan's explicit call: "como los corners del boton de next session...
+   o tipo en program, leg day1 push day2" — the app's existing rounded
+   card idiom, not a new visual language. */
+.trainer-roster-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:2px 16px 18px;}
+.trainer-roster-card{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:16px 10px 12px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;cursor:pointer;transition:border-color .15s;}
+.trainer-roster-card:hover{border-color:var(--muted);}
+.trainer-card-badge{width:52px;height:52px;border-radius:50%;background:var(--lift);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.trainer-card-badge svg{width:28px;height:28px;}
+.trainer-card-name{font-size:12.5px;font-weight:700;color:var(--text);line-height:1.25;}
+.trainer-card-handle{font-size:10.5px;color:var(--muted);}
+.trainer-card-status{font-size:9px;letter-spacing:.3px;color:var(--gold);text-transform:uppercase;font-weight:700;}
+body.light-mode .trainer-card-status{color:var(--gold-ink);}
+.trainer-card-status.expired{color:var(--muted);}
+/* Student detail — same rounded card language for the 4 action tiles. */
+.trainer-tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:2px 16px 18px;}
+.trainer-tile{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:18px 15px;min-height:104px;
+  display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:border-color .15s;}
+.trainer-tile:hover{border-color:var(--muted);}
+.trainer-tile-ico{color:var(--gold);width:22px;height:22px;}
+.trainer-tile-ico svg{width:100%;height:100%;}
+.trainer-tile-label{font-size:13px;font-weight:700;color:var(--bright);margin-top:10px;}
+.trainer-tile-sub{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.trainer-tile-new{position:absolute;top:10px;right:10px;font-size:8px;letter-spacing:.4px;color:var(--void);background:var(--gold);
+  padding:2px 6px;font-weight:700;text-transform:uppercase;border-radius:999px;}
+body.light-mode .trainer-tile-new{color:#000;}
 .trainer-detail-hd{display:flex;align-items:center;gap:12px;padding:4px 16px 8px;}
 .trainer-detail-name{font-size:15px;font-weight:700;color:var(--bright);}
 .trainer-detail-handle{font-size:11px;color:var(--dim);margin-top:1px;}
@@ -681,6 +717,13 @@ body.light-mode .trainer-roster-status{color:var(--gold-ink);}
 .trainer-log-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--text);}
 .trainer-log-row:last-child{border-bottom:none;}
 .trainer-log-date{color:var(--muted);}
+.trainer-note-list{padding:0 16px;}
+.trainer-note-row{padding:10px 0;border-bottom:1px solid var(--line);}
+.trainer-note-row:last-child{border-bottom:none;}
+.trainer-note-body{font-size:12.5px;color:var(--text);line-height:1.5;white-space:pre-wrap;}
+.trainer-note-meta{font-size:10px;color:var(--muted);margin-top:4px;}
+.trainer-note-meta.external{color:var(--gold);}
+body.light-mode .trainer-note-meta.external{color:var(--gold-ink);}
 .empty-state p{font-size:11px;letter-spacing:2px;line-height:2;font-weight:500;text-transform:uppercase;}
 .notice{font-size:8px;color:var(--muted);letter-spacing:3px;text-align:center;padding:10px;border-top:1px solid var(--line);margin-top:auto;text-transform:uppercase;font-weight:600;}
 /* .notice's margin-top:auto exists to pin it to the bottom of a full SCREEN
@@ -1706,6 +1749,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <div><div class="lc-label" data-i18n="lc_last_session">Last Session</div><div id="last-name" class="lc-val">—</div></div>
       <div style="text-align:right"><div class="lc-label" data-i18n="lc_date">Date</div><div id="last-date" class="lc-val">—</div></div>
     </div>
+    <div id="coach-note-banner" style="display:none;"></div>
   </div>
 
   <button id="btn-cta" class="btn-cta" onclick="openWorkoutPicker()" disabled data-i18n="btn_start_workout">Start workout</button>
@@ -3437,7 +3481,43 @@ function renderHome(){
     document.getElementById('last-date').textContent=new Date(last.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   } else { lc.style.display='none'; }
 
+  renderCoachNoteBanner();
+}
 
+// Fire-and-forget, same pattern as the rest of Home's account-only extras
+// (streak/tier): guests and offline sessions simply never populate this,
+// no error state needed. Shows the single most recent EXTERNAL trainer
+// note that actually applies to the current context — general notes
+// always qualify, a rotation-scoped one only while that rotation is
+// active, a routine-scoped one only while that specific routine is next
+// up. No read/dismiss tracking in this first pass — deliberately, to
+// match the "not fancy" scope the rest of the notes feature was built to.
+async function renderCoachNoteBanner(){
+  const el=document.getElementById('coach-note-banner');
+  if(!el) return;
+  if(!currentUser){ el.style.display='none'; return; }
+  try{
+    const { data:connections } = await supabaseClient.from('trainer_connections')
+      .select('id').eq('student_id', currentUser.id).eq('status','active').gt('expires_at', new Date().toISOString());
+    const connIds=(connections||[]).map(c=>c.id);
+    if(!connIds.length){ el.style.display='none'; return; }
+    const { data:notes } = await supabaseClient.from('trainer_notes')
+      .select('scope, scope_ref, body, created_at')
+      .in('connection_id', connIds).eq('visibility','external')
+      .order('created_at', {ascending:false}).limit(20);
+    const nextRoutine=getNextRoutine();
+    const match=(notes||[]).find(n=>{
+      if(n.scope==='general') return true;
+      if(n.scope==='rotation') return n.scope_ref===db.activeRotationId;
+      if(n.scope==='workout') return !!nextRoutine && n.scope_ref===nextRoutine.id;
+      return false;
+    });
+    if(!match){ el.style.display='none'; return; }
+    el.innerHTML=`<div class="coach-note-eyebrow">${t('coach_note_eyebrow')}</div><div class="coach-note-body">${escapeHtml(match.body)}</div>`;
+    el.style.display='block';
+  }catch(e){
+    el.style.display='none';
+  }
 }
 
 function getNextRoutine(){
@@ -6109,116 +6189,661 @@ async function renderTrainerScreen(){
     .eq('trainer_id', currentUser.id)
     .order('connected_at', {ascending:false});
   if(error){ el.innerHTML=`<div class="empty-state"><p>${t('trainer_roster_load_error')}</p></div>`; return; }
-  el.innerHTML=buildTrainerRosterHtml(data||[]);
+  const connections=data||[];
+  // Same tier-icon convention every other list row in the app already uses
+  // (Search, Interactions, the Followers/Following popup) — the auto
+  // session-count tier, not whatever insignia the student happens to have
+  // equipped on their own profile. Consistency with those, not a one-off.
+  const tierIcons=await getTierIconsForUsers(connections.map(c=>c.student&&c.student.id).filter(Boolean));
+  el.innerHTML=buildTrainerRosterHtml(connections, tierIcons);
 }
 
-// First-letter fallback rather than a blank circle — no per-student photo
-// or insignia data is fetched for the roster list, so this is deliberately
-// the same lightweight treatment, not a partial version of the full
-// tiered-badge avatar used elsewhere (profile headers, search results).
-function trainerAvatarInitial(name){
-  return escapeHtml((name||'?').trim().charAt(0).toUpperCase() || '?');
-}
-
-function buildTrainerRosterHtml(connections){
-  const rows=connections.map(c=>{
+function buildTrainerRosterHtml(connections, tierIcons){
+  const cards=connections.map(c=>{
     const expired = c.status!=='active' || new Date(c.expires_at)<new Date();
     const displayName=(c.student&&(c.student.full_name||c.student.username))||'—';
     const name=escapeHtml(displayName);
+    const handle=c.student&&c.student.username ? '@'+escapeHtml(c.student.username) : '';
     const statusLabel = expired ? t('trainer_access_expired') : (t('trainer_active_until')+' '+new Date(c.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
-    return `<div class="trainer-roster-row" onclick="openTrainerStudentDetail('${c.id}')">
-      <div class="trainer-roster-avatar">${trainerAvatarInitial(displayName)}</div>
-      <div style="flex:1;min-width:0;">
-        <div class="trainer-roster-name">${name}</div>
-        <div class="trainer-roster-status ${expired?'expired':''}">${statusLabel}</div>
-      </div>
-      <span class="trainer-roster-arrow">›</span>
+    const icon=(c.student && tierIcons[c.student.id]) || untieredIconHtml();
+    return `<div class="trainer-roster-card" onclick="openTrainerStudentDetail('${c.id}')">
+      <div class="trainer-card-badge">${icon}</div>
+      <div class="trainer-card-name">${name}</div>
+      ${handle?`<div class="trainer-card-handle">${handle}</div>`:''}
+      <div class="trainer-card-status ${expired?'expired':''}">${statusLabel}</div>
     </div>`;
   }).join('');
   return `
     <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_your_students')}</div><button class="btn-new" onclick="addTrainerStudent()">+ ${t('trainer_add_student')}</button></div>
-    ${connections.length ? `<div class="trainer-roster-list">${rows}</div>` : `<div class="empty-state"><p>${t('trainer_no_students_1')}<br>${t('trainer_no_students_2')}</p></div>`}
+    ${connections.length ? `<div class="trainer-roster-grid">${cards}</div>` : `<div class="empty-state"><p>${t('trainer_no_students_1')}<br>${t('trainer_no_students_2')}</p></div>`}
   `;
 }
 
-function openTrainerStudentDetail(connectionId){ _trainerDetailConnectionId=connectionId; renderTrainerScreen(); }
-function closeTrainerStudentDetail(){ _trainerDetailConnectionId=null; renderTrainerScreen(); }
+// _trainerDetailTile: which of the 4 action tiles is open inside the
+// current student's detail — 'menu' shows the tile grid itself.
+// _trainerDetailConnection caches the loaded connection+student+tier icon
+// so switching between tiles (menu -> program -> menu -> live) doesn't
+// re-fetch the same profile row every time; cleared whenever a DIFFERENT
+// student is opened or the detail is closed.
+let _trainerDetailTile='menu';
+let _trainerDetailConnection=null;
+
+function openTrainerStudentDetail(connectionId){
+  if(!_trainerDetailConnection || _trainerDetailConnection.id!==connectionId){
+    _trainerDetailConnection=null;
+    _trainerProgramData=null; // different student — don't leak the previous one's cached program
+    _trainerProgramRotationId=null;
+    _trainerProgramRoutineId=null;
+    window._trainerRoutineDraftFor=null;
+    _trainerLiveRoutineId=null;
+    _trainerLiveDraft=null;
+    _trainerLiveDraftFor=null;
+  }
+  _trainerDetailConnectionId=connectionId;
+  _trainerDetailTile='menu';
+  renderTrainerScreen();
+}
+function closeTrainerStudentDetail(){
+  _trainerDetailConnectionId=null;
+  _trainerDetailConnection=null;
+  _trainerProgramData=null;
+  _trainerProgramRotationId=null;
+  _trainerProgramRoutineId=null;
+  window._trainerRoutineDraftFor=null;
+  _trainerLiveRoutineId=null;
+  _trainerLiveDraft=null;
+  _trainerLiveDraftFor=null;
+  _trainerDetailTile='menu';
+  renderTrainerScreen();
+}
+function openTrainerTile(tile){ _trainerDetailTile=tile; renderTrainerScreen(); }
+function closeTrainerTile(){
+  _trainerDetailTile='menu';
+  _trainerProgramRotationId=null;
+  _trainerProgramRoutineId=null;
+  renderTrainerScreen();
+}
 
 async function renderTrainerStudentDetail(connectionId){
   const el=document.getElementById('trainer-body');
-  el.innerHTML=`<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
-  const { data:connection } = await supabaseClient
-    .from('trainer_connections')
-    .select('id, status, expires_at, student:profiles!trainer_connections_student_id_fkey(id, username, full_name)')
-    .eq('id', connectionId).maybeSingle();
-  if(!connection){ el.innerHTML=`<div class="empty-state"><p>${t('trainer_connection_gone')}</p></div>`; return; }
-  const [{data:assignments}, logEntries] = await Promise.all([
-    supabaseClient.from('trainer_assignments').select('id, routine_name, exercises, assigned_at').eq('connection_id', connectionId).order('assigned_at',{ascending:false}),
-    fetchUserWorkoutLog(connection.student.id),
-  ]);
-  el.innerHTML=buildTrainerStudentDetailHtml(connection, assignments||[], logEntries||[]);
+  if(!_trainerDetailConnection){
+    el.innerHTML=`<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
+    const { data:connection } = await supabaseClient
+      .from('trainer_connections')
+      .select('id, status, expires_at, student:profiles!trainer_connections_student_id_fkey(id, username, full_name)')
+      .eq('id', connectionId).maybeSingle();
+    if(!connection){ el.innerHTML=`<div class="empty-state"><p>${t('trainer_connection_gone')}</p></div>`; return; }
+    const tierIcons=await getTierIconsForUsers([connection.student.id]);
+    connection.tierIcon=tierIcons[connection.student.id]||untieredIconHtml();
+    _trainerDetailConnection=connection;
+  }
+  const connection=_trainerDetailConnection;
+  if(_trainerDetailTile==='program') return renderTrainerProgramTile(el, connection);
+  if(_trainerDetailTile==='live') return renderTrainerLiveTile(el, connection);
+  if(_trainerDetailTile==='notes') return renderTrainerNotesTile(el, connection);
+  if(_trainerDetailTile==='history') return renderTrainerHistoryTile(el, connection);
+  el.innerHTML=buildTrainerStudentMenuHtml(connection);
 }
 
-function buildTrainerStudentDetailHtml(connection, assignments, logEntries){
+function buildTrainerStudentHeaderHtml(connection){
   const displayName=(connection.student&&(connection.student.full_name||connection.student.username))||'—';
   const name=escapeHtml(displayName);
   const handle=connection.student&&connection.student.username ? '@'+escapeHtml(connection.student.username) : '';
   const expired = connection.status!=='active' || new Date(connection.expires_at)<new Date();
   const statusLine = expired ? t('trainer_access_expired') : (t('trainer_active_until')+' '+new Date(connection.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}));
-  const assignmentsHtml = assignments.length ? assignments.map(a=>`
-    <div class="trainer-assign-row">
-      <div class="trainer-assign-name">${escapeHtml(a.routine_name)}</div>
-      <div class="trainer-assign-meta">${a.exercises.length} ${a.exercises.length===1?t('builder_exercise_singular').toLowerCase():t('routines_meta_exercises')} · ${t('trainer_assigned_on')} ${new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
-    </div>`).join('') : `<div class="empty-state" style="padding:20px 0;"><p>${t('trainer_no_routines_assigned')}</p></div>`;
-  const recentLogs = logEntries.slice(0,6);
-  const logsHtml = recentLogs.length ? recentLogs.map(l=>`
-    <div class="trainer-log-row"><span>${escapeHtml(l.routineName||t('trainer_workout_fallback_name'))}</span><span class="trainer-log-date">${new Date(l.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span></div>`).join('') : `<div class="empty-state" style="padding:20px 0;"><p>${t('log_empty_1')}</p></div>`;
+  return `<div class="trainer-detail-hd">
+    <div class="trainer-card-badge" style="width:52px;height:52px;">${connection.tierIcon}</div>
+    <div>
+      <div class="trainer-detail-name">${name}</div>
+      ${handle?`<div class="trainer-detail-handle">${handle}</div>`:''}
+      <div class="trainer-roster-status ${expired?'expired':''}">${statusLine}</div>
+    </div>
+  </div>`;
+}
 
+function buildTrainerStudentMenuHtml(connection){
   return `
     <div class="back-row"><button class="btn-back" onclick="closeTrainerStudentDetail()">${t('back')}</button></div>
-    <div class="trainer-detail-hd">
-      <div class="trainer-roster-avatar" style="width:52px;height:52px;font-size:18px;">${trainerAvatarInitial(displayName)}</div>
-      <div>
-        <div class="trainer-detail-name">${name}</div>
-        ${handle?`<div class="trainer-detail-handle">${handle}</div>`:''}
-        <div class="trainer-roster-status ${expired?'expired':''}">${statusLine}</div>
+    ${buildTrainerStudentHeaderHtml(connection)}
+    <div class="trainer-tile-grid">
+      <div class="trainer-tile" onclick="openTrainerTile('program')">
+        <div class="trainer-tile-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16"/></svg></div>
+        <div><div class="trainer-tile-label">${t('trainer_tile_program')}</div><div class="trainer-tile-sub">${t('trainer_tile_program_sub')}</div></div>
+      </div>
+      <div class="trainer-tile" onclick="openTrainerTile('live')">
+        <span class="trainer-tile-new">${t('trainer_tile_new_badge')}</span>
+        <div class="trainer-tile-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <div><div class="trainer-tile-label">${t('trainer_tile_live')}</div><div class="trainer-tile-sub">${t('trainer_tile_live_sub')}</div></div>
+      </div>
+      <div class="trainer-tile" onclick="openTrainerTile('notes')">
+        <span class="trainer-tile-new">${t('trainer_tile_new_badge')}</span>
+        <div class="trainer-tile-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg></div>
+        <div><div class="trainer-tile-label">${t('trainer_tile_notes')}</div><div class="trainer-tile-sub">${t('trainer_tile_notes_sub')}</div></div>
+      </div>
+      <div class="trainer-tile" onclick="openTrainerTile('history')">
+        <div class="trainer-tile-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+        <div><div class="trainer-tile-label">${t('trainer_tile_history')}</div><div class="trainer-tile-sub">${t('trainer_tile_history_sub')}</div></div>
       </div>
     </div>
-    <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_assigned_routines')}</div><button class="btn-new" onclick="openAssignRoutineModal('${connection.id}')">+ ${t('assign')}</button></div>
-    <div class="trainer-assign-list">${assignmentsHtml}</div>
+  `;
+}
+
+// ── History & PRs tile — the one thing that already existed, carried over
+// as read-only, just relocated from a flat page into its own tile.
+async function renderTrainerHistoryTile(el, connection){
+  el.innerHTML=`<div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>${buildTrainerStudentHeaderHtml(connection)}<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
+  const logEntries=await fetchUserWorkoutLog(connection.student.id);
+  const recentLogs=logEntries.slice(0,10);
+  const logsHtml = recentLogs.length ? recentLogs.map(l=>`
+    <div class="trainer-log-row"><span>${escapeHtml(l.routineName||t('trainer_workout_fallback_name'))}</span><span class="trainer-log-date">${new Date(l.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span></div>`).join('') : `<div class="empty-state" style="padding:20px 0;"><p>${t('log_empty_1')}</p></div>`;
+  el.innerHTML=`
+    <div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>
+    ${buildTrainerStudentHeaderHtml(connection)}
     <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_recent_sessions')}</div></div>
     <div class="trainer-log-list">${logsHtml}</div>
   `;
 }
 
-function openAssignRoutineModal(connectionId){
-  if(!db.routines.length){ alert(t('alert_create_routine_first_assign')); return; }
-  document.getElementById('modal-title').textContent=t('trainer_assign_routine_title');
-  document.getElementById('modal-body').innerHTML=`
-    <div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="assign-routine-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>
-    <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('trainer_assign_routine_note')}</div>`;
+// ═══════════════════════════════════════════
+//  PROGRAM & SCHEDULE TILE — the trainer edits the student's REAL rotation
+//  and routines (via the write RLS added in 20260801000001), not a
+//  disconnected copy. Scope is deliberately narrower than the local
+//  routine builder: routine_exercises stores one scalar target_sets/
+//  target_reps/target_weight/rest per exercise (no per-set rows, no
+//  supersets — see 20260710000004_routines.sql), so this editor works at
+//  that same simpler grain. It also respects the create/modify-never-
+//  delete boundary at the UI level, not just the DB level: there is no
+//  "remove exercise" or "reorder" control here, only "edit an existing
+//  row's numbers" and "add a new exercise" — matching exactly what the
+//  trainer write policies actually allow (INSERT/UPDATE, no DELETE).
+//
+//  target_weight is stored as canonical kg (unit-converted only — see the
+//  comment on routine_exercises.target_weight), NOT the raw-per-device
+//  number workout_log_sets/all_time_prs use. Display/parse here goes
+//  through toDisplayWeight()/fromDisplayUnit() only, never getTrueWeight()
+//  — mixing the two conventions would silently double-apply a per-side
+//  correction that routine targets were never storing in the first place.
+// ═══════════════════════════════════════════
+let _trainerProgramData=null;   // {settings, routines} for the student currently open
+let _trainerProgramRotationId=null;
+let _trainerProgramRoutineId=null; // null = not editing a routine
+
+async function fetchStudentProgram(studentId){
+  const [{data:settings}, {data:routines}] = await Promise.all([
+    supabaseClient.from('user_settings').select('rotations, active_rotation_id, schedule, schedule_pos, updated_at').eq('user_id', studentId).maybeSingle(),
+    supabaseClient.from('routines').select('id, client_id, name, routine_exercises(id, exercise_id, position, target_sets, target_reps, target_weight, rest_seconds, set_rows)').eq('user_id', studentId),
+  ]);
+  (routines||[]).forEach(r=>r.routine_exercises.sort((a,b)=>a.position-b.position));
+  return { settings: settings||null, routines: routines||[] };
+}
+
+async function renderTrainerProgramTile(el, connection){
+  el.innerHTML=`<div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>${buildTrainerStudentHeaderHtml(connection)}<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
+  if(!_trainerProgramData) _trainerProgramData=await fetchStudentProgram(connection.student.id);
+  const data=_trainerProgramData;
+  if(!data.settings || !data.settings.rotations || !data.settings.rotations.length){
+    el.innerHTML=`<div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>${buildTrainerStudentHeaderHtml(connection)}<div class="empty-state"><p>${t('trainer_program_no_rotations')}</p></div>`;
+    return;
+  }
+  if(_trainerProgramRoutineId){
+    el.innerHTML=buildTrainerRoutineEditorHtml(connection, data);
+    return;
+  }
+  if(_trainerProgramRotationId){
+    el.innerHTML=buildTrainerRoutinesInRotationHtml(connection, data);
+    return;
+  }
+  el.innerHTML=buildTrainerRotationsListHtml(connection, data);
+}
+
+function openTrainerProgramRotation(rotId){ _trainerProgramRotationId=rotId; renderTrainerScreen(); }
+function backToTrainerRotationsList(){ _trainerProgramRotationId=null; renderTrainerScreen(); }
+function backToTrainerRoutinesList(){ _trainerProgramRoutineId=null; window._trainerRoutineDraftFor=null; renderTrainerScreen(); }
+
+function buildTrainerRotationsListHtml(connection, data){
+  const rows=data.settings.rotations.map(rot=>{
+    const isActive=rot.id===data.settings.active_rotation_id;
+    const count=(rot.schedule||[]).length;
+    return `<div class="rot-row" onclick="openTrainerProgramRotation('${rot.id}')">
+      <div class="rot-main">
+        <div class="rot-name">${escapeHtml(rot.name||t('rotation_default_name'))}</div>
+        <div class="rot-meta">${count} ${count===1?t('rotation_workout_singular'):t('rotation_workout_plural')}${isActive?' · '+t('rotation_active_label'):''}</div>
+      </div>
+      <span class="trainer-roster-arrow">›</span>
+    </div>`;
+  }).join('');
+  return `
+    <div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>
+    ${buildTrainerStudentHeaderHtml(connection)}
+    <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_tile_program')}</div></div>
+    <div id="trainer-rotations-list">${rows}</div>
+  `;
+}
+
+function buildTrainerRoutinesInRotationHtml(connection, data){
+  const rot=data.settings.rotations.find(r=>r.id===_trainerProgramRotationId);
+  if(!rot){ _trainerProgramRotationId=null; return buildTrainerRotationsListHtml(connection, data); }
+  const rows=(rot.schedule||[]).map(clientId=>{
+    const routine=data.routines.find(r=>r.client_id===clientId);
+    if(!routine) return '';
+    const n=routine.routine_exercises.length;
+    return `<div class="trainer-assign-row" onclick="openTrainerRoutineEditor('${routine.id}')" style="cursor:pointer;">
+      <div class="trainer-assign-name">${escapeHtml(routine.name)}</div>
+      <div class="trainer-assign-meta">${n} ${n===1?t('builder_exercise_singular').toLowerCase():t('routines_meta_exercises')}</div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="back-row"><button class="btn-back" onclick="backToTrainerRotationsList()">${t('back')}</button></div>
+    ${buildTrainerStudentHeaderHtml(connection)}
+    <div class="trainer-header-row"><div class="trainer-header-title">${escapeHtml(rot.name||t('rotation_default_name'))}</div><button class="btn-new" onclick="createTrainerRoutine('${rot.id}')">+ ${t('trainer_new_routine')}</button></div>
+    <div class="trainer-assign-list">${rows || `<div class="empty-state" style="padding:20px 0;"><p>${t('rotations_empty_1')}</p></div>`}</div>
+  `;
+}
+
+function openTrainerRoutineEditor(routineId){ _trainerProgramRoutineId=routineId; renderTrainerScreen(); }
+
+// Creating a new routine touches user_settings.rotations (appending this
+// routine's client_id to the rotation's schedule array) — the one write in
+// this tile that needs the optimistic-concurrency guard, since rotations
+// is a whole-column JSONB blob that could otherwise silently clobber a
+// same-moment edit from the student's own device.
+async function createTrainerRoutine(rotId){
+  const data=_trainerProgramData;
+  const clientId='r-'+genId();
+  try{
+    const { data:newRoutine, error:insErr } = await supabaseClient.from('routines')
+      .insert({ user_id: _trainerDetailConnection.student.id, client_id: clientId, name: t('trainer_new_routine_default_name') })
+      .select('id, client_id, name').single();
+    if(insErr) throw insErr;
+    newRoutine.routine_exercises=[];
+
+    const rotations=JSON.parse(JSON.stringify(data.settings.rotations));
+    const rot=rotations.find(r=>r.id===rotId);
+    rot.schedule=[...(rot.schedule||[]), clientId];
+    const patch={ rotations };
+    // Mirror into the flat schedule column too if this IS the active
+    // rotation — schedule/schedule_pos are what every other reader still
+    // relies on (see 20260730000004_rotations.sql); only rotations itself
+    // isn't enough.
+    if(rot.id===data.settings.active_rotation_id) patch.schedule=rot.schedule;
+
+    const { data:updated, error:updErr } = await supabaseClient.from('user_settings')
+      .update(patch)
+      .eq('user_id', _trainerDetailConnection.student.id)
+      .eq('updated_at', data.settings.updated_at)
+      .select('updated_at');
+    if(updErr) throw updErr;
+    if(!updated || !updated.length){
+      showToast(t('toast_trainer_conflict'));
+      _trainerProgramData=null; // force a fresh fetch next render
+      renderTrainerScreen();
+      return;
+    }
+
+    data.settings.rotations=rotations;
+    if(patch.schedule) data.settings.schedule=patch.schedule;
+    data.settings.updated_at=updated[0].updated_at;
+    data.routines.push(newRoutine);
+    openTrainerRoutineEditor(newRoutine.id);
+  }catch(e){
+    showToast(e.message || t('toast_trainer_save_error'));
+  }
+}
+
+function buildTrainerRoutineEditorHtml(connection, data){
+  const routine=data.routines.find(r=>r.id===_trainerProgramRoutineId);
+  if(!routine){ _trainerProgramRoutineId=null; return buildTrainerRoutinesInRotationHtml(connection, data); }
+  // Draft mirrors routine.routine_exercises by index so inline onchange
+  // handlers can write into it without re-rendering on every keystroke, and
+  // so an added-but-not-yet-saved exercise survives a re-render (adding one,
+  // or switching units, re-invokes this same builder) — saveTrainerRoutine()
+  // reconciles it back to the server on Save. Only (re)seeded from the
+  // routine's on-disk rows the FIRST time this routine is opened; on every
+  // later render the draft itself — not routine.routine_exercises — is what
+  // gets displayed, otherwise a re-render would silently discard whatever
+  // hasn't been saved yet.
+  if(window._trainerRoutineDraftFor!==routine.id){
+    window._trainerRoutineDraft=JSON.parse(JSON.stringify(routine.routine_exercises));
+    window._trainerRoutineDraftFor=routine.id;
+  }
+  const rows=window._trainerRoutineDraft.map((re,i)=>{
+    const def=db.exercises.find(e=>e.id===re.exercise_id);
+    const exName=def?exerciseDisplayName(def):re.exercise_id;
+    // set_rows means this exercise has per-set values (or is part of a
+    // superset) built in the real app — the reading logic everywhere else
+    // prioritizes set_rows over target_sets/reps/weight when it is present
+    // (see e.g. line ~6135), so editing the scalar fields here would
+    // silently have NO effect on what the student actually sees. Read-only
+    // with a note, rather than a control that looks like it works and
+    // does not.
+    if(re.set_rows){
+      return `<div class="ex-builder" id="trn-exb-${i}">
+        <div class="eb-hd"><span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${escapeHtml(exName)}</span></div>
+        <div style="padding:8px 0;font-size:11px;color:var(--muted);line-height:1.5;">${t('trainer_exercise_per_set_note')}</div>
+      </div>`;
+    }
+    return `<div class="ex-builder" id="trn-exb-${i}">
+      <div class="eb-hd"><span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${escapeHtml(exName)}</span></div>
+      <div class="eb-sets-head"><span>${t('builder_col_set')}</span><span>${unitLabel().toUpperCase()}</span><span>${t('builder_col_reps')}</span><span></span></div>
+      <div class="eb-set-row">
+        <span class="eb-set-num">${re.target_sets}×</span>
+        <input class="eb-set-inp" type="text" inputmode="decimal" value="${re.target_weight?toDisplayWeight(re.target_weight):''}" placeholder="—" onchange="_trainerRoutineDraft[${i}].target_weight=fromDisplayUnit(parseKg(this.value))">
+        <input class="eb-set-inp" type="number" inputmode="numeric" value="${re.target_reps||''}" placeholder="—" onchange="_trainerRoutineDraft[${i}].target_reps=parseInt(this.value)||0">
+        <span></span>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="back-row"><button class="btn-back" onclick="backToTrainerRoutinesList()">${t('back')}</button></div>
+    ${buildTrainerStudentHeaderHtml(connection)}
+    <div class="trainer-header-row"><input class="form-inp" id="trn-routine-name" value="${escapeHtml(routine.name)}" style="font-size:14px;font-weight:700;" maxlength="100"></div>
+    <div id="trn-exercise-rows">${rows}</div>
+    <div style="padding:0 16px;"><button class="btn-ghost" style="width:100%;margin:8px 0;" onclick="openTrainerAddExercise()">+ ${t('trainer_add_exercise')}</button></div>
+    <div style="padding:0 16px 24px;"><button class="btn-main" onclick="saveTrainerRoutine()">${t('save')}</button></div>
+  `;
+}
+
+function openTrainerAddExercise(){
+  const muscles=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core','Cardio'];
+  let opts='';
+  muscles.forEach(m=>{
+    opts+=`<optgroup label="${t('muscle_'+m.toLowerCase())}">`;
+    db.exercises.filter(e=>e.muscle===m).forEach(e=>{ opts+=`<option value="${e.id}">${exerciseDisplayName(e)}</option>`; });
+    opts+='</optgroup>';
+  });
+  document.getElementById('modal-title').textContent=t('trainer_add_exercise');
+  document.getElementById('modal-body').innerHTML=`<div class="form-grp"><select class="form-inp" id="trn-add-ex-sel">${opts}</select></div>`;
   document.getElementById('modal-footer').innerHTML=`
     <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
-    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmAssignRoutine('${connectionId}')">${t('assign')}</button>`;
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmTrainerAddExercise()">${t('trainer_add_exercise')}</button>`;
   document.getElementById('modal-overlay').classList.add('active');
 }
 
-async function confirmAssignRoutine(connectionId){
-  const routineId=document.getElementById('assign-routine-sel').value;
-  const routine=db.routines.find(r=>r.id===routineId);
-  if(!routine) return;
-  const exercises=routine.exercises.map(ex=>{
-    const exInfo=db.exercises.find(e=>e.id===ex.id);
-    return { id:ex.id, name: exInfo?exInfo.name:'Exercise', sets:ex.sets, reps:ex.reps, weight:ex.weight||0, rest:ex.rest };
-  });
+function confirmTrainerAddExercise(){
+  const exId=document.getElementById('trn-add-ex-sel').value;
+  window._trainerRoutineDraft.push({ id:null, exercise_id:exId, position:_trainerRoutineDraft.length, target_sets:3, target_reps:8, target_weight:0, rest_seconds:90 });
+  closeModal();
+  renderTrainerScreen();
+}
+
+async function saveTrainerRoutine(){
+  const routine=_trainerProgramData.routines.find(r=>r.id===_trainerProgramRoutineId);
+  const newName=document.getElementById('trn-routine-name').value.trim().slice(0,100) || routine.name;
   try{
-    const { error } = await supabaseClient.from('trainer_assignments').insert({ connection_id:connectionId, routine_name:routine.name, exercises });
+    if(newName!==routine.name){
+      const { error } = await supabaseClient.from('routines').update({name:newName}).eq('id', routine.id);
+      if(error) throw error;
+      routine.name=newName;
+    }
+    for(const re of window._trainerRoutineDraft){
+      if(re.id){
+        if(re.set_rows) continue; // read-only in this editor — never had inputs wired, so nothing to write back
+        const { error } = await supabaseClient.from('routine_exercises')
+          .update({ target_sets:re.target_sets, target_reps:re.target_reps, target_weight:re.target_weight, rest_seconds:re.rest_seconds })
+          .eq('id', re.id);
+        if(error) throw error;
+      } else {
+        const { data:inserted, error } = await supabaseClient.from('routine_exercises')
+          .insert({ routine_id:routine.id, exercise_id:re.exercise_id, position:re.position, target_sets:re.target_sets, target_reps:re.target_reps, target_weight:re.target_weight, rest_seconds:re.rest_seconds })
+          .select('id, exercise_id, position, target_sets, target_reps, target_weight, rest_seconds').single();
+        if(error) throw error;
+        re.id=inserted.id;
+      }
+    }
+    routine.routine_exercises=window._trainerRoutineDraft;
+    showToast(t('toast_trainer_routine_saved'));
+    renderTrainerScreen();
+  }catch(e){
+    showToast(e.message || t('toast_trainer_save_error'));
+  }
+}
+
+// ═══════════════════════════════════════════
+//  LIVE SESSION TILE — the trainer runs an in-person session and logs sets
+//  for the student in real time. Writes straight to the student's real
+//  workout_logs/workout_log_exercises/workout_log_sets (tagged
+//  logged_by_trainer_id) plus last_weights/all_time_prs/pr_events, using
+//  the EXACT SAME PR-detection math finishWorkout() already uses locally
+//  (calc1RM/getFormulaWeight/recordToOneRM) — just pointed at the
+//  student's remote all_time_prs row instead of local db.allTimePRs, so a
+//  trainer-logged PR can never disagree with what a self-logged one would
+//  have produced. These helpers read the CALLING device's own
+//  db.weightPrefs/db.exercises, which is correct here: the trainer is the
+//  one physically typing the number they see on the bar, so it is
+//  interpreted with the trainer's own per-side/unit convention at entry
+//  time — the same "whoever types it, reads it their way" rule the rest
+//  of the app already runs on.
+// ═══════════════════════════════════════════
+let _trainerLiveRoutineId=null;
+let _trainerLiveDraft=null;
+let _trainerLiveDraftFor=null;
+
+async function renderTrainerLiveTile(el, connection){
+  el.innerHTML=`<div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>${buildTrainerStudentHeaderHtml(connection)}<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
+  if(!_trainerProgramData) _trainerProgramData=await fetchStudentProgram(connection.student.id);
+  const data=_trainerProgramData;
+  if(!data.routines.length){
+    el.innerHTML=`<div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>${buildTrainerStudentHeaderHtml(connection)}<div class="empty-state"><p>${t('trainer_live_no_routines')}</p></div>`;
+    return;
+  }
+  if(!_trainerLiveRoutineId || !data.routines.some(r=>r.id===_trainerLiveRoutineId)){
+    const activeRot=data.settings && data.settings.rotations.find(r=>r.id===data.settings.active_rotation_id);
+    let defaultRoutine=null;
+    if(activeRot && activeRot.schedule && activeRot.schedule.length){
+      const clientId=activeRot.schedule[(data.settings.schedule_pos||0)%activeRot.schedule.length];
+      defaultRoutine=data.routines.find(r=>r.client_id===clientId);
+    }
+    _trainerLiveRoutineId=(defaultRoutine||data.routines[0]).id;
+  }
+  seedTrainerLiveDraftIfNeeded(data);
+  el.innerHTML=buildTrainerLiveSessionHtml(connection, data);
+}
+
+function seedTrainerLiveDraftIfNeeded(data){
+  if(_trainerLiveDraft && _trainerLiveDraftFor===_trainerLiveRoutineId) return;
+  const routine=data.routines.find(r=>r.id===_trainerLiveRoutineId);
+  _trainerLiveDraft=routine.routine_exercises.map(re=>({
+    exercise_id: re.exercise_id,
+    sets: Array.from({length:Math.max(1,re.target_sets)}, ()=>({
+      weight: re.target_weight ? String(toDisplayWeight(re.target_weight)) : '',
+      reps: re.target_reps || '',
+    })),
+  }));
+  _trainerLiveDraftFor=_trainerLiveRoutineId;
+}
+
+function switchTrainerLiveRoutine(routineId){ _trainerLiveRoutineId=routineId; _trainerLiveDraft=null; _trainerLiveDraftFor=null; renderTrainerScreen(); }
+function addTrainerLiveSet(exIdx){ _trainerLiveDraft[exIdx].sets.push({weight:'',reps:''}); renderTrainerScreen(); }
+function removeTrainerLiveSet(exIdx,setIdx){ _trainerLiveDraft[exIdx].sets.splice(setIdx,1); renderTrainerScreen(); }
+
+function buildTrainerLiveSessionHtml(connection, data){
+  const routine=data.routines.find(r=>r.id===_trainerLiveRoutineId);
+  const routineOptions=data.routines.map(r=>`<option value="${r.id}" ${r.id===routine.id?'selected':''}>${escapeHtml(r.name)}</option>`).join('');
+  const exRows=_trainerLiveDraft.map((exd,ei)=>{
+    const def=db.exercises.find(e=>e.id===exd.exercise_id);
+    const exName=def?exerciseDisplayName(def):exd.exercise_id;
+    const setRows=exd.sets.map((s,si)=>`
+      <div class="eb-set-row">
+        <span class="eb-set-num">${si+1}</span>
+        <input class="eb-set-inp" type="text" inputmode="decimal" placeholder="—" value="${escapeHtml(String(s.weight))}" onchange="_trainerLiveDraft[${ei}].sets[${si}].weight=this.value">
+        <input class="eb-set-inp" type="number" inputmode="numeric" placeholder="—" value="${escapeHtml(String(s.reps))}" onchange="_trainerLiveDraft[${ei}].sets[${si}].reps=this.value">
+        <button class="eb-set-del" onclick="removeTrainerLiveSet(${ei},${si})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>`).join('');
+    return `<div class="ex-builder">
+      <div class="eb-hd"><span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${escapeHtml(exName)}</span></div>
+      <div class="eb-sets-head"><span>${t('builder_col_set')}</span><span>${unitLabel().toUpperCase()}</span><span>${t('builder_col_reps')}</span><span></span></div>
+      ${setRows}
+      <button class="eb-add-set" onclick="addTrainerLiveSet(${ei})"><span class="eb-add-icon">+</span><span class="eb-add-lbl">${t('builder_add_set')}</span></button>
+    </div>`;
+  }).join('');
+  return `
+    <div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>
+    ${buildTrainerStudentHeaderHtml(connection)}
+    <div class="trainer-header-row"><select class="form-inp" style="width:auto;" onchange="switchTrainerLiveRoutine(this.value)">${routineOptions}</select></div>
+    <div id="trn-live-exercise-rows">${exRows}</div>
+    <div style="padding:0 16px 6px;font-size:10.5px;color:var(--muted);line-height:1.5;">${t('trainer_live_logged_by_note')}</div>
+    <div style="padding:8px 16px 24px;"><button class="btn-main" onclick="finishTrainerLiveSession()">${t('trainer_finish_session')}</button></div>
+  `;
+}
+
+async function finishTrainerLiveSession(){
+  const connection=_trainerDetailConnection;
+  const studentId=connection.student.id;
+  const routine=_trainerProgramData.routines.find(r=>r.id===_trainerLiveRoutineId);
+  const exercisesForSave=_trainerLiveDraft.map(exd=>({
+    exercise_id: exd.exercise_id,
+    sets: exd.sets.map(s=>({ weight:fromDisplayUnit(parseKg(s.weight)), reps:parseInt(s.reps)||0 })).filter(s=>s.reps>0),
+  })).filter(ex=>ex.sets.length>0);
+  if(!exercisesForSave.length){ showToast(t('toast_trainer_live_empty')); return; }
+
+  try{
+    const exIds=exercisesForSave.map(e=>e.exercise_id);
+    const { data:existingPRs } = await supabaseClient.from('all_time_prs').select('exercise_id, weight, reps').eq('user_id', studentId).in('exercise_id', exIds);
+    const prByEx={}; (existingPRs||[]).forEach(p=>prByEx[p.exercise_id]=p);
+
+    const { data:insertedLog, error:logErr } = await supabaseClient.from('workout_logs')
+      .insert({ user_id:studentId, routine_id:routine.id, routine_name:routine.name, duration_seconds:0, logged_by_trainer_id:currentUser.id })
+      .select('id').single();
+    if(logErr) throw logErr;
+
+    const newPREvents=[];
+    for(let i=0;i<exercisesForSave.length;i++){
+      const ex=exercisesForSave[i];
+      const def=db.exercises.find(e=>e.id===ex.exercise_id);
+      const exName=def?exerciseDisplayName(def):ex.exercise_id;
+      const { data:insertedExRow, error:exErr } = await supabaseClient.from('workout_log_exercises')
+        .insert({ log_id:insertedLog.id, exercise_id:ex.exercise_id, exercise_name:exName, position:i })
+        .select('id').single();
+      if(exErr) throw exErr;
+      const setsPayload=ex.sets.map((s,si)=>({ log_exercise_id:insertedExRow.id, set_index:si, weight:s.weight, reps:s.reps }));
+      const { error:setsErr } = await supabaseClient.from('workout_log_sets').insert(setsPayload);
+      if(setsErr) throw setsErr;
+
+      if(isTimeTrackedEx(ex.exercise_id)) continue; // duration PRs are out of scope here, same as pr_events itself
+      const cur=prByEx[ex.exercise_id];
+      const curBestOneRM = cur ? recordToOneRM(ex.exercise_id, cur.weight, cur.reps) : 0;
+      let sessionBest=null;
+      ex.sets.forEach(s=>{
+        const formulaW=getFormulaWeight(ex.exercise_id, s.weight);
+        let oneRM=calc1RM(formulaW, s.reps);
+        if(oneRM>0 && def && def.bodyweightAssisted) oneRM=Math.max(0, oneRM-((db.weightPrefs&&db.weightPrefs.bodyweightKg)||0));
+        if(oneRM>0 && (!sessionBest || oneRM>sessionBest.oneRM)) sessionBest={weight:s.weight, reps:s.reps, oneRM};
+      });
+      const lastSet=ex.sets[ex.sets.length-1];
+      const allSameW=ex.sets.every(s=>s.weight===ex.sets[0].weight);
+      const history=allSameW
+        ? (lastSet.weight===0?'BW':lastSet.weight+'kg')+' · '+ex.sets.map(s=>s.reps).join('/')
+        : ex.sets.map((s,i)=>(i+1)+': '+(s.weight===0?'BW':s.weight+'kg')+'×'+s.reps).join(' / ');
+      await supabaseClient.from('last_weights').upsert({ user_id:studentId, exercise_id:ex.exercise_id, weight:lastSet.weight, reps:lastSet.reps, sets:ex.sets, history });
+      if(sessionBest && sessionBest.oneRM>curBestOneRM){
+        await supabaseClient.from('all_time_prs').upsert({ user_id:studentId, exercise_id:ex.exercise_id, weight:sessionBest.weight, reps:sessionBest.reps });
+        newPREvents.push({ user_id:studentId, exercise_id:ex.exercise_id, weight:sessionBest.weight, reps:sessionBest.reps });
+      }
+    }
+    if(newPREvents.length){
+      try{ await supabaseClient.from('pr_events').insert(newPREvents); }catch(e){}
+    }
+    showToast(t('toast_trainer_session_logged'));
+    _trainerLiveRoutineId=null; _trainerLiveDraft=null; _trainerLiveDraftFor=null;
+    closeTrainerTile();
+  }catch(e){
+    showToast(e.message || t('toast_trainer_save_error'));
+  }
+}
+
+// ═══════════════════════════════════════════
+//  NOTES TILE — internal (trainer-only, never tied to a routine) and
+//  external (student-visible, optionally attached to a rotation or a
+//  specific routine). Split into two tools per Alan's own framing rather
+//  than one note type trying to do both jobs — see 20260801000002_
+//  trainer_notes.sql for the RLS side (student SELECT-only on external).
+// ═══════════════════════════════════════════
+async function renderTrainerNotesTile(el, connection){
+  el.innerHTML=`<div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>${buildTrainerStudentHeaderHtml(connection)}<div class="empty-state"><p>${t('loading_ellipsis')}</p></div>`;
+  const { data:notes, error } = await supabaseClient.from('trainer_notes')
+    .select('id, visibility, scope, scope_ref, body, created_at')
+    .eq('connection_id', connection.id).order('created_at', {ascending:false});
+  if(error){ el.innerHTML=`<div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>${buildTrainerStudentHeaderHtml(connection)}<div class="empty-state"><p>${t('trainer_roster_load_error')}</p></div>`; return; }
+  el.innerHTML=buildTrainerNotesHtml(connection, notes||[]);
+}
+
+function trainerNoteScopeLabel(note){
+  if(note.scope==='general') return '';
+  const data=_trainerProgramData; // may be null if Program & Schedule was never opened this session — label just degrades to blank, nothing breaks
+  if(!data) return '';
+  if(note.scope==='rotation'){
+    const rot=data.settings && data.settings.rotations.find(r=>r.id===note.scope_ref);
+    return rot ? (rot.name||t('rotation_default_name')) : '';
+  }
+  if(note.scope==='workout'){
+    const routine=data.routines.find(r=>r.client_id===note.scope_ref);
+    return routine ? routine.name : '';
+  }
+  return '';
+}
+
+function buildTrainerNotesHtml(connection, notes){
+  function rowsHtml(list, isExternal){
+    if(!list.length) return `<div class="empty-state" style="padding:16px 0;"><p>${t('trainer_notes_empty')}</p></div>`;
+    return list.map(n=>{
+      const scopeLbl=trainerNoteScopeLabel(n);
+      const dateStr=new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      return `<div class="trainer-note-row">
+        <div class="trainer-note-body">${escapeHtml(n.body)}</div>
+        <div class="trainer-note-meta${isExternal?' external':''}">${dateStr}${scopeLbl?' · '+escapeHtml(scopeLbl):''}</div>
+      </div>`;
+    }).join('');
+  }
+  const internal=notes.filter(n=>n.visibility==='internal');
+  const external=notes.filter(n=>n.visibility==='external');
+  return `
+    <div class="back-row"><button class="btn-back" onclick="closeTrainerTile()">${t('back')}</button></div>
+    ${buildTrainerStudentHeaderHtml(connection)}
+    <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_notes_internal')}</div><button class="btn-new" onclick="openTrainerNoteComposer('internal')">+ ${t('trainer_add_note')}</button></div>
+    <div style="padding:0 16px 8px;font-size:10.5px;color:var(--muted);line-height:1.4;">${t('trainer_notes_internal_sub')}</div>
+    <div class="trainer-note-list">${rowsHtml(internal, false)}</div>
+    <div class="trainer-header-row"><div class="trainer-header-title">${t('trainer_notes_external')}</div><button class="btn-new" onclick="openTrainerNoteComposer('external')">+ ${t('trainer_add_note')}</button></div>
+    <div style="padding:0 16px 8px;font-size:10.5px;color:var(--muted);line-height:1.4;">${t('trainer_notes_external_sub')}</div>
+    <div class="trainer-note-list">${rowsHtml(external, true)}</div>
+  `;
+}
+
+async function openTrainerNoteComposer(visibility){
+  let scopeHtml='';
+  if(visibility==='external'){
+    if(!_trainerProgramData) _trainerProgramData=await fetchStudentProgram(_trainerDetailConnection.student.id);
+    const rotations=(_trainerProgramData.settings && _trainerProgramData.settings.rotations) || [];
+    let opts=`<option value="general">${t('trainer_note_scope_general')}</option>`;
+    rotations.forEach(r=>{ opts+=`<option value="rotation:${escapeHtml(r.id)}">${escapeHtml(t('trainer_note_scope_rotation_prefix'))} ${escapeHtml(r.name||t('rotation_default_name'))}</option>`; });
+    _trainerProgramData.routines.forEach(r=>{ opts+=`<option value="workout:${escapeHtml(r.client_id)}">${escapeHtml(t('trainer_note_scope_workout_prefix'))} ${escapeHtml(r.name)}</option>`; });
+    scopeHtml=`<div class="form-grp"><label class="form-lbl">${t('trainer_note_scope_label')}</label><select class="form-inp" id="trn-note-scope">${opts}</select></div>`;
+  }
+  document.getElementById('modal-title').textContent = visibility==='internal' ? t('trainer_notes_internal') : t('trainer_notes_external');
+  document.getElementById('modal-body').innerHTML=`
+    ${scopeHtml}
+    <div class="form-grp"><textarea class="form-inp" id="trn-note-body" rows="4" maxlength="2000" placeholder="${t('trainer_note_placeholder')}"></textarea></div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveTrainerNote('${visibility}')">${t('save')}</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+async function saveTrainerNote(visibility){
+  const body=document.getElementById('trn-note-body').value.trim().slice(0,2000);
+  if(!body) return;
+  let scope='general', scopeRef=null;
+  if(visibility==='external'){
+    const raw=document.getElementById('trn-note-scope').value;
+    if(raw!=='general'){ const sep=raw.indexOf(':'); scope=raw.slice(0,sep); scopeRef=raw.slice(sep+1); }
+  }
+  try{
+    const { error } = await supabaseClient.from('trainer_notes').insert({ connection_id:_trainerDetailConnection.id, visibility, scope, scope_ref:scopeRef, body });
     if(error) throw error;
     closeModal();
-    showToast(t('toast_routine_assigned'));
-    renderTrainerStudentDetail(connectionId);
+    showToast(t('toast_trainer_note_saved'));
+    renderTrainerScreen();
   }catch(e){
-    alert(e.message || t('alert_assign_routine_error'));
+    showToast(e.message || t('toast_trainer_save_error'));
   }
 }
 
@@ -8091,8 +8716,6 @@ const STRINGS = {
     alert_min_one_round: 'At least one round required.',
     alert_add_one_exercise: 'Add at least one exercise.',
     alert_create_routines_first: 'Create routines first.',
-    alert_create_routine_first_assign: 'Create a routine first, then assign it.',
-    alert_assign_routine_error: 'Could not assign routine.',
     alert_connect_error: 'Could not connect. The link may be invalid.',
     alert_confirm_error: 'Could not confirm. Try again.',
     alert_delete_error: 'Could not delete. Try again.',
@@ -8275,7 +8898,6 @@ const STRINGS = {
     import_shared_workout_note: 'Someone shared this workout with you',
     import_shared_workout_copy_note: 'Adding it makes your own copy that tracks your own sets and weights independently from here on.',
     toast_workout_added: 'Workout added',
-    toast_routine_assigned: 'Routine assigned',
     trainer_invite_share_text: 'Connect with me as your trainer',
     toast_link_copied_one_student: 'Link copied — good for one student',
     toast_invite_link_error: 'Could not create an invite link',
@@ -8414,13 +9036,43 @@ const STRINGS = {
     trainer_no_students_1: 'No students yet.',
     trainer_no_students_2: 'Share your invite link to connect one.',
     trainer_connection_gone: 'This connection no longer exists.',
-    trainer_assigned_on: 'assigned',
-    trainer_no_routines_assigned: 'No routines assigned yet.',
     trainer_workout_fallback_name: 'Workout',
-    trainer_assigned_routines: 'Assigned Routines',
     trainer_recent_sessions: 'Recent Sessions',
-    trainer_assign_routine_title: 'Assign Routine',
-    trainer_assign_routine_note: "This sends a copy with today's sets, reps, and weights. Later changes to your own routine won't affect what they see.",
+    trainer_tile_program: 'Program & Schedule',
+    trainer_tile_program_sub: 'Rotation, routines, next session',
+    trainer_tile_live: 'Live Session',
+    trainer_tile_live_sub: 'Fill in sets in real time',
+    trainer_tile_notes: 'Notes',
+    trainer_tile_notes_sub: 'Internal and external',
+    trainer_tile_history: 'History & PRs',
+    trainer_tile_history_sub: 'Past sessions, current records',
+    trainer_tile_new_badge: 'New',
+    trainer_program_no_rotations: "This student hasn't set up a rotation yet.",
+    trainer_new_routine: 'New Routine',
+    trainer_new_routine_default_name: 'New Routine',
+    trainer_add_exercise: 'Add Exercise',
+    trainer_exercise_per_set_note: 'This exercise uses per-set values — the student needs to edit it themselves from their own device.',
+    trainer_live_no_routines: 'This student has no routines yet.',
+    trainer_live_logged_by_note: "Every set logged here is tagged as logged by you in this student's own history.",
+    trainer_finish_session: 'Finish Session',
+    trainer_notes_internal: 'Internal Notes',
+    trainer_notes_internal_sub: 'Only you can see these.',
+    trainer_notes_external_sub: 'Visible to this student.',
+    trainer_notes_external: 'External Notes',
+    trainer_notes_empty: 'No notes yet.',
+    trainer_add_note: 'Add Note',
+    trainer_note_scope_label: 'Attach to',
+    trainer_note_scope_general: 'General (not tied to anything)',
+    trainer_note_scope_rotation_prefix: 'Rotation:',
+    trainer_note_scope_workout_prefix: 'Routine:',
+    trainer_note_placeholder: 'Write a note…',
+    toast_trainer_conflict: "This student's data changed — reload and try again.",
+    toast_trainer_save_error: 'Could not save. Try again.',
+    toast_trainer_routine_saved: 'Routine saved',
+    toast_trainer_live_empty: 'Log at least one set before finishing.',
+    toast_trainer_session_logged: 'Session logged',
+    toast_trainer_note_saved: 'Note saved',
+    coach_note_eyebrow: 'Coach Note',
     trainer_invite_confirm_title: 'Connect with Trainer',
     trainer_invite_confirm_note: "Someone invited you to connect as their student. They'll be able to assign you routines and see your logged workouts.",
     trainer_invite_not_now: 'Not now',
@@ -8612,8 +9264,6 @@ const STRINGS = {
     alert_min_one_round: 'Se requiere al menos una ronda.',
     alert_add_one_exercise: 'Agrega al menos un ejercicio.',
     alert_create_routines_first: 'Crea rutinas primero.',
-    alert_create_routine_first_assign: 'Crea una rutina primero para poder asignarla.',
-    alert_assign_routine_error: 'No se pudo asignar la rutina.',
     alert_connect_error: 'No se pudo conectar. El enlace puede ser inválido.',
     alert_confirm_error: 'No se pudo confirmar. Inténtalo de nuevo.',
     alert_delete_error: 'No se pudo eliminar. Inténtalo de nuevo.',
@@ -8796,7 +9446,6 @@ const STRINGS = {
     import_shared_workout_note: 'Alguien compartió esta rutina contigo',
     import_shared_workout_copy_note: 'Al agregarla, se crea tu propia copia que registra tus series y pesos de forma independiente a partir de ahora.',
     toast_workout_added: 'Rutina agregada',
-    toast_routine_assigned: 'Rutina asignada',
     trainer_invite_share_text: 'Conéctate conmigo como tu entrenador',
     toast_link_copied_one_student: 'Enlace copiado — válido para un alumno',
     toast_invite_link_error: 'No se pudo crear el enlace de invitación',
@@ -8935,13 +9584,43 @@ const STRINGS = {
     trainer_no_students_1: 'Todavía no tienes alumnos.',
     trainer_no_students_2: 'Comparte tu enlace de invitación para conectar uno.',
     trainer_connection_gone: 'Esta conexión ya no existe.',
-    trainer_assigned_on: 'asignada el',
-    trainer_no_routines_assigned: 'Todavía no hay rutinas asignadas.',
     trainer_workout_fallback_name: 'Rutina',
-    trainer_assigned_routines: 'Rutinas Asignadas',
     trainer_recent_sessions: 'Sesiones Recientes',
-    trainer_assign_routine_title: 'Asignar Rutina',
-    trainer_assign_routine_note: 'Esto envía una copia con las series, repeticiones y pesos de hoy. Los cambios posteriores a tu propia rutina no afectan lo que ellos ven.',
+    trainer_tile_program: 'Programa y Rutina',
+    trainer_tile_program_sub: 'Rotación, rutinas, próxima sesión',
+    trainer_tile_live: 'Sesión en Vivo',
+    trainer_tile_live_sub: 'Registra series en tiempo real',
+    trainer_tile_notes: 'Notas',
+    trainer_tile_notes_sub: 'Internas y externas',
+    trainer_tile_history: 'Historial y Récords',
+    trainer_tile_history_sub: 'Sesiones pasadas, récords actuales',
+    trainer_tile_new_badge: 'Nuevo',
+    trainer_program_no_rotations: 'Este alumno todavía no tiene una rotación configurada.',
+    trainer_new_routine: 'Nueva Rutina',
+    trainer_new_routine_default_name: 'Nueva Rutina',
+    trainer_add_exercise: 'Agregar Ejercicio',
+    trainer_exercise_per_set_note: 'Este ejercicio usa valores por serie — el alumno debe editarlo desde su propio dispositivo.',
+    trainer_live_no_routines: 'Este alumno todavía no tiene rutinas.',
+    trainer_live_logged_by_note: 'Cada serie registrada aquí queda marcada como registrada por ti en el historial del alumno.',
+    trainer_finish_session: 'Finalizar Sesión',
+    trainer_notes_internal: 'Notas Internas',
+    trainer_notes_internal_sub: 'Solo tú puedes verlas.',
+    trainer_notes_external_sub: 'Visibles para este alumno.',
+    trainer_notes_external: 'Notas Externas',
+    trainer_notes_empty: 'Todavía no hay notas.',
+    trainer_add_note: 'Agregar Nota',
+    trainer_note_scope_label: 'Vincular a',
+    trainer_note_scope_general: 'General (no vinculada a nada)',
+    trainer_note_scope_rotation_prefix: 'Rotación:',
+    trainer_note_scope_workout_prefix: 'Rutina:',
+    trainer_note_placeholder: 'Escribe una nota…',
+    toast_trainer_conflict: 'Los datos de este alumno cambiaron — recarga e inténtalo de nuevo.',
+    toast_trainer_save_error: 'No se pudo guardar. Inténtalo de nuevo.',
+    toast_trainer_routine_saved: 'Rutina guardada',
+    toast_trainer_live_empty: 'Registra al menos una serie antes de finalizar.',
+    toast_trainer_session_logged: 'Sesión registrada',
+    toast_trainer_note_saved: 'Nota guardada',
+    coach_note_eyebrow: 'Nota del Entrenador',
     trainer_invite_confirm_title: 'Conectar con Entrenador',
     trainer_invite_confirm_note: 'Alguien te invitó a conectarte como su alumno. Podrá asignarte rutinas y ver tus entrenamientos registrados.',
     trainer_invite_not_now: 'Ahora no',
