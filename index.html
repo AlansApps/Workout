@@ -272,7 +272,7 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
    number is shown, not buried in Settings. */
 .exd-pr-line{margin-top:10px;font-size:10px;color:var(--gold-ink,var(--gold));letter-spacing:1px;
   cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.exd-pr-edit{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);
+.exd-pr-edit{font-size:10px;letter-spacing:.2px;font-weight:600;color:var(--muted);
   border:1px solid var(--line2);border-radius:999px;padding:2px 8px;margin-left:auto;transition:.15s;}
 .exd-pr-line:hover .exd-pr-edit{border-color:var(--gold3);color:var(--gold);}
 
@@ -304,8 +304,13 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .c-max{color:var(--void);border-color:var(--gold);background:var(--gold);}
 .light-mode .c-max{color:#fff;}
 
-.prog-presets{display:flex;flex-direction:column;gap:8px;padding:0 18px;}
-.prog-preset{text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:6px;
+/* No horizontal padding here — #progression-body is .list-scroll, which
+   already insets 14px, matching where .settings-group's card edge sits.
+   The first draft added another 18px on top, so preset cards and the chart
+   started 18px deeper than the settings cards immediately above and below
+   them on the same screen. */
+.prog-presets{display:flex;flex-direction:column;gap:8px;}
+.prog-preset{text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);
   padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;transition:.15s;font-family:var(--body);}
 .prog-preset:hover{border-color:var(--gold3);}
 .pp-name{font-size:14px;font-weight:700;color:var(--text);letter-spacing:.2px;}
@@ -321,15 +326,20 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .pp-dot.c-mod{height:9px;background:color-mix(in srgb,var(--gold) 26%,transparent);border-color:color-mix(in srgb,var(--gold) 55%,transparent);}
 .pp-dot.c-hard{height:13px;background:color-mix(in srgb,var(--gold) 55%,transparent);border-color:var(--gold);}
 .pp-dot.c-max{height:16px;background:var(--gold);border-color:var(--gold);}
-.prog-hint{padding:10px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;}
+.prog-hint{padding:10px 0 0;font-size:12px;color:var(--muted);line-height:1.55;}
 .prog-linkbtn{background:none;border:none;color:var(--gold-ink,var(--gold));font-family:var(--body);font-size:12px;
   font-weight:700;cursor:pointer;padding:0;text-decoration:underline;}
 
 /* Cycle chart — bar height is proximity to failure, so the block's shape
    (build, back off, peak) reads without parsing any text. Tapping a bar
    opens the step editor. */
-.bigwave{display:flex;gap:8px;align-items:flex-end;padding:14px 18px 0;}
-.bw{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+/* overflow-x:auto + min-width on .bw: at 4 steps the flex row fits the
+   375px screen fine, but a long cycle (8+ steps) would squeeze columns
+   under 30px — below a legible tap target and where Spanish labels like
+   "Descarga"/"Agregar" start truncating. Past ~7 columns it scrolls at a
+   readable bar width instead of compressing everything. */
+.bigwave{display:flex;gap:8px;align-items:flex-end;padding:14px 0 0;overflow-x:auto;}
+.bw{flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
   gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .bwb{width:100%;border-radius:4px 4px 0 0;border:1px solid;transition:box-shadow .2s,filter .15s;}
 .bw:active .bwb{filter:brightness(1.25);}
@@ -347,14 +357,6 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
   align-items:center;justify-content:center;color:var(--muted);font-size:17px;line-height:1;}
 .bw.add:active .bwplus{border-color:var(--gold3);color:var(--gold);}
 
-.cyc-row{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--line);}
-.cyc-row.now{background:color-mix(in srgb,var(--gold) 5%,transparent);}
-.cyc-num{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1px solid var(--line2);
-  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--dim);flex-shrink:0;}
-.cyc-main{flex:1;min-width:0;cursor:pointer;}
-.cyc-sub{font-size:10px;color:var(--muted);letter-spacing:1.2px;margin-top:4px;text-transform:uppercase;font-weight:600;}
-.cyc-badge{font-size:7px;letter-spacing:2.5px;color:var(--void);background:var(--gold);padding:3px 7px;
-  font-weight:700;text-transform:uppercase;flex-shrink:0;}
 
 .prog-optlist{display:flex;flex-direction:column;gap:7px;}
 .prog-opt{text-align:left;background:var(--surface);border:1px solid var(--line2);border-radius:6px;
@@ -375,7 +377,7 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .guide-ico svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
 .guide-t{flex:1;font-size:15px;font-weight:700;color:var(--text);letter-spacing:.2px;}
 .guide-chev{font-size:18px;color:var(--muted);font-weight:400;line-height:1;}
-.guide-bd{display:none;padding:0 18px 18px 52px;font-size:13.5px;color:var(--soft);line-height:1.65;}
+.guide-bd{display:none;padding:0 18px 18px 52px;font-size:13px;color:var(--soft);line-height:1.65;}
 .guide-sec.open .guide-bd{display:block;}
 .guide-bd b{color:var(--bright);font-weight:700;}
 .guide-bd em{color:var(--gold-ink,var(--gold));font-style:normal;font-weight:600;}
@@ -389,13 +391,21 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .rot-check{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--line2);
   background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:.15s;}
 .rot-check.on{border-color:var(--gold);background:var(--gold);}
+/* A circle reads single-select, which is right on the Rotations list (only
+   one can be active) but wrong here on Applies-to, where several exercises
+   can be picked at once. Same control, a shape that matches what it does. */
+.rot-check.sq{border-radius:6px;}
 .rot-check svg{width:14px;height:14px;stroke:var(--void);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
 .rot-main{flex:1;min-width:0;cursor:pointer;}
 .rot-name{font-family:var(--body);font-size:14px;font-weight:600;color:var(--text);letter-spacing:.2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rot-meta{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-top:3px;text-transform:uppercase;font-weight:600;}
+/* Sentence case, not the caps+letter-spacing chip look — the 2026-07-14
+   legibility pass moved the pill-button family (.btn-ghost and friends) to
+   sentence case, and these two ("Edit", "Fix") were written before that and
+   never brought in line. */
 .rot-edit{flex-shrink:0;background:none;border:1px solid var(--line2);color:var(--dim);border-radius:999px;
-  font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.2px;
   padding:6px 13px;cursor:pointer;transition:.15s;}
 .rot-edit:hover{border-color:var(--gold3);color:var(--gold);}
 
@@ -497,6 +507,13 @@ body.light-mode .target-chip,body.light-mode .active-result-chip{background:#f0f
 .btn-back{background:none;border:none;color:var(--dim);font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;padding:0;transition:color .15s;}
 .btn-back:hover{color:var(--text);}
 .list-scroll{flex:1;padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;}
+/* These three render a plain border-bottom row idiom (.rot-row / .guide-sec)
+   rather than the panel-card idiom (.rtn-row etc). list-scroll's gap:7px is
+   meant for spacing DISTINCT cards apart — applied to a continuous list it
+   floats each hairline divider in 7px of empty air instead of a joined
+   list. Zeroing the gap here lets the border-bottom do the separating job
+   on its own, the way a plain list should look. */
+#schedule-list, #prog-guide-body, #prog-applies-body{gap:0;}
 .rtn-row{background:var(--panel);border:1px solid var(--line);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;transition:background .15s;}
 .rtn-row:hover{background:var(--surface);}
 .rtn-name{font-family:var(--hd);font-size:17px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text);}
@@ -666,6 +683,13 @@ body.light-mode .trainer-roster-status{color:var(--gold-ink);}
 .trainer-log-date{color:var(--muted);}
 .empty-state p{font-size:11px;letter-spacing:2px;line-height:2;font-weight:500;text-transform:uppercase;}
 .notice{font-size:8px;color:var(--muted);letter-spacing:3px;text-align:center;padding:10px;border-top:1px solid var(--line);margin-top:auto;text-transform:uppercase;font-weight:600;}
+/* .notice's margin-top:auto exists to pin it to the bottom of a full SCREEN
+   flex column (its only original use). Rendered mid-list inside a plain
+   .list-scroll — as the rotation editor's schedule_notice line is — that
+   same auto margin would absorb all the free space above it and shove the
+   Advanced section and Delete button down with it on any short rotation.
+   This variant is the same line with normal, in-flow spacing. */
+.notice-inline{font-size:8px;color:var(--muted);letter-spacing:3px;text-align:center;padding:14px 0 4px;text-transform:uppercase;font-weight:600;}
 /* ── PROGRESS / LOG TABS ── */
 
 /* ── PROGRESS CHARTS ── */
@@ -1283,13 +1307,6 @@ input, select, textarea {
      here when it was built; Trainer shipped later and was never added, which
      is why its title sat noticeably higher than every other screen's. */
   #screen-trainer .pg-header,
-  /* Same again for the rotations/progression screens: each opens with a bare
-     .pg-header and no .back-row, so without being listed here their titles
-     would sit under the notch exactly the way Trainer's did. */
-  #screen-rotation-edit .pg-header,
-  #screen-progression .pg-header,
-  #screen-prog-guide .pg-header,
-  #screen-prog-applies .pg-header,
   .oprof-topbar {
     padding-top: calc(var(--safe-top, 14px) + env(safe-area-inset-top));
   }
@@ -1748,7 +1765,7 @@ body.light-mode .auth-choice-title{color:#111;}
   <!-- Rotations, plural. + Add here creates a NEW rotation; adding workouts
        to one happens inside its editor. Only one rotation is active at a
        time — the tick marks it. -->
-  <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
+  <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 4px 6px;">
     <span data-i18n="schedule_rotations_label">Rotations</span>
     <button class="btn-new" onclick="createRotation()" data-i18n="rotation_new">+ New</button>
   </div>
@@ -1756,39 +1773,34 @@ body.light-mode .auth-choice-title{color:#111;}
   <div class="notice" data-i18n="rotations_notice">Only the ticked rotation runs · Loops automatically</div>
 </div>
 
-<!-- ══ ROTATION EDITOR ══ order, rename, add workouts, activate, delete -->
+<!-- ══ ROTATION EDITOR ══ order, rename, add workouts, activate, delete.
+     .back-row + .btn-back rather than the .pg-header-only pattern the first
+     draft used — matches #screen-account/#screen-weight-prefs and gets the
+     safe-area inset for free instead of needing its own opt-in list entry. -->
 <div id="screen-rotation-edit" class="screen">
-  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
-    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('schedule')" data-i18n="back">← Back</button>
-    <div class="pg-title" data-i18n="rotation_edit_title">Rotation</div>
-  </div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="rotation_edit_title">Rotation</div></div>
   <div id="rotation-edit-body" class="list-scroll"></div>
 </div>
 
 <!-- ══ ADVANCED SETTINGS (per rotation) ══ periodization lives here -->
 <div id="screen-progression" class="screen">
-  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
-    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('rotation-edit')" data-i18n="back">← Back</button>
-    <div class="pg-title" data-i18n="prog_title">Advanced</div>
-  </div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('rotation-edit')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="prog_title">Progression</div></div>
   <div id="progression-body" class="list-scroll"></div>
 </div>
 
 <!-- ══ GUIDE ══ read-only explainer, opened from Advanced -->
 <div id="screen-prog-guide" class="screen">
-  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
-    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('progression')" data-i18n="back">← Back</button>
-    <div class="pg-title" data-i18n="prog_guide_title">Guide</div>
-  </div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('progression')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="prog_guide_title">Guide</div></div>
   <div id="prog-guide-body" class="list-scroll"></div>
 </div>
 
 <!-- ══ WHICH EXERCISES ══ -->
 <div id="screen-prog-applies" class="screen">
-  <div class="pg-header" style="display:flex;align-items:center;gap:10px;">
-    <button class="btn-ghost" style="padding:6px 12px;" onclick="showScreen('progression')" data-i18n="back">← Back</button>
-    <div class="pg-title" data-i18n="prog_applies_title">Applies to</div>
-  </div>
+  <div class="back-row"><button class="btn-back" onclick="showScreen('progression')" data-i18n="back">← Back</button></div>
+  <div class="pg-header"><div class="pg-title" data-i18n="prog_applies_title">Applies to</div></div>
   <div id="prog-applies-body" class="list-scroll"></div>
 </div>
 
@@ -4204,6 +4216,11 @@ function finishWorkout(){
 
   const dur=Math.floor((Date.now()-session.startTime)/1000);
 
+  // Collects only the branch below that raises a real 1RM — never the
+  // time-tracked (duration) "PR", which isn't a weight record at all. Pushed
+  // to followers' Interactions feed after the loop; see pushPREvents().
+  const newPREvents=[];
+
   // Update lastWeights + PRs
   session.exercises.forEach(ex=>{
     // Slot-aware (see lastWeightsKey). Falls back to the bare id so a session
@@ -4255,8 +4272,10 @@ function finishWorkout(){
     });
     if(sessionBest && sessionBest.oneRM>curBestOneRM){
       db.allTimePRs[ex.id]={weight:sessionBest.weight,reps:sessionBest.reps,date:Date.now()};
+      newPREvents.push({exerciseId:ex.id, weight:sessionBest.weight, reps:sessionBest.reps});
     }
   });
+  if(newPREvents.length) pushPREvents(newPREvents);
 
   // Build log entry
   const entry={
@@ -4315,6 +4334,22 @@ function finishWorkout(){
   session=null;
   showScreen('finish');
   setTimeout(()=>checkNewTier(_prevCount,_newCount),1200);
+}
+
+// Fire-and-forget push to public.pr_events so an accepted follower's bell
+// picks this up — same immediacy reasoning as sendPing(): a notification is
+// only worth anything if it reaches the server promptly, not batched into
+// the next debounced local->cloud sync. No-ops entirely for guests (no
+// account to attribute the row to, and no followers to notify anyway).
+// Never blocks or throws — a failed push here must not stop the finish
+// screen from showing or the local PR record from having already saved.
+async function pushPREvents(events){
+  if(!currentUser || !events.length) return;
+  try{
+    await supabaseClient.from('pr_events').insert(
+      events.map(e=>({user_id:currentUser.id, exercise_id:e.exerciseId, weight:e.weight, reps:e.reps}))
+    );
+  }catch(e){}
 }
 
 async function updateNote(){
@@ -4930,10 +4965,19 @@ function setActiveRotation(id){
 }
 function createRotation(){
   syncActiveRotation();
+  // Captured BEFORE pushing the new rotation: is there already a rotation
+  // actually running? Alan's correction — building a new one to plan it out
+  // is not the same as committing to it. It only takes over automatically
+  // when there is nothing else active to leave running: the very first
+  // rotation ever created, or one whose activeRotationId no longer resolves
+  // (e.g. its rotation was deleted from elsewhere).
+  const hadActive = !!(db.activeRotationId && db.rotations.some(r=>r.id===db.activeRotationId));
   const rot={ id:'rot-'+rotationUid(), name:'', schedule:[], pos:0 };
   db.rotations.push(rot);
-  db.activeRotationId=rot.id;    // a rotation you just made is the one you want
-  db.schedule=rot.schedule; db.schedulePos=0;
+  if(!hadActive){
+    db.activeRotationId=rot.id;
+    db.schedule=rot.schedule; db.schedulePos=0;
+  }
   saveDB(); openRotationEditor(rot.id);
 }
 function deleteRotation(id){
@@ -5148,7 +5192,7 @@ function renderRotationEditor(){
              value="${escapeHtml(rot.name||'')}"
              oninput="renameActiveEditingRotation(this.value)">
     </div>
-    <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;">
+    <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 4px 6px;">
       <span>${t('rotation_workouts_label')}</span>
       <button class="btn-new" onclick="openScheduleModal()">${t('btn_add_short')}</button>
     </div>
@@ -5169,8 +5213,8 @@ function renderRotationEditor(){
               </div></div>`;
           }).join('')
     }</div>
-    <div class="notice">${t('schedule_notice')}</div>
-    <div class="settings-section-label" style="padding:16px 18px 6px;">${t('prog_section_label')}</div>
+    <div class="notice-inline">${t('schedule_notice')}</div>
+    <div class="settings-section-label" style="padding:16px 4px 6px;">${t('prog_section_label')}</div>
     <div class="settings-group">
       <div class="settings-row" onclick="openProgressionSettings()" style="cursor:pointer;">
         <div class="settings-row-left">
@@ -5262,7 +5306,7 @@ function renderProgression(){
     <div id="prog-detail" style="${on?'':'display:none;'}">
       <!-- Presets LOAD the fields, they don't commit anything. You review
            the cycle below and it is already yours to edit. -->
-      <div class="settings-section-label" style="padding:18px 18px 6px;">${t('prog_presets_label')}</div>
+      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_presets_label')}</div>
       <div class="prog-presets">
         ${PROGRESSION_PRESETS.map(pr=>`
           <button class="prog-preset" onclick="loadProgressionPreset('${pr.id}')">
@@ -5271,8 +5315,6 @@ function renderProgression(){
             <span class="pp-steps">${pr.cycle.map(s=>`<i class="pp-dot ${stepClass(s)}"></i>`).join('')} ${pr.cycle.length} ${t('prog_rotations_word')}</span>
           </button>`).join('')}
       </div>
-      <div class="prog-hint">${t('prog_presets_note')}</div>
-
       <!-- The cycle as a bar chart rather than a list: the SHAPE of the block
            is the thing you want to read here — build, back off, peak — and a
            row of chips makes you reconstruct it line by line. Bar height is
@@ -5280,7 +5322,7 @@ function renderProgression(){
            same step editor the list rows used; removing a step lives in that
            editor rather than as an X on every bar, which would clutter the
            chart and be easy to hit by accident. -->
-      <div class="settings-section-label" style="padding:18px 18px 4px;">${t('prog_cycle_label')}</div>
+      <div class="settings-section-label" style="padding:18px 4px 4px;">${t('prog_cycle_label')}</div>
       <div class="bigwave">
         ${p.cycle.map((s,i)=>`
           <div class="bw" onclick="editCycleStep(${i})" title="${escapeHtml(stepLabel(s)+' — '+cycleStepSub(s))}">
@@ -5298,7 +5340,7 @@ function renderProgression(){
         ${t('prog_cycle_summary').replace('{n}',total).replace('{w}',wk).replace('{total}',total*wk)}
       </div>
 
-      <div class="settings-section-label" style="padding:18px 18px 6px;">${t('prog_applies_label')}</div>
+      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_applies_label')}</div>
       <div class="settings-group">
         <div class="settings-row" onclick="showScreen('prog-applies')" style="cursor:pointer;">
           <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div>
@@ -5317,7 +5359,7 @@ function renderProgression(){
           </div>
         </div>
       </div>
-      <div class="prog-hint" style="padding-bottom:24px;">${t('prog_reset_note')}
+      <div class="prog-hint" style="padding-bottom:24px;">
         <button class="prog-linkbtn" onclick="resetCyclePos()">${t('prog_reset_cycle')}</button></div>
     </div>`;
 }
@@ -5469,35 +5511,56 @@ function renderProgApplies(){
   const p=rotationProgression(rot);
   // Only exercises actually IN this rotation — offering the full 150-entry
   // catalogue here would be noise.
-  const ids=[];
-  (rot.schedule||[]).forEach(rId=>{
-    const r=db.routines.find(x=>x.id===rId);
-    (r?r.exercises:[]).forEach(e=>{ if(ids.indexOf(e.id)===-1 && !isTimeTrackedEx(e.id)) ids.push(e.id); });
-  });
+  const ids=progApplyCandidateIds(rot);
   if(!ids.length){ el.innerHTML=`<div class="empty-state"><p>${t('prog_applies_empty')}</p></div>`; return; }
   const all=p.appliesTo.length===0;
   el.innerHTML=`
     <div style="padding:0 18px 10px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_applies_intro')}</div>
     <div class="rot-row ${all?'active':''}">
-      <button class="rot-check ${all?'on':''}" onclick="progAppliesAll()">${all?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
+      <button class="rot-check sq ${all?'on':''}" onclick="progAppliesAll()">${all?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
       <div class="rot-main" onclick="progAppliesAll()"><div class="rot-name">${t('prog_applies_all_row')}</div>
         <div class="rot-meta">${t('prog_applies_all_sub')}</div></div>
     </div>
     ${ids.map(id=>{
       const ex=db.exercises.find(e=>e.id===id);
-      const on=p.appliesTo.indexOf(id)!==-1;
+      // In "every exercise" mode every individual row must ALSO read
+      // ticked — appliesTo is empty in that state, so checking membership
+      // alone would show "Every exercise" on while every row under it read
+      // off, visually saying the opposite of what's selected.
+      const on=all || p.appliesTo.indexOf(id)!==-1;
       return `<div class="rot-row ${on?'active':''}">
-        <button class="rot-check ${on?'on':''}" onclick="toggleProgApplies('${id}')">${on?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
+        <button class="rot-check sq ${on?'on':''}" onclick="toggleProgApplies('${id}')">${on?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
         <div class="rot-main" onclick="toggleProgApplies('${id}')"><div class="rot-name">${escapeHtml(ex?exerciseDisplayName(ex):id)}</div></div>
       </div>`;
     }).join('')}`;
 }
+// While scope is "every exercise" (appliesTo:[]), every row above renders as
+// ticked (see the `all` fallback in renderProgApplies). Tapping one there has
+// to mean the same thing the checkmark visually promised: everything stays
+// included except the one just tapped — so the whitelist is populated with
+// every id EXCEPT this one, rather than starting an empty list with only
+// this one id (which used to mean the opposite of what the screen showed).
 function toggleProgApplies(id){
   const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
   const p=rotationProgression(rot);
-  const i=p.appliesTo.indexOf(id);
-  if(i===-1) p.appliesTo.push(id); else p.appliesTo.splice(i,1);
+  if(p.appliesTo.length===0){
+    p.appliesTo=progApplyCandidateIds(rot).filter(x=>x!==id);
+  } else {
+    const i=p.appliesTo.indexOf(id);
+    if(i===-1) p.appliesTo.push(id); else p.appliesTo.splice(i,1);
+  }
   saveDB(); renderProgApplies();
+}
+// Exercise ids this rotation could possibly show on the Applies-to screen —
+// factored out of renderProgApplies() so toggleProgApplies() can build the
+// "all except this one" list without duplicating the same scan.
+function progApplyCandidateIds(rot){
+  const ids=[];
+  (rot.schedule||[]).forEach(rId=>{
+    const r=db.routines.find(x=>x.id===rId);
+    (r?r.exercises:[]).forEach(e=>{ if(ids.indexOf(e.id)===-1 && !isTimeTrackedEx(e.id)) ids.push(e.id); });
+  });
+  return ids;
 }
 function progAppliesAll(){
   const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
@@ -5522,7 +5585,11 @@ function editingRotationSchedule(){
   return rot ? (rot.schedule||(rot.schedule=[])) : null;
 }
 function openScheduleModal(){
-  if(!db.routines.length){alert(t('alert_create_routines_first'));return;}
+  // The rotation editor's own empty state used to be the only way here, but
+  // now a brand-new rotation with zero routines routes through this same
+  // check first — a real path, not a hypothetical one — so the native
+  // alert() the rest of the app already avoids is worth fixing here too.
+  if(!db.routines.length){ showToast(t('alert_create_routines_first')); return; }
   document.getElementById('modal-title').textContent=t('schedule_modal_title');
   document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button><button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="addSched()">${t('add')}</button>`;
@@ -6744,13 +6811,28 @@ async function renderInteractionsFeed(el){
       </div>`
     : '';
   try{
-    const [{data:accepted}, {data:pings}] = await Promise.all([
+    // followingRows: who I follow (accepted) — needed to know WHOSE PR
+    // events to pull, a different direction than the other two queries
+    // (which are both "things addressed to me"). Fetched alongside them
+    // since it doesn't depend on their result. Capped at 300: a sane bound
+    // on a social graph this app's real userbase is nowhere near yet, per
+    // db-storage-auditor convention rather than reading an unbounded list.
+    const [{data:accepted}, {data:pings}, {data:followingRows}] = await Promise.all([
       supabaseClient.from('follows').select('follower_id, accepted_at').eq('following_id', currentUser.id).eq('status', 'accepted').order('accepted_at', {ascending:false}).limit(50),
       supabaseClient.from('pings').select('sender_id, message, kind, created_at').eq('recipient_id', currentUser.id).order('created_at', {ascending:false}).limit(50),
+      supabaseClient.from('follows').select('following_id').eq('follower_id', currentUser.id).eq('status', 'accepted').limit(300),
     ]);
+    // Sequential on purpose: needs the id list the query above just returned.
+    // A second round-trip rather than a client-side join is the plain
+    // Supabase way to do this — same shape query as the parallel ones above.
+    const followingIds=(followingRows||[]).map(r=>r.following_id);
+    const { data:prEvents } = followingIds.length
+      ? await supabaseClient.from('pr_events').select('user_id, exercise_id, weight, reps, created_at').in('user_id', followingIds).order('created_at', {ascending:false}).limit(50)
+      : { data:[] };
     const events=[
       ...(accepted||[]).map(r=>({type:'follow', userId:r.follower_id, at:r.accepted_at})),
       ...(pings||[]).map(r=>({type:'ping', userId:r.sender_id, message:r.message, kind:r.kind, at:r.created_at})),
+      ...(prEvents||[]).map(r=>({type:'pr', userId:r.user_id, exerciseId:r.exercise_id, weight:r.weight, reps:r.reps, at:r.created_at})),
     ].sort((a,b)=>new Date(b.at)-new Date(a.at));
     if(!events.length){
       if(_searchMode!=='interactions') return; // switched away while this was in flight
@@ -6772,6 +6854,29 @@ async function renderInteractionsFeed(el){
       const verifiedBadge=p.verified ? ' <span style="color:var(--gold);">✓</span>' : '';
       if(ev.type==='ping'){
         const line = ev.kind==='push' ? `wants you to ${ev.message}` : `says ${ev.message}`;
+        return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
+          ${buildListRowTierHtml(tierIcons[p.id])}
+          <div class="search-result-id">
+            <div class="search-result-name">${escapeHtml(p.full_name||p.username||'—')}${verifiedBadge}</div>
+            <div class="search-result-handle">${escapeHtml(line)}</div>
+          </div>
+        </div>`;
+      }
+      if(ev.type==='pr'){
+        // Weight is stored RAW — normalized on read via getTrueWeight, same
+        // as the PRs tab already does for someone else's history, so it
+        // respects THIS viewer's own barbell/dumbbell/unit interpretation
+        // rather than however the PR-holder's device happened to log it.
+        const def=db.exercises.find(x=>x.id===ev.exerciseId);
+        const exName=def?exerciseDisplayName(def):ev.exerciseId;
+        const dispW=toDisplayWeight(getTrueWeight(ev.exerciseId, ev.weight));
+        // 'BW' rather than a new translated key: every existing spot that
+        // handles this same "no added weight" case (finishWorkout's own
+        // history string, the PRs tab) already uses this literal untranslated
+        // — matching that established (if imperfect) convention rather than
+        // introducing a one-off key nothing else follows.
+        const wLabel=(dispW===0?'BW':dispW+unitLabel());
+        const line=t('interactions_pr_line').replace('{exercise}',exName).replace('{reps}',ev.reps).replace('{weight}',wLabel);
         return `<div class="search-result-row" onclick="openOtherProfile('${p.id}','search')">
           ${buildListRowTierHtml(tierIcons[p.id])}
           <div class="search-result-id">
@@ -8025,6 +8130,7 @@ const STRINGS = {
     confirm_signout_msg: 'Everything stays saved in the cloud — signing back in brings it all back.',
     confirm_signout_ok: 'Sign out',
     interactions_now_following_you: 'is now following you',
+    interactions_pr_line: 'Just hit a new PR in {exercise}! {reps} reps with {weight}',
     follow_list_followers: 'Followers',
     follow_list_following: 'Following',
     follow_list_empty_followers: 'No followers yet.',
@@ -8046,7 +8152,6 @@ const STRINGS = {
     prog_enable: 'Use a training cycle',
     prog_enable_sub: 'Vary how hard you push across rotations',
     prog_presets_label: 'Start from a template',
-    prog_presets_note: 'Templates just fill in the cycle below. Nothing is locked — change any step before or after.',
     prog_preset_loaded: 'Template loaded — edit it below',
     prog_preset_alan: 'Build up, back off, then test',
     prog_preset_alan_desc: 'Two harder rotations, an easy one, then an all-out rotation.',
@@ -8089,7 +8194,6 @@ const STRINGS = {
     prog_applies_empty: 'Add workouts to this rotation first.',
     prog_shownums: 'Show the numbers',
     prog_shownums_sub: 'Display RIR on every set',
-    prog_reset_note: 'Changed your mind mid-cycle?',
     prog_reset_cycle: 'Restart the cycle',
     prog_reset_done: 'Cycle restarted',
     prog_try: 'Try',
@@ -8547,6 +8651,7 @@ const STRINGS = {
     confirm_signout_msg: 'Todo se mantiene guardado en la nube — al volver a iniciar sesión, todo vuelve a aparecer.',
     confirm_signout_ok: 'Cerrar sesión',
     interactions_now_following_you: 'ahora te sigue',
+    interactions_pr_line: '¡Logró un nuevo récord en {exercise}! {reps} repeticiones con {weight}',
     follow_list_followers: 'Seguidores',
     follow_list_following: 'Siguiendo',
     follow_list_empty_followers: 'Todavía no tienes seguidores.',
@@ -8568,7 +8673,6 @@ const STRINGS = {
     prog_enable: 'Usar un ciclo de entrenamiento',
     prog_enable_sub: 'Varía la exigencia entre rotaciones',
     prog_presets_label: 'Empezar desde una plantilla',
-    prog_presets_note: 'Las plantillas solo completan el ciclo de abajo. Nada queda fijo: puedes cambiar cualquier paso antes o después.',
     prog_preset_loaded: 'Plantilla cargada — edítala abajo',
     prog_preset_alan: 'Subir, aflojar y luego medir',
     prog_preset_alan_desc: 'Dos rotaciones más exigentes, una suave, y una rotación a tope.',
@@ -8611,7 +8715,6 @@ const STRINGS = {
     prog_applies_empty: 'Primero agrega rutinas a esta rotación.',
     prog_shownums: 'Mostrar los números',
     prog_shownums_sub: 'Muestra el RIR en cada serie',
-    prog_reset_note: '¿Cambiaste de idea a mitad del ciclo?',
     prog_reset_cycle: 'Reiniciar el ciclo',
     prog_reset_done: 'Ciclo reiniciado',
     prog_try: 'Prueba',
@@ -9099,19 +9202,37 @@ function badgeName(id){
   return ins ? ins.name : '';
 }
 
+// Rookie/Regular/Dedicated (bronze/silver/gold) share one medal shape and
+// used to differ only by a hardcoded metal hex — bronze copper, silver grey,
+// true gold — regardless of the viewer's own accent or theme. Alan's ask:
+// insignia colour should follow the SAME accent/theme system every other
+// icon in the app already does (see SPECIAL_ICONS below, which were already
+// currentColor), so search results, someone's profile, and notifications all
+// carry a little of his own branding rather than three fixed metals nobody
+// can change. Converting to currentColor does mean these three tiers now
+// render in the same hue as each other — the badge LABEL underneath
+// (badgeName()) is what still tells them apart, same as it always has.
 const TIER_ICONS = {
-  bronze:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#cd7f32" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#cd7f32"/><line x1="15" y1="38" x2="22" y2="42" stroke="#cd7f32" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#cd7f32" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#cd7f32"/></svg>',
-  silver:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#aaaaaa" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#aaaaaa"/><line x1="15" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#aaaaaa" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#aaaaaa"/></svg>',
-  gold:    '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="#d4a843" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="#d4a843"/><line x1="15" y1="38" x2="22" y2="42" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="#d4a843"/></svg>',
-  fire:    '<svg width="22" height="22" viewBox="0 0 36 36" fill="none"><path d="M18 4C18 4 14 9 14 14C14 14 12 12 12 10C12 10 8 14 8 19C8 23.4 12.6 28 18 28C23.4 28 28 23.4 28 19C28 13 23 9 21 7C21 7 22 11 20 13C20 13 18 9 18 4Z" fill="#e8722a"/><path d="M18 16C18 16 16 14 16 12C16 12 19.5 14 19.5 18C21 16 22 13 21 11C21 11 25 14 25 19C25 21.8 21.8 24.5 18 24.5C14.2 24.5 11 21.8 11 19C11 17 13 15 13 15C13 17 16 18 18 16Z" fill="#f0c060" opacity=".8"/></svg>',
+  bronze:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="currentColor"/><line x1="15" y1="38" x2="22" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="currentColor"/></svg>',
+  silver:  '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="currentColor"/><line x1="15" y1="38" x2="22" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="currentColor"/></svg>',
+  gold:    '<svg width="22" height="22" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="22" r="14" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M22 10L23.8 16H30L25 19.5L27 25.5L22 22L17 25.5L19 19.5L14 16H20.2Z" fill="currentColor"/><line x1="15" y1="38" x2="22" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="29" y1="38" x2="22" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="18" y="42" width="8" height="3" fill="currentColor"/></svg>',
+  // The inner flame used to be a lighter FIXED gold (--gold2) over a fixed
+  // orange outer flame — a real two-tone highlight, not just a flat icon
+  // like bronze/silver/gold were. Reusing currentColor for both layers would
+  // make the highlight invisible (compositing a colour at any opacity over
+  // an identical colour is a no-op — the maths cancels out regardless of
+  // opacity). White at partial opacity lightens WHATEVER currentColor sits
+  // underneath, so the two-tone flame effect survives and now does so for
+  // every accent, not just gold.
+  fire:    '<svg width="22" height="22" viewBox="0 0 36 36" fill="none"><path d="M18 4C18 4 14 9 14 14C14 14 12 12 12 10C12 10 8 14 8 19C8 23.4 12.6 28 18 28C23.4 28 28 23.4 28 19C28 13 23 9 21 7C21 7 22 11 20 13C20 13 18 9 18 4Z" fill="currentColor"/><path d="M18 16C18 16 16 14 16 12C16 12 19.5 14 19.5 18C21 16 22 13 21 11C21 11 25 14 25 19C25 21.8 21.8 24.5 18 24.5C14.2 24.5 11 21.8 11 19C11 17 13 15 13 15C13 17 16 18 18 16Z" fill="#fff" opacity=".4"/></svg>',
   // Theme-aware on purpose (unlike the other tier icons, which keep their
   // fixed medal-material color regardless of theme) — black in light mode,
   // white in dark mode, per Alan's explicit call. currentColor + an inline
   // color so it works correctly wherever it's dropped in (badge, picker,
   // streak widget) without depending on a wrapper class being present.
   skull:  '<svg width="22" height="22" viewBox="0 0 46 54" fill="none" style="color:var(--text);"><path d="M 21 33 L 22 32 L 23 32 L 24 33 L 24 34 L 25 35 L 25 36 L 26 37 L 26 40 L 25 41 L 21 41 L 19 39 L 19 38 L 20 37 L 20 35 L 21 34 Z M 29 22 L 37 22 L 39 24 L 39 25 L 40 26 L 40 31 L 36 35 L 31 35 L 30 34 L 29 34 L 27 32 L 27 31 L 26 30 L 26 29 L 25 28 L 25 26 Z M 8 23 L 9 22 L 16 22 L 20 26 L 20 29 L 19 30 L 19 31 L 16 34 L 15 34 L 14 35 L 9 35 L 6 32 L 6 31 L 5 30 L 5 26 L 6 25 L 6 24 L 7 23 Z M 17 2 L 16 3 L 14 3 L 13 4 L 12 4 L 11 5 L 10 5 L 5 10 L 5 11 L 4 12 L 4 13 L 3 14 L 3 17 L 2 18 L 2 23 L 3 24 L 3 31 L 4 32 L 4 34 L 3 35 L 3 37 L 4 38 L 4 39 L 6 41 L 10 41 L 11 42 L 11 45 L 12 46 L 12 49 L 13 49 L 14 50 L 15 50 L 15 47 L 16 46 L 17 46 L 18 47 L 18 51 L 21 51 L 21 48 L 22 47 L 23 47 L 24 48 L 24 51 L 27 51 L 27 47 L 28 46 L 29 46 L 30 47 L 30 50 L 31 50 L 32 49 L 33 49 L 33 46 L 34 45 L 34 43 L 36 41 L 39 41 L 42 38 L 42 37 L 43 36 L 42 35 L 42 34 L 41 33 L 42 32 L 42 26 L 43 25 L 43 17 L 42 16 L 42 14 L 41 13 L 41 12 L 40 11 L 40 10 L 35 5 L 34 5 L 33 4 L 32 4 L 31 3 L 29 3 L 28 2 Z" fill="currentColor" fill-rule="evenodd"/></svg>',
-  veteran:  '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M16 2L17.6 7H22.5L18.7 9.8L20.3 14.8L16 12L11.7 14.8L13.3 9.8L9.5 7H14.4Z" fill="#d4a843"/><rect x="6" y="17" width="20" height="3" fill="#d4a843"/><rect x="6" y="22" width="20" height="3" fill="#d4a843" opacity=".6"/><rect x="6" y="27" width="20" height="3" fill="#d4a843" opacity=".3"/></svg>',
-  crown:   '<svg width="22" height="22" viewBox="0 0 36 32" fill="none"><rect x="5" y="25" width="26" height="5" fill="#d4a843"/><path d="M5 25L5 11L11 19L18 7L25 19L31 11L31 25Z" fill="#d4a843" opacity=".9"/><circle cx="5" cy="11" r="2.5" fill="#d4a843"/><circle cx="18" cy="7" r="3" fill="#d4a843"/><circle cx="31" cy="11" r="2.5" fill="#d4a843"/></svg>',
+  veteran:  '<svg width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M16 2L17.6 7H22.5L18.7 9.8L20.3 14.8L16 12L11.7 14.8L13.3 9.8L9.5 7H14.4Z" fill="currentColor"/><rect x="6" y="17" width="20" height="3" fill="currentColor"/><rect x="6" y="22" width="20" height="3" fill="currentColor" opacity=".6"/><rect x="6" y="27" width="20" height="3" fill="currentColor" opacity=".3"/></svg>',
+  crown:   '<svg width="22" height="22" viewBox="0 0 36 32" fill="none"><rect x="5" y="25" width="26" height="5" fill="currentColor"/><path d="M5 25L5 11L11 19L18 7L25 19L31 11L31 25Z" fill="currentColor" opacity=".9"/><circle cx="5" cy="11" r="2.5" fill="currentColor"/><circle cx="18" cy="7" r="3" fill="currentColor"/><circle cx="31" cy="11" r="2.5" fill="currentColor"/></svg>',
 };
 
 // Non-tier insignias — unlike TIER_ICONS these have no baked-in fill color
