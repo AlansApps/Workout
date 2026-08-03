@@ -1809,7 +1809,7 @@ body.light-mode .auth-choice-title{color:#111;}
   <!-- Rotations, plural. + Add here creates a NEW rotation; adding workouts
        to one happens inside its editor. Only one rotation is active at a
        time — the tick marks it. -->
-  <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 4px 6px;">
+  <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 14px 6px;">
     <span data-i18n="schedule_rotations_label">Rotations</span>
     <button class="btn-new" onclick="createRotation()" data-i18n="rotation_new">+ New</button>
   </div>
@@ -1822,14 +1822,14 @@ body.light-mode .auth-choice-title{color:#111;}
      draft used — matches #screen-account/#screen-weight-prefs and gets the
      safe-area inset for free instead of needing its own opt-in list entry. -->
 <div id="screen-rotation-edit" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('schedule')" data-i18n="back">← Back</button></div>
+  <div class="back-row"><button class="btn-back" onclick="backFromRotationEditor()" data-i18n="back">← Back</button></div>
   <div class="pg-header"><div class="pg-title" data-i18n="rotation_edit_title">Rotation</div></div>
   <div id="rotation-edit-body" class="list-scroll"></div>
 </div>
 
 <!-- ══ ADVANCED SETTINGS (per rotation) ══ periodization lives here -->
 <div id="screen-progression" class="screen">
-  <div class="back-row"><button class="btn-back" onclick="showScreen('rotation-edit')" data-i18n="back">← Back</button></div>
+  <div class="back-row"><button class="btn-back" onclick="backFromProgression()" data-i18n="back">← Back</button></div>
   <div class="pg-header"><div class="pg-title" data-i18n="prog_title">Progression</div></div>
   <div id="progression-body" class="list-scroll"></div>
 </div>
@@ -2007,6 +2007,23 @@ body.light-mode .auth-choice-title{color:#111;}
   </div>
 </div>
 
+<!-- ══ UNSAVED CHANGES ══ 3-way decision (Save/Keep Editing/Discard) for
+     screens that moved from autosave to an explicit Save (rotation editor,
+     Advanced Settings). Same gold-card pattern as #confirm-overlay above,
+     but stacked vertically — a real 3-way choice, with longer Spanish
+     labels, doesn't fit a 2-up row on a narrow phone. -->
+<div id="unsaved-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:28px 24px;width:100%;max-width:320px;text-align:center;">
+    <div id="unsaved-title" style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:3px;color:var(--text);text-transform:uppercase;margin-bottom:10px;"></div>
+    <div id="unsaved-msg" style="font-size:12px;color:var(--soft);margin-bottom:22px;letter-spacing:1px;line-height:1.6;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="unsaved-save-btn" onclick="_unsavedResolve('save')" style="background:var(--gold);border:none;border-radius:20px;color:var(--void);padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;"></button>
+      <button id="unsaved-keep-btn" onclick="_unsavedResolve('keep')" style="background:none;border:1px solid var(--line2);border-radius:20px;color:var(--muted);padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;"></button>
+      <button id="unsaved-discard-btn" onclick="_unsavedResolve('discard')" style="background:none;border:1px solid var(--danger);border-radius:20px;color:var(--danger);padding:12px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;"></button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ PING PICKER ══ 3 random message options (see pickRandomPingOptions) -->
 <div id="ping-picker-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:28px 24px;width:100%;max-width:320px;text-align:center;">
@@ -2024,6 +2041,17 @@ body.light-mode .auth-choice-title{color:#111;}
       <img id="exercise-video-img" src="" alt="" style="width:100%;display:block;">
     </div>
     <button onclick="closeExerciseVideo()" style="margin-top:16px;background:none;border:none;color:var(--muted);font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;padding:0;">Close</button>
+  </div>
+</div>
+
+<!-- ══ EXERCISE INFO ══ Last / all-time PR / notes, kept off the workout
+     card itself so the default view stays uncluttered — see openExerciseInfo().
+     Same overlay pattern as exercise-video-overlay above. -->
+<div id="exercise-info-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:300;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:20px;width:100%;max-width:340px;text-align:left;">
+    <div id="exercise-info-title" style="font-family:var(--hd);font-size:14px;font-weight:700;letter-spacing:2px;color:var(--text);text-transform:uppercase;margin-bottom:14px;text-align:center;"></div>
+    <div id="exercise-info-body"></div>
+    <button onclick="closeExerciseInfo()" style="margin-top:16px;width:100%;text-align:center;background:none;border:none;color:var(--muted);font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;padding:0;" data-i18n="close">Close</button>
   </div>
 </div>
 
@@ -3592,21 +3620,18 @@ function renderWoScreen(){
       card.className='ex-card'; card.id='exc-ei-'+ei;
       let rows='';
       for(let s=0;s<item.sets;s++) rows+=makeSetRow(ei,s,item);
-      const notesHtml=`<div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="${t('workout_edit_notes')}"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>`;
-      const lastHtml=item.lastHistory?`<div class="ex-card-last">${ICON_LAST} ${t('ex_db_last_label')}: ${item.lastHistory}</div>`:'';
       const videoBtnHtml=buildExerciseVideoBtnHtml(item.id, 26);
-      // One line under the exercise when progression is driving it. The
-      // effort word always shows; the target weight only when there is one
-      // (all-out has none) and the RIR/% detail only in expert mode.
+      const infoBtnHtml=buildExerciseInfoBtnHtml(ei, 26);
+      // Last/RIR-0/notes used to sit right on the card by default — moved
+      // into the info popup (see openExerciseInfo) so the card only ever
+      // shows the exercise name and, when relevant, the one progression
+      // instruction line. Nothing here is hidden data, just one tap away.
       const pStep=item.progStep;
-      const _showRir = (()=>{ const r=activeRotation(); return !!(r && r.progression && r.progression.showNumbers); })();
       const progHtml = pStep ? `<div class="ex-prog-line">
-          <span class="chip ${stepClass(pStep)}">${stepLabel(pStep,_showRir)}</span>
-          ${item.progTarget!==null && item.progTarget!==undefined
-              ? `<span class="ex-prog-target">${t('prog_try')} ${toDisplayWeight(item.progTarget)}${unitLabel()}</span>`
-              : (pStep.type==='allout' ? `<span class="ex-prog-target">${t('prog_allout_cue')}</span>` : '')}
+          <span class="chip ${stepClass(pStep)}">${t('workout_progression_chip')}</span>
+          <span class="ex-prog-target">${progressionCueText(pStep,item)}</span>
         </div>` : '';
-      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${exerciseDisplayNameById(item.id, item.name)}</div>${videoBtnHtml}</div>${notesHtml}${progHtml}${lastHtml}</div><div class="ex-sets">${rows}</div>`;
+      card.innerHTML=`<div class="ex-card-header"><div class="ex-card-name-row"><div class="ex-card-name">${exerciseDisplayNameById(item.id, item.name)}</div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">${infoBtnHtml}${videoBtnHtml}</div></div>${progHtml}</div><div class="ex-sets">${rows}</div>`;
       body.appendChild(card);
     } else if(item.type==='ss'){
       // Superset block
@@ -4270,6 +4295,34 @@ function _confirmResolve(yes){
   if(yes && cb) cb();
 }
 
+// ── Unsaved-changes guard ──
+// Shared by every screen that moved from autosave-on-every-change to an
+// explicit Save (rotation editor, Advanced Settings): a real 3-way choice
+// (keep editing / discard / save) gets its own dedicated gold-card overlay
+// (#unsaved-overlay), same treatment as #confirm-overlay above rather than
+// the generic list-modal chrome — this is a decision dialog like Sign Out
+// or Delete Workout, not a picker or a form. Buttons stack vertically
+// instead of #confirm-overlay's side-by-side pair: three buttons across,
+// especially with longer Spanish labels, doesn't fit a narrow phone.
+let _unsavedSaveFn=null, _unsavedDiscardFn=null;
+function confirmUnsavedChanges(saveFn, discardFn){
+  _unsavedSaveFn=saveFn; _unsavedDiscardFn=discardFn;
+  document.getElementById('unsaved-title').textContent=t('unsaved_title');
+  document.getElementById('unsaved-msg').textContent=t('unsaved_body');
+  document.getElementById('unsaved-save-btn').textContent=t('save');
+  document.getElementById('unsaved-keep-btn').textContent=t('unsaved_keep_editing');
+  document.getElementById('unsaved-discard-btn').textContent=t('unsaved_discard');
+  document.getElementById('unsaved-overlay').style.display='flex';
+}
+function _unsavedResolve(choice){
+  document.getElementById('unsaved-overlay').style.display='none';
+  const saveFn=_unsavedSaveFn, discardFn=_unsavedDiscardFn;
+  _unsavedSaveFn=null; _unsavedDiscardFn=null;
+  if(choice==='save' && saveFn) saveFn();
+  else if(choice==='discard' && discardFn) discardFn();
+  // 'keep' just closes — the caller's draft state is untouched either way.
+}
+
 function cancelWorkout(){
   showConfirm({
     title:t('confirm_quit_workout_title'),
@@ -4705,6 +4758,157 @@ function confirmImportSharedRoutine(){
   showToast(t('toast_workout_added'));
 }
 
+// ═══════════════════════════════════════════
+//  SHARE A ROTATION — "share it like a pack": the whole schedule (which
+//  workouts, in what order), every one of those workouts' full exercise
+//  data (same never-weight convention as shareRoutine above), and the
+//  periodization settings running on it (cycle/scope/basis) if any — all in
+//  one link, same base64url-in-the-URL approach as shareRoutine, so this
+//  needs no server storage either. Weight is never included (routine
+//  exercises are re-encoded with weight:0, same as a lone shared routine)
+//  and neither is WHERE the sender currently sits in their cycle — cyclePos
+//  always starts a fresh import at 0, since a training cycle position is
+//  personal history, not something to hand someone along with the plan.
+// ═══════════════════════════════════════════
+function encodeRotationForShare(rot){
+  const p=rotationProgression(rot);
+  const uniqueRoutines=[]; // {n,e} — de-duplicated so a repeating schedule
+  const indexByRoutineId={}; // (Push/Pull/Push/Pull) doesn't ship 4 copies.
+  const sc=(rot.schedule||[]).map(rid=>{
+    if(indexByRoutineId[rid]===undefined){
+      const rt=db.routines.find(x=>x.id===rid);
+      if(!rt) return -1; // routine vanished from under the rotation somehow — drop the slot
+      indexByRoutineId[rid]=uniqueRoutines.length;
+      uniqueRoutines.push({ n:rt.name, e:rt.exercises.map(ex=>({i:ex.id, s:ex.sets, r:ex.reps, t:ex.rest})) });
+    }
+    return indexByRoutineId[rid];
+  }).filter(idx=>idx!==-1);
+  const compact={ rn:rot.name||'', sc, r:uniqueRoutines };
+  if(progressionOn(rot)){
+    // Short keys again, same reasoning as encodeRoutineForShare — this is a
+    // whole rotation's worth of routines riding in the same URL now.
+    compact.p={ c:p.cycle.map(s=>({ri:s.rir, se:s.setPct, re:s.repPct, lo:s.loadPct, ao:s.allout?1:0})), a:p.appliesTo.slice(), b:p.progressBasis };
+  }
+  return b64UrlEncode(JSON.stringify(compact));
+}
+
+// Untrusted input, same posture as decodeSharedRoutine: fails closed on
+// anything malformed, drops any exercise id this device's catalogue
+// doesn't recognize, and drops a routine (and every schedule slot pointing
+// at it) if that leaves it with zero valid exercises left.
+function decodeSharedRotation(encoded){
+  try{
+    const compact=JSON.parse(b64UrlDecode(encoded));
+    if(!compact||!Array.isArray(compact.sc)||!Array.isArray(compact.r)) return null;
+    const routines=compact.r.map(rr=>{
+      if(!rr||typeof rr.n!=='string'||!Array.isArray(rr.e)) return null;
+      const exercises=rr.e
+        .map(ex=>({ id:String(ex.i||''), sets:parseInt(ex.s)||3, reps:parseInt(ex.r)||8, weight:0, rest:parseInt(ex.t)||60 }))
+        .filter(ex=>db.exercises.some(e=>e.id===ex.id));
+      if(!exercises.length) return null;
+      return { name:String(rr.n).slice(0,60)||'Shared Workout', exercises };
+    });
+    const schedule=compact.sc.map(i=>routines[i]).filter(r=>r);
+    const validRoutines=routines.filter(r=>r);
+    if(!validRoutines.length) return null;
+    let progression=null;
+    if(compact.p && Array.isArray(compact.p.c) && compact.p.c.length){
+      const validExIds=new Set();
+      validRoutines.forEach(r=>r.exercises.forEach(ex=>validExIds.add(ex.id)));
+      const cycle=compact.p.c.slice(0,20).map(s=>migrateCycleStep({ // 20-step cap: sane upper bound against a hand-edited/corrupted link
+        rir: typeof s.ri==='number'?s.ri:2,
+        setPct: typeof s.se==='number'?s.se:100,
+        repPct: typeof s.re==='number'?s.re:100,
+        loadPct: typeof s.lo==='number'?s.lo:100,
+        allout: !!s.ao
+      }));
+      const appliesTo=Array.isArray(compact.p.a)?compact.p.a.filter(id=>validExIds.has(id)):[];
+      progression={ mode:'on', cycle, cyclePos:0, appliesTo, progressBasis: compact.p.b==='last'?'last':'pr' };
+    }
+    return { name: typeof compact.rn==='string' ? compact.rn.slice(0,60) : '', schedule, progression };
+  }catch(e){ return null; }
+}
+
+async function shareRotation(rotId){
+  const rot=db.rotations.find(r=>r.id===rotId);
+  if(!rot || !(rot.schedule||[]).length) return;
+  const url=location.origin+location.pathname+'?rotshare='+encodeRotationForShare(rot);
+  const name=rotationDisplayName(rot);
+  if(navigator.share){
+    try{ await navigator.share({ title:name, text:`${t('share_check_out_workout')} ${name}`, url }); }
+    catch(e){ /* user cancelled the share sheet — nothing to do */ }
+  } else if(navigator.clipboard && navigator.clipboard.writeText){
+    try{ await navigator.clipboard.writeText(url); showToast(t('toast_link_copied')); }
+    catch(e){ showToast(t('toast_copy_link_error')); }
+  } else {
+    showToast(t('toast_sharing_not_supported'));
+  }
+}
+
+// Called once at boot — checks whether this load came from a shared-rotation
+// link, mirrors checkIncomingSharedRoutine() above.
+function checkIncomingSharedRotation(){
+  const params=new URLSearchParams(location.search);
+  const encoded=params.get('rotshare');
+  if(!encoded) return;
+  history.replaceState(null,'',location.pathname);
+  const shared=decodeSharedRotation(encoded);
+  if(!shared){ showToast(t('toast_rotation_link_broken')); return; }
+  openImportSharedRotationModal(shared);
+}
+
+let _pendingSharedRotation=null;
+function openImportSharedRotationModal(shared){
+  _pendingSharedRotation=shared;
+  const wCount=shared.schedule.length;
+  const progNote=shared.progression?`<br><br>${t('import_shared_rotation_progression_note')}`:'';
+  document.getElementById('modal-title').textContent=t('import_shared_rotation_title');
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-grp">
+      <label class="form-lbl">${t('rotation_name_label')}</label>
+      <input class="form-inp" id="dl-rot-name-inp" value="${escapeHtml(shared.name||t('rotation_default_name'))}" maxlength="60">
+    </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('import_shared_rotation_note')} — ${wCount} ${wCount===1?t('rotation_workout_singular'):t('rotation_workout_plural')}. ${t('import_shared_rotation_copy_note')}${progNote}</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="_pendingSharedRotation=null;closeModal();">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="confirmImportSharedRotation()">${t('add')}</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+  const inp=document.getElementById('dl-rot-name-inp'); inp.focus(); inp.select();
+}
+
+function confirmImportSharedRotation(){
+  const shared=_pendingSharedRotation;
+  if(!shared) return;
+  const name=document.getElementById('dl-rot-name-inp').value.trim();
+  if(!name){ alert(t('alert_name_rotation')); return; }
+  if(containsProfanity(name)){ alert(t('alert_profanity_routine_name')); return; }
+  // Every unique routine object in shared.schedule gets exactly one new
+  // local routine + id; repeated slots (Push/Pull/Push/Pull) reuse that
+  // same new id rather than minting a duplicate copy per occurrence.
+  const idByRoutine=new Map();
+  const scheduleIds=shared.schedule.map(rt=>{
+    if(!idByRoutine.has(rt)){
+      const newId=genId();
+      idByRoutine.set(rt,newId);
+      db.routines.push({id:newId, name:rt.name, exercises:JSON.parse(JSON.stringify(rt.exercises))});
+    }
+    return idByRoutine.get(rt);
+  });
+  const newRot={ id:'rot-'+rotationUid(), name, schedule:scheduleIds, pos:0 };
+  if(shared.progression) newRot.progression=JSON.parse(JSON.stringify(shared.progression));
+  // Same rule createRotation() follows: only take over automatically when
+  // there is nothing else currently running. Checked BEFORE pushing, same
+  // order createRotation() uses, so newRot can never be mistaken for the
+  // pre-existing active one.
+  const hadActive=!!(db.activeRotationId && db.rotations.some(r=>r.id===db.activeRotationId));
+  db.rotations.push(newRot);
+  if(!hadActive){ db.activeRotationId=newRot.id; db.schedule=newRot.schedule; db.schedulePos=0; }
+  saveDB(); closeModal(); renderRotations();
+  syncOfflineVideoCache();
+  _pendingSharedRotation=null;
+  showToast(t('toast_rotation_added'));
+}
+
 function openRoutineModal(editId){
   const editing=editId?db.routines.find(r=>r.id===editId):null;
   // Build items array: group consecutive ssGroup exercises into type:'ss' blocks
@@ -5093,21 +5297,63 @@ function deleteRotation(id){
 // when the rotation wraps back to its first workout (see finishWorkout), and
 // wrapping the CYCLE is what triggers the re-seed.
 //
-// Step shapes:
-//   {type:'rir',    rir:N}                     work N reps short of failure
-//   {type:'deload', rir:N, setPct:%, loadPct:%} same, with volume/load cut
-//   {type:'allout'}                            no rep target — find your max
+// Step shape (fully open-ended — no more canned "pick one of five" combos;
+// every step is these same four continuous fields, always):
+//   {rir:N, setPct:%, repPct:%, loadPct:%, allout:bool}
+// allout:true means "find your max" and makes the other four fields
+// meaningless (no computed target). A 100/100/100 step with allout:false is
+// a plain RIR step; a lower setPct/loadPct is what used to be a separate
+// "deload" type — there is no type enum left to branch on, just numbers,
+// so any combination the user actually wants to type in is representable.
+function defaultCycleStep(){ return {rir:2, setPct:100, repPct:100, loadPct:100, allout:false}; }
+// Old installs (and the cloud) may still hold the previous discrete-type
+// shape — converted here, once, on read, rather than migrating data in
+// place, so a step never round-trips through JSON in a form nothing can
+// read anymore.
+function migrateCycleStep(s){
+  if(!s || typeof s!=='object') return defaultCycleStep();
+  if(s.allout!==undefined || s.setPct!==undefined && s.type===undefined) return s; // already new shape
+  if(s.type==='allout') return {rir:0, setPct:100, repPct:100, loadPct:100, allout:true};
+  if(s.type==='deload') return {rir:s.rir||3, setPct:s.setPct||50, repPct:100, loadPct:s.loadPct||90, allout:false};
+  return {rir:(typeof s.rir==='number'?s.rir:2), setPct:100, repPct:100, loadPct:100, allout:false};
+}
 const PROGRESSION_PRESETS=[
   { id:'alan',   nameKey:'prog_preset_alan',   descKey:'prog_preset_alan_desc',
-    cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'deload',rir:3,setPct:50,loadPct:90},{type:'allout'}] },
+    cycle:[{rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:3,setPct:50,repPct:100,loadPct:90,allout:false},
+           {rir:0,setPct:100,repPct:100,loadPct:100,allout:true}] },
   { id:'ramp',   nameKey:'prog_preset_ramp',   descKey:'prog_preset_ramp_desc',
-    cycle:[{type:'rir',rir:3},{type:'rir',rir:2},{type:'rir',rir:1},{type:'deload',rir:3,setPct:50,loadPct:90}] },
+    cycle:[{rir:3,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:3,setPct:50,repPct:100,loadPct:90,allout:false}] },
   { id:'simple', nameKey:'prog_preset_simple', descKey:'prog_preset_simple_desc',
-    cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'allout'}] },
+    cycle:[{rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:0,setPct:100,repPct:100,loadPct:100,allout:true}] },
+  // Ramps intensity across four rotations to a genuine max attempt, THEN
+  // recovers — the classic strength-block shape (peak, then deload),
+  // rather than Alan's own back-off-then-peak order.
+  { id:'strength_peak', nameKey:'prog_preset_strength_peak', descKey:'prog_preset_strength_peak_desc',
+    cycle:[{rir:3,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:0,setPct:100,repPct:100,loadPct:100,allout:true},
+           {rir:3,setPct:50,repPct:100,loadPct:90,allout:false}] },
+  // No deload, no all-out — five rotations easing deeper toward failure
+  // without ever testing a true max. Built for accumulating volume, not
+  // measuring it.
+  { id:'hypertrophy', nameKey:'prog_preset_hypertrophy', descKey:'prog_preset_hypertrophy_desc',
+    cycle:[{rir:3,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:3,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
+           {rir:1,setPct:100,repPct:100,loadPct:100,allout:false}] },
 ];
 function defaultProgression(){
-  return { mode:'off', cycle:[{type:'rir',rir:2},{type:'rir',rir:1},{type:'allout'}],
-           cyclePos:0, appliesTo:[], showNumbers:false };
+  return { mode:'off', cycle:[defaultCycleStep(),{rir:1,setPct:100,repPct:100,loadPct:100,allout:false},{rir:0,setPct:100,repPct:100,loadPct:100,allout:true}],
+           cyclePos:0, appliesTo:[], progressBasis:'pr' };
 }
 function rotationProgression(rot){
   if(!rot) return null;
@@ -5116,9 +5362,12 @@ function rotationProgression(rot){
   // Repair rather than trust — this object round-trips through JSON and the
   // cloud, and a malformed cycle would break every workout screen.
   if(!Array.isArray(p.cycle) || !p.cycle.length) p.cycle=defaultProgression().cycle;
+  else p.cycle=p.cycle.map(migrateCycleStep);
   if(!Array.isArray(p.appliesTo)) p.appliesTo=[];
   if(typeof p.cyclePos!=='number' || p.cyclePos<0) p.cyclePos=0;
   p.cyclePos = p.cyclePos % p.cycle.length;
+  if(p.progressBasis!=='pr' && p.progressBasis!=='last') p.progressBasis='pr';
+  delete p.showNumbers; // superseded — RIR is always shown in the workout screen's progression line now
   return p;
 }
 function progressionOn(rot){ const p=rot&&rot.progression; return !!(p && p.mode==='on'); }
@@ -5136,26 +5385,44 @@ function progressionAppliesTo(exId){
   const p=rotationProgression(rot);
   return p.appliesTo.length===0 ? true : p.appliesTo.indexOf(exId)!==-1;
 }
-// Short label + the number, always together: the novice reads the word, the
-// experienced lifter reads the RIR. Same string serves both.
-// `showRir` controls whether the numeric half is appended. The settings and
-// cycle screens always pass true — that is where you are configuring the
-// thing and the number is the point. The workout screen passes the
-// rotation's showNumbers preference, which is what makes the expert toggle
-// mean something instead of being a switch that does nothing.
-function stepLabel(step, showRir){
+// One summary string per step, used everywhere a step needs describing (the
+// rotation editor's progression row, the cycle chart's tooltip, the current-
+// position picker). Always states the RIR plainly now — there is no more
+// effort-word-vs-number toggle (the workout screen's own progression line,
+// built separately, is what actually needed that distinction, and it now
+// always states the number as plain fact — see finishWorkout's session
+// builder). Any field left at 100% is not worth repeating.
+function stepSummary(step){
   if(!step) return '';
-  const rir = (showRir===false) ? '' : ' · RIR '+step.rir;
-  if(step.type==='allout') return t('prog_eff_allout');
-  if(step.type==='deload')  return t('prog_eff_deload')+rir;
-  const names={0:'prog_eff_max',1:'prog_eff_hard',2:'prog_eff_moderate',3:'prog_eff_easy'};
-  return t(names[step.rir]||'prog_eff_moderate')+rir;
+  if(step.allout) return t('prog_short_max');
+  const bits=['RIR '+step.rir];
+  if(step.setPct && step.setPct!==100) bits.push(step.setPct+'% '+t('prog_sets_word'));
+  if(step.repPct && step.repPct!==100) bits.push(step.repPct+'% '+t('prog_reps_word'));
+  if(step.loadPct && step.loadPct!==100) bits.push(step.loadPct+'% '+t('prog_load_word'));
+  return bits.join(' · ');
 }
 function stepClass(step){
   if(!step) return '';
-  if(step.type==='allout') return 'c-max';
-  if(step.type==='deload') return 'c-easy';
+  if(step.allout) return 'c-max';
+  if((step.setPct && step.setPct<100) || (step.loadPct && step.loadPct<100)) return 'c-easy';
   return step.rir<=1?'c-hard':(step.rir>=3?'c-easy':'c-mod');
+}
+// The literal instruction line on a workout-screen exercise card — states
+// what to do, not an abstract effort word. Alan's explicit ask: the chip
+// just says "Progression" (see workout_progression_chip) and this line
+// carries the actual numbers, e.g. "Cycle 2 RIR 1: 45kg x 9". Reps/weight
+// come from the exact same computation buildSessionEx used for item.progTarget
+// (which no longer auto-fills the input fields — see buildSessionEx), so this
+// line and what the fields were prefilled with can never disagree.
+function progressionCueText(step,item){
+  const rot=activeRotation();
+  const p=rot && rotationProgression(rot);
+  const cycleNum=(p?p.cyclePos:0)+1;
+  if(step.allout) return t('prog_cue_allout').replace('{n}',cycleNum);
+  const reps=progressionTargetReps(item.reps,step);
+  const key=(item.progTarget!==null && item.progTarget!==undefined) ? 'prog_cue_line' : 'prog_cue_line_noweight';
+  return t(key).replace('{n}',cycleNum).replace('{rir}',step.rir).replace('{reps}',reps)
+    .replace('{w}', (item.progTarget!==null && item.progTarget!==undefined) ? (toDisplayWeight(item.progTarget)+unitLabel()) : '');
 }
 
 // ── The maths ──
@@ -5166,16 +5433,36 @@ function stepClass(step){
 // Returns a RAW weight in the same convention as everything stored, or null
 // when there's no record to work from (a brand-new lift), in which case the
 // workout screen just shows last time's number as it always did.
+// Which record to anchor the projection on: the all-time best (default), or
+// whatever was actually logged most recently — for someone coming back
+// after time off who wants the cycle to keep working off where they
+// actually left off, not force them back up to an old best. Same formula
+// either way; only the source record differs.
+function progressionSourceRecord(exId){
+  const rot=activeRotation();
+  const basis=(rot && rot.progression && rot.progression.progressBasis) || 'pr';
+  if(basis==='last'){
+    const lw=db.lastWeights && db.lastWeights[exId];
+    return lw ? {weight:lw.weight, reps:lw.reps} : null;
+  }
+  return db.allTimePRs && db.allTimePRs[exId];
+}
+// The reps a step actually targets, after its rep% modifier — used both to
+// compute the weight target below and to display the target line (item 5).
+function progressionTargetReps(reps, step){
+  if(!step) return reps||8;
+  return Math.max(1, Math.round((reps||8)*((step.repPct||100)/100)));
+}
 function progressionTargetWeight(exId, reps, step){
-  if(!step || step.type==='allout') return null;      // all-out has no target
+  if(!step || step.allout) return null;      // all-out has no target
   if(isTimeTrackedEx(exId)) return null;
-  const pr=db.allTimePRs && db.allTimePRs[exId];
-  if(!pr || !(pr.weight>0) || !(pr.reps>0)) return null;
-  const e1rm=recordToOneRM(exId, pr.weight, pr.reps);
+  const record=progressionSourceRecord(exId);
+  if(!record || !(record.weight>0) || !(record.reps>0)) return null;
+  const e1rm=recordToOneRM(exId, record.weight, record.reps);
   if(!(e1rm>0)) return null;
-  const effReps=Math.max(1,(reps||8)+(step.rir||0));
+  const effReps=Math.max(1, progressionTargetReps(reps,step)+(step.rir||0));
   let w=e1rm/(1+effReps/30);
-  if(step.type==='deload' && step.loadPct) w=w*(step.loadPct/100);
+  if(step.loadPct && step.loadPct!==100) w=w*(step.loadPct/100);
   // Back out of "true weight" into the number the user actually types for
   // this exercise (per-side, per-dumbbell, bodyweight-assisted), then round
   // to something loadable. getFormulaWeight is the forward transform, so
@@ -5244,32 +5531,63 @@ function renderRotations(){
         <div class="rot-name">${escapeHtml(rotationDisplayName(rot))}</div>
         <div class="rot-meta">${count} ${count===1?t('rotation_workout_singular'):t('rotation_workout_plural')}${isActive?' · '+t('rotation_active_label'):''}</div>
       </div>
+      <button class="btn-ico" onclick="shareRotation('${rot.id}')" title="${escapeHtml(t('share'))}" data-i18n-title="share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
       <button class="rot-edit" onclick="openRotationEditor('${rot.id}')">${t('rotation_edit')}</button>
     </div>`;
   }).join('');
 }
 
 // ── Rotation editor (its own screen) ──
+// Name/schedule/position live in _rotEditDraft while this screen is open —
+// nothing here reaches saveDB() until Save is pressed (commitRotationEdit).
+// _editingRotationId still names which LIVE rotation the draft commits
+// into. Progression has its own separate draft/save cycle (Advanced
+// Settings, below) — opening it from here isn't "leaving with unsaved
+// changes" in THIS screen's sense.
 let _editingRotationId=null;
+let _rotEditDraft=null;
+let _rotEditDirty=false;
+
 function openRotationEditor(id){
   _editingRotationId=id;
+  const rot=db.rotations.find(r=>r.id===id);
+  _rotEditDraft = rot ? { name:rot.name||'', schedule:JSON.parse(JSON.stringify(rot.schedule||[])), pos:rot.pos||0 } : {name:'',schedule:[],pos:0};
+  _rotEditDirty=false;
   showScreen('rotation-edit');
 }
+function backFromRotationEditor(){
+  if(_rotEditDirty){ confirmUnsavedChanges(saveRotationEditAndLeave, leaveRotationEditorWithoutSaving); return; }
+  showScreen('schedule');
+}
+function leaveRotationEditorWithoutSaving(){ showScreen('schedule'); }
+function commitRotationEdit(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot || !_rotEditDraft) return;
+  rot.name=_rotEditDraft.name;
+  rot.schedule=_rotEditDraft.schedule;
+  rot.pos=_rotEditDraft.pos;
+  if(rot.id===db.activeRotationId){ db.schedule=rot.schedule; db.schedulePos=rot.pos||0; }
+  saveDB();
+  _rotEditDirty=false;
+}
+function saveRotationEdit(){ commitRotationEdit(); showToast(t('toast_saved')); renderRotationEditor(); renderHome(); }
+function saveRotationEditAndLeave(){ commitRotationEdit(); showScreen('schedule'); renderHome(); }
+
 function renderRotationEditor(){
   const rot=db.rotations.find(r=>r.id===_editingRotationId);
   const el=document.getElementById('rotation-edit-body');
   if(!el) return;
   if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const draft=_rotEditDraft || {name:rot.name||'',schedule:rot.schedule||[],pos:rot.pos||0};
   const isActive=rot.id===db.activeRotationId;
   // NEXT is only meaningful for the active rotation — an inactive one isn't
   // advancing, so badging a row would claim something untrue.
-  const cur=(rot.schedule||[]).length ? (rot.pos||0)%rot.schedule.length : -1;
+  const cur=(draft.schedule||[]).length ? (draft.pos||0)%draft.schedule.length : -1;
   el.innerHTML=`
     <div class="form-grp" style="padding:0 18px;">
       <label class="form-lbl">${t('rotation_name_label')}</label>
       <input class="form-inp" id="rot-name-inp" maxlength="40"
              placeholder="${escapeHtml(t('rotation_default_name'))}"
-             value="${escapeHtml(rot.name||'')}"
+             value="${escapeHtml(draft.name||'')}"
              oninput="renameActiveEditingRotation(this.value)">
     </div>
     <div class="settings-section-label" style="display:flex;justify-content:space-between;align-items:center;padding:16px 4px 6px;">
@@ -5277,9 +5595,9 @@ function renderRotationEditor(){
       <button class="btn-new" onclick="openScheduleModal()">${t('btn_add_short')}</button>
     </div>
     <div id="rot-sched-list">${
-      !(rot.schedule||[]).length
+      !(draft.schedule||[]).length
         ? `<div class="empty-state"><p>${t('schedule_empty_state_1')}<br>${t('schedule_empty_state_2')}</p></div>`
-        : rot.schedule.map((rId,i)=>{
+        : draft.schedule.map((rId,i)=>{
             const r=db.routines.find(x=>x.id===rId);
             const isCur=isActive && i===cur;
             return `<div class="sched-row ${isCur?'now':''}">
@@ -5288,7 +5606,7 @@ function renderRotationEditor(){
               ${isCur?`<span class="sched-badge">${t('schedule_next_badge')}</span>`:''}
               <div style="display:flex;gap:4px">
                 ${i>0?`<button class="btn-ico" onclick="moveSched(${i},-1)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>`:''}
-                ${i<rot.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
+                ${i<draft.schedule.length-1?`<button class="btn-ico" onclick="moveSched(${i},1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>`:''}
                 <button class="btn-ico del" onclick="rmSched(${i})"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
               </div></div>`;
           }).join('')
@@ -5302,7 +5620,7 @@ function renderRotationEditor(){
           <div>
             <div class="settings-row-title">${t('prog_row_title')}</div>
             <div class="settings-row-sub">${progressionOn(rot)
-                ? stepLabel(rotationProgression(rot).cycle[rotationProgression(rot).cyclePos]) + ' · ' +
+                ? stepSummary(rotationProgression(rot).cycle[rotationProgression(rot).cyclePos]) + ' · ' +
                   t('prog_row_of').replace('{i}',rotationProgression(rot).cyclePos+1).replace('{n}',rotationProgression(rot).cycle.length)
                 : t('prog_row_off')}</div>
           </div>
@@ -5312,6 +5630,9 @@ function renderRotationEditor(){
     </div>
     ${isActive?'':`<div style="padding:14px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="setActiveRotation('${rot.id}')">${t('rotation_make_active')}</button></div>`}
     <div style="padding:14px 18px 0;">
+      <button class="btn-main" style="width:100%;" onclick="saveRotationEdit()">${t('save')}</button>
+    </div>
+    <div style="padding:10px 18px 0;">
       <button class="btn-ghost" style="width:100%;border-color:var(--danger);color:var(--danger);" onclick="deleteRotation('${rot.id}')">${t('rotation_delete')}</button>
     </div>`;
 }
@@ -5347,14 +5668,50 @@ function renderProgGuide(){
 function toggleGuide(id){ _guideOpen = _guideOpen===id ? null : id; renderProgGuide(); }
 
 // ── Advanced settings screen (per rotation) ──
-function openProgressionSettings(){ showScreen('progression'); }
+// mode/cycle/appliesTo/progressBasis live in _progDraft while this screen
+// is open, same draft-then-Save pattern as the rotation editor. cyclePos
+// is deliberately NOT part of the draft — it is governed only by the
+// immediate, standalone "Restart the cycle" and "Current Position"
+// actions below, which write straight to the live rotation and are never
+// what an Apply/Save-vs-Discard choice is about.
+let _progDraft=null;
+let _progDirty=false;
+
+function openProgressionSettings(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  _progDraft={ mode:p.mode, cycle:JSON.parse(JSON.stringify(p.cycle)), appliesTo:JSON.parse(JSON.stringify(p.appliesTo)), progressBasis:p.progressBasis };
+  _progDirty=false;
+  showScreen('progression');
+}
+function backFromProgression(){
+  if(_progDirty){ confirmUnsavedChanges(saveProgressionAndLeave, leaveProgressionWithoutSaving); return; }
+  showScreen('rotation-edit');
+}
+function leaveProgressionWithoutSaving(){ showScreen('rotation-edit'); }
+function commitProgressionEdit(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot || !_progDraft) return;
+  const p=rotationProgression(rot);
+  p.mode=_progDraft.mode;
+  p.cycle=JSON.parse(JSON.stringify(_progDraft.cycle));
+  p.appliesTo=JSON.parse(JSON.stringify(_progDraft.appliesTo));
+  p.progressBasis=_progDraft.progressBasis;
+  p.cyclePos = p.cyclePos % p.cycle.length; // clamp only — cyclePos itself is untouched by Save
+  saveDB();
+  _progDirty=false;
+}
+function saveProgressionEdit(){ commitProgressionEdit(); showToast(t('toast_saved')); renderProgression(); renderRotationEditor(); }
+function saveProgressionAndLeave(){ commitProgressionEdit(); showScreen('rotation-edit'); renderRotationEditor(); }
+
 function renderProgression(){
   const el=document.getElementById('progression-body'); if(!el) return;
   const rot=db.rotations.find(r=>r.id===_editingRotationId);
   if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
-  const p=rotationProgression(rot);
+  const liveP=rotationProgression(rot); // for cyclePos only — see note above
+  const p=_progDraft || { mode:liveP.mode, cycle:liveP.cycle, appliesTo:liveP.appliesTo, progressBasis:liveP.progressBasis };
   const on=p.mode==='on';
   const total=p.cycle.length, wk=(rot.schedule||[]).length;
+  const cyclePos=liveP.cyclePos % total;
   el.innerHTML=`
     <!-- The guide comes FIRST, before any control: nobody should have to
          guess what RIR means to use this screen. -->
@@ -5384,16 +5741,15 @@ function renderProgression(){
     </div>
 
     <div id="prog-detail" style="${on?'':'display:none;'}">
-      <!-- Presets LOAD the fields, they don't commit anything. You review
-           the cycle below and it is already yours to edit. -->
-      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_presets_label')}</div>
-      <div class="prog-presets">
-        ${PROGRESSION_PRESETS.map(pr=>`
-          <button class="prog-preset" onclick="loadProgressionPreset('${pr.id}')">
-            <span class="pp-name">${t(pr.nameKey)}</span>
-            <span class="pp-desc">${t(pr.descKey)}</span>
-            <span class="pp-steps">${pr.cycle.map(s=>`<i class="pp-dot ${stepClass(s)}"></i>`).join('')} ${pr.cycle.length} ${t('prog_rotations_word')}</span>
-          </button>`).join('')}
+      <!-- A template only ever LOADS the fields into a popup preview you
+           still have to accept — it never commits anything on its own, and
+           you land back here with the cycle below already yours to edit
+           further. A button + popup instead of always-visible cards: the
+           cards were the first thing on the screen every time even though
+           most visits here are to tweak an already-chosen cycle, not to
+           pick a new one. -->
+      <div style="padding:2px 18px 0;">
+        <button class="btn-ghost" style="width:100%;" onclick="openTemplatePicker()">${t('prog_presets_label')}</button>
       </div>
       <!-- The cycle as a bar chart rather than a list: the SHAPE of the block
            is the thing you want to read here — build, back off, peak — and a
@@ -5405,9 +5761,9 @@ function renderProgression(){
       <div class="settings-section-label" style="padding:18px 4px 4px;">${t('prog_cycle_label')}</div>
       <div class="bigwave">
         ${p.cycle.map((s,i)=>`
-          <div class="bw" onclick="editCycleStep(${i})" title="${escapeHtml(stepLabel(s)+' — '+cycleStepSub(s))}">
-            <div class="bwb ${stepClass(s)} ${i===p.cyclePos?'cur':''}" style="height:${stepBarHeight(s)}px"></div>
-            <div class="bwn ${i===p.cyclePos?'cur':''}">${i+1}</div>
+          <div class="bw" onclick="editCycleStep(${i})" title="${escapeHtml(stepSummary(s))}">
+            <div class="bwb ${stepClass(s)} ${i===cyclePos?'cur':''}" style="height:${stepBarHeight(s)}px"></div>
+            <div class="bwn ${i===cyclePos?'cur':''}">${i+1}</div>
             <div class="bwl">${stepShortLabel(s)}</div>
           </div>`).join('')}
         <div class="bw add" onclick="addCycleStep()" title="${escapeHtml(t('prog_add_step'))}">
@@ -5415,8 +5771,8 @@ function renderProgression(){
         </div>
       </div>
       <div class="prog-hint" style="text-align:center;">
-        <span style="color:var(--gold-ink,var(--gold));font-weight:700;">${stepLabel(p.cycle[p.cyclePos])}</span><br>
-        ${t('prog_row_of').replace('{i}',p.cyclePos+1).replace('{n}',total)} ·
+        <span style="color:var(--gold-ink,var(--gold));font-weight:700;">${stepSummary(p.cycle[cyclePos])}</span><br>
+        ${t('prog_row_of').replace('{i}',cyclePos+1).replace('{n}',total)} ·
         ${t('prog_cycle_summary').replace('{n}',total).replace('{w}',wk).replace('{total}',total*wk)}
       </div>
 
@@ -5430,17 +5786,32 @@ function renderProgression(){
           <div class="settings-row-arrow">›</div>
         </div>
         <div class="settings-row">
-          <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg></div><div>
-            <div class="settings-row-title">${t('prog_shownums')}</div>
-            <div class="settings-row-sub">${t('prog_shownums_sub')}</div>
+          <div class="settings-row-left"><div class="settings-row-icon"><svg viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-6"/></svg></div><div>
+            <div class="settings-row-title">${t('prog_basis')}</div>
+            <div class="settings-row-sub">${t('prog_basis_sub')}</div>
           </div></div>
-          <div class="switch" onclick="toggleProgShowNumbers()">
-            <div class="switch-track ${p.showNumbers?'on':''}" id="prog-nums-track"><div class="switch-thumb"></div></div>
+          <div class="switch" onclick="toggleProgressBasis()">
+            <div class="switch-track ${p.progressBasis==='last'?'on':''}" id="prog-basis-track"><div class="switch-thumb"></div></div>
           </div>
         </div>
       </div>
-      <div class="prog-hint" style="padding-bottom:24px;">
-        <button class="prog-linkbtn" onclick="resetCyclePos()">${t('prog_reset_cycle')}</button></div>
+
+      <!-- These two act on the LIVE rotation immediately — see the
+           cyclePos-exclusion comment on _progDraft above — so they get
+           their own labeled section rather than sitting flush against the
+           Save button below, which only commits mode/cycle/scope. -->
+      <div class="settings-section-label" style="padding:18px 4px 4px;">${t('prog_immediate_label')}</div>
+      <div style="padding:2px 18px 0;">
+        <button class="btn-ghost" style="width:100%;" onclick="resetCyclePos()">${t('prog_reset_cycle')}</button>
+      </div>
+      <div style="padding:10px 18px 0;">
+        <button class="btn-ghost" style="width:100%;" onclick="openCurrentPositionPicker()">${t('prog_current_position')}</button>
+        <div style="text-align:center;font-size:10.5px;color:var(--muted);margin-top:6px;">${currentPositionSummary(rot)}</div>
+      </div>
+      <div style="height:1px;background:var(--line);margin:20px 18px 0;"></div>
+      <div style="padding:14px 18px 24px;">
+        <button class="btn-main" style="width:100%;" onclick="saveProgressionEdit()">${t('save')}</button>
+      </div>
     </div>`;
 }
 // Bar height encodes proximity to failure — harder is taller — so the chart
@@ -5449,151 +5820,180 @@ function renderProgression(){
 // because it also cuts sets.
 function stepBarHeight(s){
   if(!s) return 40;
-  if(s.type==='allout') return 92;
-  if(s.type==='deload')  return 28;
+  if(s.allout) return 92;
+  if((s.setPct && s.setPct<100) || (s.loadPct && s.loadPct<100)) return 28;
   return {0:88,1:72,2:54,3:40}[s.rir] || 54;
 }
 // Two or three characters — the bar is narrow and the full label lives in
 // the chip under the chart and in the step editor.
 function stepShortLabel(s){
   if(!s) return '';
-  if(s.type==='allout') return t('prog_short_max');
-  if(s.type==='deload') return t('prog_short_deload');
+  if(s.allout) return t('prog_short_max');
   return 'RIR '+s.rir;
 }
-function cycleStepSub(s){
-  if(s.type==='allout') return t('prog_sub_allout');
-  if(s.type==='deload'){
-    const bits=[];
-    if(s.setPct && s.setPct<100) bits.push(t('prog_sub_sets').replace('{p}',s.setPct));
-    if(s.loadPct && s.loadPct<100) bits.push(t('prog_sub_load').replace('{p}',100-s.loadPct));
-    return bits.length?bits.join(' · '):t('prog_sub_deload_plain');
-  }
-  return t('prog_sub_rir').replace('{n}',s.rir);
-}
 function toggleProgression(){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  p.mode = p.mode==='on' ? 'off' : 'on';
-  saveDB(); renderProgression();
+  if(!_progDraft) return;
+  _progDraft.mode = _progDraft.mode==='on' ? 'off' : 'on';
+  _progDirty=true; renderProgression();
 }
-function toggleProgShowNumbers(){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  p.showNumbers=!p.showNumbers; saveDB(); renderProgression();
+function toggleProgressBasis(){
+  if(!_progDraft) return;
+  _progDraft.progressBasis = _progDraft.progressBasis==='last' ? 'pr' : 'last';
+  _progDirty=true; renderProgression();
 }
-// Loads the preset's steps into the editable cycle and leaves you there.
-// Deliberately NOT a commit — Alan's point was that people should end up
-// with a cycle they chose, not one they were handed.
+// Loads the preset's steps into the editable cycle and leaves you there —
+// still just a draft, one Save/Discard choice away from taking effect, same
+// as picking a step manually would be. Deliberately not a commit on its
+// own: people should end up with a cycle they chose, not one they were
+// handed.
+function openTemplatePicker(){
+  document.getElementById('modal-title').textContent=t('prog_presets_label');
+  document.getElementById('modal-body').innerHTML=`
+    <div class="prog-presets">
+      ${PROGRESSION_PRESETS.map(pr=>`
+        <button class="prog-preset" onclick="loadProgressionPreset('${pr.id}')">
+          <span class="pp-name">${t(pr.nameKey)}</span>
+          <span class="pp-desc">${t(pr.descKey)}</span>
+          <span class="pp-steps">${pr.cycle.map(s=>`<i class="pp-dot ${stepClass(s)}"></i>`).join('')} ${pr.cycle.length} ${t('prog_rotations_word')}</span>
+        </button>`).join('')}
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
 function loadProgressionPreset(id){
-  const preset=PROGRESSION_PRESETS.find(x=>x.id===id); if(!preset) return;
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  p.cycle=JSON.parse(JSON.stringify(preset.cycle));
-  p.cyclePos=0;
-  saveDB(); renderProgression();
+  const preset=PROGRESSION_PRESETS.find(x=>x.id===id); if(!preset || !_progDraft) return;
+  _progDraft.cycle=JSON.parse(JSON.stringify(preset.cycle));
+  _progDirty=true;
+  closeModal(); renderProgression();
   showToast(t('prog_preset_loaded'));
 }
 function addCycleStep(){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  p.cycle.push({type:'rir',rir:2}); saveDB(); renderProgression();
+  if(!_progDraft) return;
+  _progDraft.cycle.push(defaultCycleStep()); _progDirty=true; renderProgression();
 }
 function removeCycleStep(i){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  if(p.cycle.length<=1) return;
-  p.cycle.splice(i,1);
-  if(p.cyclePos>=p.cycle.length) p.cyclePos=0;
-  saveDB(); closeModal(); renderProgression();
+  if(!_progDraft) return;
+  if(_progDraft.cycle.length<=1) return;
+  _progDraft.cycle.splice(i,1);
+  _progDirty=true;
+  closeModal(); renderProgression();
 }
+// Restarting the cycle and jumping to a specific position (below) are both
+// immediate, standalone actions on the LIVE rotation — never gated behind
+// the Save/Discard choice above. "Where you are" isn't part of "how the
+// cycle is configured."
 function resetCyclePos(){
   const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
   rotationProgression(rot).cyclePos=0; saveDB(); renderProgression();
   showToast(t('prog_reset_done'));
 }
-// One editor for every step type. Effort is a single choice; the deload
-// extras only appear once Deload is selected, so the screen stays short.
+// One editor for every step — four direct fields (RIR, set/rep/load %) plus
+// an All-out switch, rather than a pick-one-of-five list. Alan's own call:
+// less predetermined, more "I fill in exactly what I want" — a set % of 70
+// with a full-RIR bottom, or an all-out with a rep % tweak, are just as
+// reachable as the old canned combinations, because there is no longer a
+// fixed list of combinations at all.
 let _stepDraft=null;
-function editCycleStep(i, keepDraft){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  if(!keepDraft){
-    if(!p.cycle[i]) return;
-    _stepDraft=JSON.parse(JSON.stringify(p.cycle[i]));   // fresh draft on open
-  }
+function editCycleStep(i){
+  if(!_progDraft || !_progDraft.cycle[i]) return;
+  _stepDraft=JSON.parse(JSON.stringify(_progDraft.cycle[i]));
+  renderCycleStepEditor(i);
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function renderCycleStepEditor(i){
   const s=_stepDraft; if(!s) return;
-  const opts=[
-    {type:'rir',rir:3},{type:'rir',rir:2},{type:'rir',rir:1},
-    {type:'deload',rir:3,setPct:50,loadPct:90},{type:'allout'}
-  ];
-  const same=(a,b)=>a.type===b.type && (a.type!=='rir' || a.rir===b.rir);
   document.getElementById('modal-title').textContent=t('prog_step_title').replace('{n}',i+1);
   document.getElementById('modal-body').innerHTML=`
-    <div class="prog-optlist">
-      ${opts.map((o,oi)=>`
-        <button class="prog-opt ${same(o,s)?'on':''}" onclick="pickCycleStep(${i},${oi})">
-          <span class="chip ${stepClass(o)}">${stepLabel(o)}</span>
-          <span class="po-sub">${cycleStepSub(o)}</span>
-        </button>`).join('')}
+    <div class="settings-row" style="padding:10px 4px;">
+      <div class="settings-row-left"><div><div class="settings-row-title">${t('prog_field_allout')}</div><div class="settings-row-sub">${t('prog_field_allout_sub')}</div></div></div>
+      <div class="switch" onclick="toggleStepAllout()"><div class="switch-track ${s.allout?'on':''}"><div class="switch-thumb"></div></div></div>
     </div>
-    <div id="prog-deload-extra" style="${s.type==='deload'?'':'display:none;'}margin-top:16px;">
-      <div style="display:flex;gap:10px;">
-        <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('prog_deload_sets')}</label>
-          <input class="form-inp" id="dl-sets" type="number" min="10" max="100" value="${s.setPct||50}"></div>
-        <div class="form-grp" style="flex:1;"><label class="form-lbl">${t('prog_deload_load')}</label>
-          <input class="form-inp" id="dl-load" type="number" min="50" max="100" value="${s.loadPct||90}"></div>
-      </div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5;">${t('prog_deload_note')}</div>
+    <div id="prog-step-fields" style="${s.allout?'display:none;':''}">
+      ${progStepStepper('rir', t('prog_field_rir'), s.rir, 0, 6, 1)}
+      ${progStepStepper('setPct', t('prog_field_sets'), s.setPct, 10, 100, 5, '%')}
+      ${progStepStepper('repPct', t('prog_field_reps'), s.repPct, 50, 150, 5, '%')}
+      ${progStepStepper('loadPct', t('prog_field_load'), s.loadPct, 50, 110, 5, '%')}
     </div>
-    ${p.cycle.length>1?`<button class="btn-ghost" style="width:100%;margin-top:18px;border-color:var(--danger);color:var(--danger);"
+    ${_progDraft.cycle.length>1?`<button class="btn-ghost" style="width:100%;margin-top:18px;border-color:var(--danger);color:var(--danger);"
         onclick="removeCycleStep(${i})">${t('prog_remove_step')}</button>`:''}`;
   document.getElementById('modal-footer').innerHTML=`
     <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
     <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveCycleStep(${i})">${t('save')}</button>`;
-  window._progStepOpts=opts;
-  document.getElementById('modal-overlay').classList.add('active');
 }
-// Tapping an option edits a DRAFT, not the live cycle. Previously it wrote
-// straight into p.cycle[i], so Cancel didn't cancel — the change stayed in
-// memory and got persisted by the next saveDB() from anywhere in the app,
-// while the chart behind still showed the old bar. A sheet with Save and
-// Cancel has to mean it.
-function pickCycleStep(i,oi){
-  const o=window._progStepOpts[oi];
+// One shared stepper row layout (−, typed value, +) for every field —
+// same control four times rather than four bespoke inputs, so the "fill
+// in exactly what you want" screen reads as one consistent tool.
+function progStepStepper(field, label, val, min, max, step, suffix){
+  return `<div class="form-grp" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;">
+    <label class="form-lbl" style="margin:0;">${label}</label>
+    <div class="stepper">
+      <button class="stepper-btn" onclick="stepStepField('${field}',${-step},${min},${max})">&#8722;</button>
+      <input class="set-inp" style="width:52px;" type="number" id="step-fld-${field}" value="${val}" min="${min}" max="${max}"
+        onchange="setStepField('${field}',this.value,${min},${max})">
+      <button class="stepper-btn" onclick="stepStepField('${field}',${step},${min},${max})">&#43;</button>
+    </div>
+  </div>`;
+}
+function stepStepField(field, delta, min, max){
   if(!_stepDraft) return;
-  // Keep any deload numbers already tuned rather than resetting them every
-  // time the same row is tapped.
-  const prev=_stepDraft;
-  _stepDraft = o.type==='deload'
-    ? {type:'deload', rir:o.rir, setPct:(prev.setPct||o.setPct), loadPct:(prev.loadPct||o.loadPct)}
-    : JSON.parse(JSON.stringify(o));
-  editCycleStep(i, true);   // re-render from the draft, don't reset it
+  _stepDraft[field]=Math.min(max,Math.max(min,(_stepDraft[field]||0)+delta));
+  document.getElementById('step-fld-'+field).value=_stepDraft[field];
+}
+function setStepField(field, v, min, max){
+  if(!_stepDraft) return;
+  const n=parseInt(v); if(isNaN(n)) return;
+  _stepDraft[field]=Math.min(max,Math.max(min,n));
+  document.getElementById('step-fld-'+field).value=_stepDraft[field];
+}
+function toggleStepAllout(){
+  if(!_stepDraft) return;
+  _stepDraft.allout=!_stepDraft.allout;
+  document.getElementById('prog-step-fields').style.display=_stepDraft.allout?'none':'';
 }
 function saveCycleStep(i){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot || !_stepDraft) return;
-  const p=rotationProgression(rot);
-  if(_stepDraft.type==='deload'){
-    const sp=parseInt(document.getElementById('dl-sets').value);
-    const lp=parseInt(document.getElementById('dl-load').value);
-    if(sp>=10&&sp<=100) _stepDraft.setPct=sp;
-    if(lp>=50&&lp<=100) _stepDraft.loadPct=lp;
-  }
-  p.cycle[i]=_stepDraft; _stepDraft=null;
-  saveDB(); closeModal(); renderProgression();
+  if(!_progDraft || !_stepDraft) return;
+  _progDraft.cycle[i]=_stepDraft; _stepDraft=null;
+  _progDirty=true;
+  closeModal(); renderProgression();
 }
 
 // ── Which exercises the progression applies to ──
+// Reads/writes _progDraft.appliesTo, same draft-then-Save as the rest of
+// Advanced Settings — this screen is reached FROM there, not its own
+// separate save point.
+const PROG_APPLIES_MUSCLE_ORDER=['Legs','Chest','Back','Shoulders','Triceps','Biceps','Core','Cardio'];
 function renderProgApplies(){
   const el=document.getElementById('prog-applies-body'); if(!el) return;
   const rot=db.rotations.find(r=>r.id===_editingRotationId);
-  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
-  const p=rotationProgression(rot);
+  if(!rot || !_progDraft){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
   // Only exercises actually IN this rotation — offering the full 150-entry
   // catalogue here would be noise.
   const ids=progApplyCandidateIds(rot);
   if(!ids.length){ el.innerHTML=`<div class="empty-state"><p>${t('prog_applies_empty')}</p></div>`; return; }
-  const all=p.appliesTo.length===0;
+  const all=_progDraft.appliesTo.length===0;
+  // Grouped by muscle so picking out of a rotation with 15+ exercises reads
+  // as a short list per body part rather than one long alphabetical scroll.
+  const byMuscle={};
+  ids.forEach(id=>{
+    const ex=db.exercises.find(e=>e.id===id);
+    const m=(ex&&ex.muscle) || 'Other';
+    (byMuscle[m]=byMuscle[m]||[]).push(id);
+  });
+  const order=PROG_APPLIES_MUSCLE_ORDER.filter(m=>byMuscle[m]).concat(Object.keys(byMuscle).filter(m=>PROG_APPLIES_MUSCLE_ORDER.indexOf(m)===-1));
+  const groupsHtml=order.map(m=>`
+    <div class="settings-section-label" style="padding:14px 4px 4px;">${t('muscle_'+m.toLowerCase())||m}</div>
+    ${byMuscle[m].map(id=>{
+      const ex=db.exercises.find(e=>e.id===id);
+      // In "every exercise" mode every individual row must ALSO read
+      // ticked — appliesTo is empty in that state, so checking membership
+      // alone would show "Every exercise" on while every row under it read
+      // off, visually saying the opposite of what's selected.
+      const on=all || _progDraft.appliesTo.indexOf(id)!==-1;
+      return `<div class="rot-row ${on?'active':''}">
+        <button class="rot-check sq ${on?'on':''}" onclick="toggleProgApplies('${id}')">${on?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
+        <div class="rot-main" onclick="toggleProgApplies('${id}')"><div class="rot-name">${escapeHtml(ex?exerciseDisplayName(ex):id)}</div></div>
+      </div>`;
+    }).join('')}`).join('');
   el.innerHTML=`
     <div style="padding:0 18px 10px;font-size:13px;color:var(--dim);line-height:1.55;">${t('prog_applies_intro')}</div>
     <div class="rot-row ${all?'active':''}">
@@ -5601,18 +6001,7 @@ function renderProgApplies(){
       <div class="rot-main" onclick="progAppliesAll()"><div class="rot-name">${t('prog_applies_all_row')}</div>
         <div class="rot-meta">${t('prog_applies_all_sub')}</div></div>
     </div>
-    ${ids.map(id=>{
-      const ex=db.exercises.find(e=>e.id===id);
-      // In "every exercise" mode every individual row must ALSO read
-      // ticked — appliesTo is empty in that state, so checking membership
-      // alone would show "Every exercise" on while every row under it read
-      // off, visually saying the opposite of what's selected.
-      const on=all || p.appliesTo.indexOf(id)!==-1;
-      return `<div class="rot-row ${on?'active':''}">
-        <button class="rot-check sq ${on?'on':''}" onclick="toggleProgApplies('${id}')">${on?'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':''}</button>
-        <div class="rot-main" onclick="toggleProgApplies('${id}')"><div class="rot-name">${escapeHtml(ex?exerciseDisplayName(ex):id)}</div></div>
-      </div>`;
-    }).join('')}`;
+    ${groupsHtml}`;
 }
 // While scope is "every exercise" (appliesTo:[]), every row above renders as
 // ticked (see the `all` fallback in renderProgApplies). Tapping one there has
@@ -5621,15 +6010,15 @@ function renderProgApplies(){
 // every id EXCEPT this one, rather than starting an empty list with only
 // this one id (which used to mean the opposite of what the screen showed).
 function toggleProgApplies(id){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const p=rotationProgression(rot);
-  if(p.appliesTo.length===0){
-    p.appliesTo=progApplyCandidateIds(rot).filter(x=>x!==id);
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot || !_progDraft) return;
+  if(_progDraft.appliesTo.length===0){
+    _progDraft.appliesTo=progApplyCandidateIds(rot).filter(x=>x!==id);
   } else {
-    const i=p.appliesTo.indexOf(id);
-    if(i===-1) p.appliesTo.push(id); else p.appliesTo.splice(i,1);
+    const i=_progDraft.appliesTo.indexOf(id);
+    if(i===-1) _progDraft.appliesTo.push(id); else _progDraft.appliesTo.splice(i,1);
   }
-  saveDB(); renderProgApplies();
+  _progDirty=true;
+  renderProgApplies();
 }
 // Exercise ids this rotation could possibly show on the Applies-to screen —
 // factored out of renderProgApplies() so toggleProgApplies() can build the
@@ -5643,27 +6032,76 @@ function progApplyCandidateIds(rot){
   return ids;
 }
 function progAppliesAll(){
+  if(!_progDraft) return;
+  _progDraft.appliesTo=[];   // empty means "everything"
+  _progDirty=true;
+  renderProgApplies();
+}
+
+// ── Current Position — the ONLY way to change where you are in the
+// rotation. Deliberately not a tap-the-row shortcut anywhere else (Alan's
+// own call: too easy to hit by accident) — one dedicated button, one
+// picker, an explicit Accept. Immediate on accept, like Restart the cycle,
+// never gated behind the Advanced Settings Save/Discard choice.
+function currentPositionSummary(rot){
+  const p=rotationProgression(rot);
+  const sch=rot.schedule||[];
+  const routine = sch.length ? db.routines.find(x=>x.id===sch[(rot.pos||0)%sch.length]) : null;
+  const routineTxt = routine ? escapeHtml(routine.name) : t('schedule_empty_state_1');
+  return t('prog_cycle_word')+' '+(p.cyclePos+1)+' · '+routineTxt;
+}
+function openCurrentPositionPicker(){
   const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  rotationProgression(rot).appliesTo=[];   // empty means "everything"
-  saveDB(); renderProgApplies();
+  const p=rotationProgression(rot);
+  window._posPickCycle=p.cyclePos;
+  window._posPickRoutine=(rot.schedule&&rot.schedule.length)?(rot.pos||0)%rot.schedule.length:0;
+  renderCurrentPositionPickerModal();
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function renderCurrentPositionPickerModal(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const cycle=(_progDraft?_progDraft.cycle:rotationProgression(rot).cycle);
+  const cycleHtml=cycle.map((s,i)=>`
+    <button class="prog-opt ${i===window._posPickCycle?'on':''}" onclick="window._posPickCycle=${i};renderCurrentPositionPickerModal();">
+      <span class="chip ${stepClass(s)}">${i+1}</span>
+      <span class="po-sub">${stepSummary(s)}</span>
+    </button>`).join('');
+  const sch=rot.schedule||[];
+  const routineHtml = sch.length ? sch.map((rId,i)=>{
+    const r=db.routines.find(x=>x.id===rId);
+    return `<button class="prog-opt ${i===window._posPickRoutine?'on':''}" onclick="window._posPickRoutine=${i};renderCurrentPositionPickerModal();">
+      <span class="po-sub">${r?escapeHtml(r.name):t('schedule_deleted_routine')}</span>
+    </button>`;
+  }).join('') : `<div class="empty-state" style="padding:10px 0;"><p>${t('schedule_empty_state_1')}</p></div>`;
+  document.getElementById('modal-title').textContent=t('prog_current_position');
+  document.getElementById('modal-body').innerHTML=`
+    <div class="settings-section-label" style="padding:0 4px 6px;">${t('prog_current_position_cycle')}</div>
+    <div class="prog-optlist">${cycleHtml}</div>
+    <div class="settings-section-label" style="padding:14px 4px 6px;">${t('prog_current_position_routine')}</div>
+    <div class="prog-optlist">${routineHtml}</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="acceptCurrentPosition()">${t('accept')}</button>`;
+}
+function acceptCurrentPosition(){
+  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
+  const p=rotationProgression(rot);
+  p.cyclePos=window._posPickCycle||0;
+  if(rot.schedule && rot.schedule.length) rot.pos=window._posPickRoutine||0;
+  if(rot.id===db.activeRotationId){ db.schedule=rot.schedule; db.schedulePos=rot.pos||0; }
+  saveDB(); closeModal();
+  renderProgression(); renderRotationEditor(); renderHome();
+  showToast(t('toast_position_updated'));
 }
 
 function renameActiveEditingRotation(v){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId);
-  if(!rot) return;
-  rot.name=v.trim();
-  saveDB();
+  if(!_rotEditDraft) return;
+  _rotEditDraft.name=v.trim();
+  _rotEditDirty=true;
   // Deliberately no re-render: the input is the thing being typed into, and
   // rebuilding it mid-keystroke would drop focus and the caret position.
 }
 
-// The schedule mutators still speak in terms of db.schedule, which IS the
-// active rotation's array — but the editor can be open on an INACTIVE
-// rotation, so they resolve the target from _editingRotationId instead.
-function editingRotationSchedule(){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId);
-  return rot ? (rot.schedule||(rot.schedule=[])) : null;
-}
 function openScheduleModal(){
   // The rotation editor's own empty state used to be the only way here, but
   // now a brand-new rotation with zero routines routes through this same
@@ -5674,46 +6112,47 @@ function openScheduleModal(){
   document.getElementById('modal-body').innerHTML=`<div class="form-grp"><label class="form-lbl">${t('schedule_modal_select_routine')}</label><select class="form-inp" id="sched-sel">${db.routines.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button><button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="addSched()">${t('add')}</button>`;
   window.addSched=function(){
-    const sch=editingRotationSchedule(); if(!sch) return;
-    sch.push(document.getElementById('sched-sel').value);
-    saveDB();closeModal();renderRotationEditor();renderHome();
+    if(!_rotEditDraft) return;
+    _rotEditDraft.schedule.push(document.getElementById('sched-sel').value);
+    _rotEditDirty=true;
+    closeModal();renderRotationEditor();
   };
   document.getElementById('modal-overlay').classList.add('active');
 }
 function rmSched(i){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const sch=rot.schedule||[];
+  if(!_rotEditDraft) return;
+  const sch=_rotEditDraft.schedule;
   // NEXT has to keep pointing at the same WORKOUT, not the same index.
   // The old code only clamped pos to the new length, so deleting any row
   // ABOVE the current one silently slid NEXT onto the wrong workout.
-  const curIdx = sch.length ? (rot.pos||0)%sch.length : -1;
+  const curIdx = sch.length ? (_rotEditDraft.pos||0)%sch.length : -1;
   const curId  = curIdx>=0 ? sch[curIdx] : null;
   const removingNext = i===curIdx;
   sch.splice(i,1);
   if(!sch.length){
-    rot.pos=0;
+    _rotEditDraft.pos=0;
   } else if(removingNext){
     // The workout that was up next is gone, so the slot it vacated — now
     // holding whatever followed it — is the right thing to do next.
-    rot.pos = i % sch.length;
+    _rotEditDraft.pos = i % sch.length;
   } else {
     const ni = sch.indexOf(curId);
-    rot.pos = ni!==-1 ? ni : 0;
+    _rotEditDraft.pos = ni!==-1 ? ni : 0;
   }
-  if(rot.id===db.activeRotationId) db.schedulePos=rot.pos||0;
-  saveDB();renderRotationEditor();renderHome();
+  _rotEditDirty=true;
+  renderRotationEditor();
 }
 function moveSched(i,d){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot) return;
-  const sch=rot.schedule||[]; const j=i+d;
+  if(!_rotEditDraft) return;
+  const sch=_rotEditDraft.schedule; const j=i+d;
   if(j<0||j>=sch.length) return;
   // Reordering must carry the NEXT marker with the routine it points at,
   // not leave it pinned to an index that now holds a different workout.
-  const curId = sch.length ? sch[(rot.pos||0)%sch.length] : null;
+  const curId = sch.length ? sch[(_rotEditDraft.pos||0)%sch.length] : null;
   [sch[i],sch[j]]=[sch[j],sch[i]];
-  if(curId){ const ni=sch.indexOf(curId); if(ni!==-1) rot.pos=ni; }
-  if(rot.id===db.activeRotationId) db.schedulePos=rot.pos||0;
-  saveDB();renderRotationEditor();renderHome();
+  if(curId){ const ni=sch.indexOf(curId); if(ni!==-1) _rotEditDraft.pos=ni; }
+  _rotEditDirty=true;
+  renderRotationEditor();
 }
 
 // ═══════════════════════════════════════════
@@ -7849,6 +8288,41 @@ function closeExerciseVideo(){
   document.getElementById('exercise-video-img').src=''; // stop decoding/animating the GIF while the popup is closed
 }
 
+// Circular outline "i" button, same size/shape as buildExerciseVideoBtnHtml's
+// play button so the two sit evenly side by side. Opens the info popup for
+// session.exercises[ei] — the Last/RIR-0/Notes detail that used to sit
+// directly on the card, moved here per Alan's explicit ask to keep the
+// default card view to just the name and the progression line.
+function buildExerciseInfoBtnHtml(ei, size){
+  size = size || 26;
+  return `<button class="ex-video-btn" style="width:${size}px;height:${size}px;" onclick="event.stopPropagation();openExerciseInfo(${ei})" aria-label="${t('ex_info_aria')}">
+    <svg viewBox="0 0 24 24" style="width:${Math.round(size*0.42)}px;height:${Math.round(size*0.42)}px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+  </button>`;
+}
+function openExerciseInfo(ei){
+  const item=session.exercises[ei];
+  if(!item) return;
+  document.getElementById('exercise-info-title').textContent=exerciseDisplayNameById(item.id,item.name);
+  const timed=isTimeTrackedEx(item.id);
+  const pr=db.allTimePRs && db.allTimePRs[item.id];
+  const rir0Line = pr ? (timed ? fmtDuration(pr.reps)+' '+t('ex_db_held_suffix') : fmtPRWeight(pr,item.id)) : t('ex_info_no_data');
+  const lastLine = item.lastHistory || t('ex_info_no_data');
+  // wo-notes-${ei} keeps the exact id/markup editWoNote()/saveWoNote() already
+  // expect — those two functions are otherwise untouched, they just now find
+  // their row inside this popup instead of on the card.
+  document.getElementById('exercise-info-body').innerHTML=`
+    <div class="ex-card-last">${ICON_LAST} ${t('ex_db_last_label')}: ${lastLine}</div>
+    <div class="ex-card-last">${ICON_PR} ${t('ex_info_rir0_label')}: ${rir0Line}</div>
+    <div style="margin-top:12px;">
+      <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">${t('ex_info_notes_label')}</div>
+      <div class="wo-notes-row" id="wo-notes-${ei}"><span class="wo-notes-text">${item.notes||''}</span><button class="wo-notes-btn" onclick="editWoNote(${ei})" title="${t('workout_edit_notes')}"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
+    </div>`;
+  document.getElementById('exercise-info-overlay').style.display='flex';
+}
+function closeExerciseInfo(){
+  document.getElementById('exercise-info-overlay').style.display='none';
+}
+
 // ═══════════════════════════════════════════
 //  OFFLINE VIDEO CACHE — Cache Storage API works fine from plain page
 //  scripts (no service worker needed just to call cache.put/match/keys),
@@ -8195,19 +8669,23 @@ function _startWithRoutine(rt){
     const lastHistory=last.weight!==undefined||last.sets ? fmtLastWeightDisplay(last,re.id,isTimeTrackedEx(re.id)) : '';
 
     // ── Progression ──
-    // Overwrite the prefill with the computed target, but ONLY where a target
-    // actually exists: progression on, this exercise nominated, a real PR to
-    // compute from, and not an all-out pass (which has no target by design).
-    // Everywhere else the prefill stays exactly what it always was, so
-    // turning progression on can never blank someone's numbers.
+    // progTarget is purely advisory now — it feeds the "Cycle N RIR X:
+    // weight x reps" instruction line (progressionCueText) but never
+    // touches actualWeight/actualReps. The weight/reps fields keep working
+    // exactly as they always did (prefilled from history, freely editable);
+    // per Alan's explicit ask, progression tells you what to do, it doesn't
+    // fill anything in for you.
     const step=currentProgressionStep();
     const applies=step && progressionAppliesTo(re.id);
     let progTarget=null, progSets=re.sets;
     if(applies){
       progTarget=progressionTargetWeight(re.id, re.reps, step);
-      if(progTarget!==null){ for(let s=0;s<actualWeight.length;s++) actualWeight[s]=progTarget; }
-      // A deload cuts volume, which is the part that actually sheds fatigue.
-      if(step.type==='deload' && step.setPct && step.setPct<100){
+      // A lighter-sets step cuts volume, which is the part that actually
+      // sheds fatigue. Any step with setPct<100 qualifies now — "deload" was
+      // a fixed preset type in the old step shape, but steps are fully
+      // continuous fields now (see migrateCycleStep), so there is no more
+      // separate type to check.
+      if(step.setPct && step.setPct<100){
         progSets=Math.max(1, Math.round(re.sets*(step.setPct/100)));
       }
     }
@@ -8740,6 +9218,10 @@ const STRINGS = {
     confirm_unfollow_msg: 'You can follow them again later.',
     confirm_unfollow_ok: 'Unfollow',
     confirm_ok_default: 'OK',
+    unsaved_title: 'Unsaved Changes',
+    unsaved_body: "You've made changes here that haven't been saved yet.",
+    unsaved_keep_editing: 'Keep editing',
+    unsaved_discard: 'Discard',
     confirm_quit_workout_title: 'Quit Workout?',
     confirm_quit_workout_msg: 'Progress will not be saved.',
     confirm_quit_workout_keep_going: 'Keep going',
@@ -8782,45 +9264,56 @@ const STRINGS = {
     prog_preset_ramp_desc: 'Get gradually closer to failure across three rotations, then recover.',
     prog_preset_simple: 'Simple: two efforts and a test',
     prog_preset_simple_desc: 'The shortest cycle worth running. Good place to start.',
+    prog_preset_strength_peak: 'Climb to a max, then recover',
+    prog_preset_strength_peak_desc: 'Four rotations climbing to a true max attempt, then a full recovery week before the next block.',
+    prog_preset_hypertrophy: 'Volume without maxing out',
+    prog_preset_hypertrophy_desc: 'Five rotations easing deeper without ever testing a true max — built for volume, not testing.',
     prog_rotations_word: 'rotations',
     prog_cycle_label: 'Your cycle',
     prog_add_step: '+ Rotation',
     prog_add_short: 'Add',
     prog_remove_step: 'Remove from cycle',
     prog_short_max: 'Max',
-    prog_short_deload: 'Deload',
     prog_cycle_summary: 'A cycle is {n} rotations of {w} workouts — {total} sessions, then it repeats.',
     prog_now: 'Now',
     prog_step_title: 'Rotation {n} effort',
-    prog_eff_easy: 'Easy',
-    prog_eff_moderate: 'Moderate',
-    prog_eff_hard: 'Hard',
-    prog_eff_max: 'Max',
-    prog_eff_deload: 'Deload',
-    prog_eff_allout: 'All-out',
-    prog_sub_rir: 'Stop {n} reps short of failure',
-    prog_sub_allout: 'No rep target — find your max',
-    prog_sub_deload_plain: 'Recover: easier sets',
-    prog_sub_sets: '{p}% of the sets',
-    prog_sub_load: '−{p}% weight',
-    prog_deload_sets: '% OF SETS',
-    prog_deload_load: '% OF WEIGHT',
-    prog_deload_note: 'A real deload cuts volume, not just effort. Half the sets is a good default.',
+    prog_sets_word: 'sets',
+    prog_reps_word: 'reps',
+    prog_load_word: 'load',
+    prog_field_allout: 'All out',
+    prog_field_allout_sub: 'No target — find your max, no other fields apply',
+    prog_field_rir: 'RIR',
+    prog_field_sets: 'Sets',
+    prog_field_reps: 'Reps',
+    prog_field_load: 'Load',
     prog_applies_label: 'Scope',
-    prog_applies_row: 'Applies to',
-    prog_applies_title: 'Applies to',
+    prog_applies_row: 'Exercises to Progress',
+    prog_applies_title: 'Exercises to Progress',
     prog_applies_all: 'Every exercise',
     prog_applies_count: 'exercises',
     prog_applies_all_row: 'Every exercise',
     prog_applies_all_sub: 'Simplest option',
     prog_applies_intro: 'Most people vary only their main lifts and leave accessories alone. Pick the ones this cycle should drive — or leave it on every exercise.',
     prog_applies_empty: 'Add workouts to this rotation first.',
-    prog_shownums: 'Show the numbers',
-    prog_shownums_sub: 'Display RIR on every set',
+    prog_basis: 'Use last logged numbers',
+    prog_basis_sub: 'Instead of all-time PRs — good after time off the gym',
     prog_reset_cycle: 'Restart the cycle',
     prog_reset_done: 'Cycle restarted',
-    prog_try: 'Try',
-    prog_allout_cue: 'Max reps — go until you cannot',
+    prog_immediate_label: 'Applies right away',
+    prog_current_position: 'Current Position',
+    prog_current_position_cycle: 'Cycle',
+    prog_current_position_routine: 'Workout',
+    prog_cycle_word: 'Cycle',
+    toast_position_updated: 'Position updated',
+    accept: 'Accept',
+    workout_progression_chip: 'Progression',
+    prog_cue_line: 'Cycle {n} RIR {rir}: {w} x {reps}',
+    prog_cue_line_noweight: 'Cycle {n} RIR {rir}: x {reps}',
+    prog_cue_allout: 'Cycle {n}: All Out',
+    ex_info_aria: 'Exercise info',
+    ex_info_rir0_label: 'RIR 0',
+    ex_info_no_data: 'No data yet',
+    ex_info_notes_label: 'Notes',
     guide_intro: 'A training cycle just means not pushing equally hard every week. You go moderately hard, then harder, then take it easy, then test yourself — and repeat with better numbers.',
     guide_what_t: 'Do I need this?',
     guide_what_b: '<b>If you are new: no.</b> For your first six months to a year, simply adding a little weight whenever a session feels easy will out-perform any cycle. Leave this off and train.<br><br><b>If you have been lifting a year or more</b> and the weights have stopped moving, this is what usually fixes it. Pushing hard every single week stops working because fatigue builds faster than fitness — the cycle gives you somewhere to put the recovery.',
@@ -8865,6 +9358,7 @@ const STRINGS = {
     muscle_biceps: 'Biceps',
     muscle_core: 'Core',
     muscle_cardio: 'Cardio',
+    muscle_other: 'Other',
     ex_db_pr_label: 'PR',
     ex_db_held_suffix: 'held',
     ex_db_last_label: 'Last',
@@ -8898,6 +9392,14 @@ const STRINGS = {
     import_shared_workout_note: 'Someone shared this workout with you',
     import_shared_workout_copy_note: 'Adding it makes your own copy that tracks your own sets and weights independently from here on.',
     toast_workout_added: 'Workout added',
+    alert_name_rotation: 'Name your rotation.',
+    toast_rotation_link_broken: 'This rotation link looks broken',
+    import_shared_rotation_title: 'Add Shared Rotation',
+    import_shared_rotation_note: 'Someone shared this rotation with you',
+    import_shared_rotation_copy_note: 'Adding it makes your own copy — its own workouts, tracked independently from here on.',
+    import_shared_rotation_progression_note: 'This rotation includes a training cycle. It comes with you, starting fresh from step one.',
+    toast_rotation_added: 'Rotation added',
+    toast_saved: 'Saved',
     trainer_invite_share_text: 'Connect with me as your trainer',
     toast_link_copied_one_student: 'Link copied — good for one student',
     toast_invite_link_error: 'Could not create an invite link',
@@ -9288,6 +9790,10 @@ const STRINGS = {
     confirm_unfollow_msg: 'Puedes volver a seguir a esta persona más adelante.',
     confirm_unfollow_ok: 'Dejar de seguir',
     confirm_ok_default: 'Aceptar',
+    unsaved_title: 'Cambios Sin Guardar',
+    unsaved_body: 'Hiciste cambios aquí que todavía no se guardaron.',
+    unsaved_keep_editing: 'Seguir editando',
+    unsaved_discard: 'Descartar',
     confirm_quit_workout_title: '¿Salir del Entrenamiento?',
     confirm_quit_workout_msg: 'El progreso no se guardará.',
     confirm_quit_workout_keep_going: 'Seguir entrenando',
@@ -9330,45 +9836,56 @@ const STRINGS = {
     prog_preset_ramp_desc: 'Acércate al fallo gradualmente durante tres rotaciones y después recupera.',
     prog_preset_simple: 'Simple: dos esfuerzos y una medición',
     prog_preset_simple_desc: 'El ciclo más corto que vale la pena. Buen punto de partida.',
+    prog_preset_strength_peak: 'Subir hasta el máximo, luego recuperar',
+    prog_preset_strength_peak_desc: 'Cuatro rotaciones subiendo hasta un intento de máximo real, luego una semana completa de recuperación antes del siguiente bloque.',
+    prog_preset_hypertrophy: 'Volumen sin llegar al máximo',
+    prog_preset_hypertrophy_desc: 'Cinco rotaciones profundizando sin nunca medir un máximo real — pensado para volumen, no para medición.',
     prog_rotations_word: 'rotaciones',
     prog_cycle_label: 'Tu ciclo',
     prog_add_step: '+ Rotación',
     prog_add_short: 'Agregar',
     prog_remove_step: 'Quitar del ciclo',
     prog_short_max: 'Máx',
-    prog_short_deload: 'Descarga',
     prog_cycle_summary: 'Un ciclo son {n} rotaciones de {w} rutinas — {total} sesiones, y vuelve a empezar.',
     prog_now: 'Ahora',
     prog_step_title: 'Esfuerzo de la rotación {n}',
-    prog_eff_easy: 'Suave',
-    prog_eff_moderate: 'Moderado',
-    prog_eff_hard: 'Exigente',
-    prog_eff_max: 'Máximo',
-    prog_eff_deload: 'Descarga',
-    prog_eff_allout: 'A tope',
-    prog_sub_rir: 'Detente {n} repeticiones antes del fallo',
-    prog_sub_allout: 'Sin objetivo de repeticiones — busca tu máximo',
-    prog_sub_deload_plain: 'Recuperar: series más suaves',
-    prog_sub_sets: '{p}% de las series',
-    prog_sub_load: '−{p}% de peso',
-    prog_deload_sets: '% DE SERIES',
-    prog_deload_load: '% DE PESO',
-    prog_deload_note: 'Una descarga real reduce el volumen, no solo el esfuerzo. La mitad de las series es un buen valor por defecto.',
+    prog_sets_word: 'series',
+    prog_reps_word: 'repeticiones',
+    prog_load_word: 'peso',
+    prog_field_allout: 'A tope',
+    prog_field_allout_sub: 'Sin objetivo — busca tu máximo, los demás campos no aplican',
+    prog_field_rir: 'RIR',
+    prog_field_sets: 'Series',
+    prog_field_reps: 'Repeticiones',
+    prog_field_load: 'Peso',
     prog_applies_label: 'Alcance',
-    prog_applies_row: 'Se aplica a',
-    prog_applies_title: 'Se aplica a',
+    prog_applies_row: 'Ejercicios a Progresar',
+    prog_applies_title: 'Ejercicios a Progresar',
     prog_applies_all: 'Todos los ejercicios',
     prog_applies_count: 'ejercicios',
     prog_applies_all_row: 'Todos los ejercicios',
     prog_applies_all_sub: 'La opción más simple',
     prog_applies_intro: 'La mayoría solo varía sus ejercicios principales y deja los accesorios igual. Elige cuáles debe manejar este ciclo, o déjalo en todos.',
     prog_applies_empty: 'Primero agrega rutinas a esta rotación.',
-    prog_shownums: 'Mostrar los números',
-    prog_shownums_sub: 'Muestra el RIR en cada serie',
+    prog_basis: 'Usar los últimos números registrados',
+    prog_basis_sub: 'En vez de tus récords históricos — útil después de un tiempo sin entrenar',
     prog_reset_cycle: 'Reiniciar el ciclo',
     prog_reset_done: 'Ciclo reiniciado',
-    prog_try: 'Prueba',
-    prog_allout_cue: 'Máximas repeticiones — hasta que no puedas más',
+    prog_immediate_label: 'Se aplica de inmediato',
+    prog_current_position: 'Posición Actual',
+    prog_current_position_cycle: 'Ciclo',
+    prog_current_position_routine: 'Rutina',
+    prog_cycle_word: 'Ciclo',
+    toast_position_updated: 'Posición actualizada',
+    accept: 'Aceptar',
+    workout_progression_chip: 'Progresión',
+    prog_cue_line: 'Ciclo {n} RIR {rir}: {w} x {reps}',
+    prog_cue_line_noweight: 'Ciclo {n} RIR {rir}: x {reps}',
+    prog_cue_allout: 'Ciclo {n}: Al Máximo',
+    ex_info_aria: 'Información del ejercicio',
+    ex_info_rir0_label: 'RIR 0',
+    ex_info_no_data: 'Sin datos aún',
+    ex_info_notes_label: 'Notas',
     guide_intro: 'Un ciclo de entrenamiento significa simplemente no exigirte igual todas las semanas. Vas moderado, luego más fuerte, después aflojas, después te mides — y vuelves a empezar con mejores números.',
     guide_what_t: '¿Necesito esto?',
     guide_what_b: '<b>Si recién empiezas: no.</b> Durante los primeros seis meses o el primer año, simplemente sumar un poco de peso cuando una sesión se siente fácil funciona mejor que cualquier ciclo. Déjalo desactivado y entrena.<br><br><b>Si llevas un año o más</b> y los pesos dejaron de subir, esto suele ser lo que lo destraba. Exigirte al máximo todas las semanas deja de funcionar porque la fatiga se acumula más rápido que la forma física, y el ciclo te da dónde poner la recuperación.',
@@ -9413,6 +9930,7 @@ const STRINGS = {
     muscle_biceps: 'Bíceps',
     muscle_core: 'Core',
     muscle_cardio: 'Cardio',
+    muscle_other: 'Otro',
     ex_db_pr_label: 'Récord',
     ex_db_held_suffix: 'sostenido',
     ex_db_last_label: 'Último',
@@ -9446,6 +9964,14 @@ const STRINGS = {
     import_shared_workout_note: 'Alguien compartió esta rutina contigo',
     import_shared_workout_copy_note: 'Al agregarla, se crea tu propia copia que registra tus series y pesos de forma independiente a partir de ahora.',
     toast_workout_added: 'Rutina agregada',
+    alert_name_rotation: 'Ponle un nombre a tu rotación.',
+    toast_rotation_link_broken: 'Este enlace de rotación parece estar roto',
+    import_shared_rotation_title: 'Agregar Rotación Compartida',
+    import_shared_rotation_note: 'Alguien compartió esta rotación contigo',
+    import_shared_rotation_copy_note: 'Al agregarla, se crea tu propia copia — con sus propias rutinas, registradas de forma independiente a partir de ahora.',
+    import_shared_rotation_progression_note: 'Esta rotación incluye un ciclo de entrenamiento. Viene contigo, empezando desde cero en el paso uno.',
+    toast_rotation_added: 'Rotación agregada',
+    toast_saved: 'Guardado',
     trainer_invite_share_text: 'Conéctate conmigo como tu entrenador',
     toast_link_copied_one_student: 'Enlace copiado — válido para un alumno',
     toast_invite_link_error: 'No se pudo crear el enlace de invitación',
@@ -11684,6 +12210,7 @@ loadSettings();
 bootstrapAuthGate();
 syncOfflineVideoCache(); // fire-and-forget: mirrors this device's routine videos into the cache in the background
 checkIncomingSharedRoutine(); // opens the "Add Shared Workout" modal if this load came from a ?share= link
+checkIncomingSharedRotation(); // opens the "Add Shared Rotation" modal if this load came from a ?rotshare= link
 checkIncomingTrainerInvite(); // stashes a ?trainer_invite= token for maybeShowPendingTrainerInvite() to pick up once signed in
 
 // Re-sync rest timer when app returns from background
