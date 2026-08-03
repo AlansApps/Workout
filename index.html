@@ -998,6 +998,19 @@ body:not(.light-mode) .theme-toggle-thumb{background:var(--soft);box-shadow:0 0 
 .switch-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--dim);border-radius:50%;transition:transform .25s,background .25s;}
 .switch-track.on .switch-thumb{background:#fff;transform:translateX(18px);}
 
+/* Two-way mode pills (cycle-step editor: Sets/Percentage, RIR/Percentage,
+   Seconds/Percentage) — a labeled segmented choice reads clearer at a
+   glance than an on/off switch needing a sentence underneath to say what
+   each state means. Named distinctly from the pre-existing .prog-pill
+   (Progress tab's date-range selector, units toggle) — same-looking control
+   but a different, unrelated screen; reusing that class name would have
+   silently restyled every one of those instead of just this new one. */
+.progstep-pill-group{display:flex;gap:6px;margin:0 4px 8px;}
+.progstep-pill{flex:1;background:none;border:1px solid var(--line2);color:var(--dim);padding:8px 10px;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;cursor:pointer;transition:all .15s;}
+.progstep-pill.active{background:var(--gold);border-color:var(--gold);color:var(--void);}
+.progstep-pill:hover:not(.active){border-color:var(--gold3);color:var(--gold3);}
+.prog-hint-sm{font-size:10.5px;color:var(--muted);padding:2px 4px 0;line-height:1.4;}
+
 /* When light mode */
 body.light-mode .theme-toggle-track{background:var(--gold);border-color:var(--gold3);}
 body.light-mode .theme-toggle-thumb{background:#fff;transform:translateX(18px);}
@@ -4823,7 +4836,12 @@ function decodeSharedRotation(encoded){
         allout: !!s.ao
       }));
       const appliesTo=Array.isArray(compact.p.a)?compact.p.a.filter(id=>validExIds.has(id)):[];
-      progression={ mode:'on', cycle, cyclePos:0, appliesTo, progressBasis: compact.p.b==='last'?'last':'pr' };
+      // chainAnchor is deliberately never part of the shared payload — it's
+      // the recipient's own training history to build, not something to
+      // hand them. 'chain' basis simply starts with nothing to chain from
+      // yet, which progressionAnchor() already falls back on gracefully
+      // (same as any rotation's first-ever pass under this basis).
+      progression={ mode:'on', cycle, cyclePos:0, appliesTo, progressBasis: compact.p.b==='chain'?'chain':'pr', chainAnchor:{} };
     }
     return { name: typeof compact.rn==='string' ? compact.rn.slice(0,60) : '', schedule, progression };
   }catch(e){ return null; }
@@ -5391,7 +5409,7 @@ const PROGRESSION_PRESETS=[
 ];
 function defaultProgression(){
   return { mode:'off', cycle:[defaultCycleStep(),{...defaultCycleStep(),rir:1},{...defaultCycleStep(),rir:0,allout:true}],
-           cyclePos:0, appliesTo:[], progressBasis:'pr' };
+           cyclePos:0, appliesTo:[], progressBasis:'pr', chainAnchor:{} };
 }
 function rotationProgression(rot){
   if(!rot) return null;
@@ -5404,7 +5422,12 @@ function rotationProgression(rot){
   if(!Array.isArray(p.appliesTo)) p.appliesTo=[];
   if(typeof p.cyclePos!=='number' || p.cyclePos<0) p.cyclePos=0;
   p.cyclePos = p.cyclePos % p.cycle.length;
-  if(p.progressBasis!=='pr' && p.progressBasis!=='last') p.progressBasis='pr';
+  // 'last' → 'chain': same toggle, renamed once its actual meaning changed
+  // from "read your global last-logged number" to "chain from this
+  // rotation's own previous cycle" — see progressionAnchor().
+  if(p.progressBasis==='last') p.progressBasis='chain';
+  if(p.progressBasis!=='pr' && p.progressBasis!=='chain') p.progressBasis='pr';
+  if(!p.chainAnchor || typeof p.chainAnchor!=='object') p.chainAnchor={};
   delete p.showNumbers; // superseded — RIR is always shown in the workout screen's progression line now
   return p;
 }
@@ -5463,7 +5486,7 @@ function progressionCueText(step,item){
   const p=rot && rotationProgression(rot);
   const cycleNum=(p?p.cyclePos:0)+1;
   if(step.allout) return t('prog_cue_allout').replace('{n}',cycleNum);
-  const reps=progressionTargetReps(item.reps,step);
+  const reps=progressionTargetReps(item.id,item.reps,step,item.lwKey);
   const hasWeight=item.progTarget!==null && item.progTarget!==undefined;
   const w=hasWeight ? (toDisplayWeight(item.progTarget)+unitLabel()) : '';
   if(step.repsMode==='pct'){
@@ -5475,61 +5498,65 @@ function progressionCueText(step,item){
 }
 
 // ── The maths ──
-// A set of X reps at Y RIR uses the weight you could do for (X+Y) reps all
-// out. Inverting the Epley formula calc1RM() already uses keeps the app on
-// ONE strength model rather than two that disagree:
-//     e1RM = w × (1 + reps/30)   →   w = e1RM / (1 + (reps+RIR)/30)
-// Returns a RAW weight in the same convention as everything stored, or null
-// when there's no record to work from (a brand-new lift), in which case the
-// workout screen just shows last time's number as it always did.
-// Which record to anchor the projection on: the all-time best (default), or
-// whatever was actually logged most recently — for someone coming back
-// after time off who wants the cycle to keep working off where they
-// actually left off, not force them back up to an old best. Same formula
-// either way; only the source record differs.
-function progressionSourceRecord(exId){
+// No 1RM formula anymore — Alan's own correction: the earlier Epley-based
+// version recalculated weight for a FIXED rep count (the routine's own),
+// which doesn't match how he actually thinks about a cycle. The model now
+// is much simpler and needs no formula at all: hold the anchor's WEIGHT
+// (subject only to Load%) and shift its REPS by exactly the RIR difference
+// between the anchor's own effort level and the current step — one RIR
+// less reserve is one more rep, one RIR more reserve is one fewer.
+//
+// The anchor itself depends on progressBasis:
+//   'pr'    — always your all-time best for this exercise, treated as a
+//             RIR-0 (all-out) effort. Fixed — every step in every cycle
+//             computes from this same point, never chained.
+//   'chain' ("Progress from last cycle") — whatever you actually logged
+//             the last time THIS rotation completed a pass, at the RIR
+//             that pass's own step asked for. Falls back to the all-time
+//             PR (as RIR 0) the first time a rotation runs this basis, or
+//             the very first cycle ever, since there's nothing to chain
+//             from yet. See advanceProgressionCycle() for where the chain
+//             actually gets recorded — once per cycle wrap, not per set.
+function progressionAnchor(exId, lwKey){
   const rot=activeRotation();
-  const basis=(rot && rot.progression && rot.progression.progressBasis) || 'pr';
-  if(basis==='last'){
-    const lw=db.lastWeights && db.lastWeights[exId];
-    return lw ? {weight:lw.weight, reps:lw.reps} : null;
+  const p=rot && rotationProgression(rot);
+  const basis=(p && p.progressBasis) || 'pr';
+  if(basis==='chain'){
+    const a=p.chainAnchor && p.chainAnchor[lwKey||exId];
+    if(a && a.reps>0) return a;
   }
-  return db.allTimePRs && db.allTimePRs[exId];
+  const pr=db.allTimePRs && db.allTimePRs[exId];
+  return (pr && pr.reps>0) ? {weight:pr.weight, reps:pr.reps, rir:0} : null;
 }
-// The reps a step actually targets. In 'rir' mode this is just the
-// routine's own programmed reps, unmodified — RIR alone drives the weight
-// math below. In 'pct' mode this IS the modifier (no RIR involved at all).
-function progressionTargetReps(reps, step){
+// The reps a step actually targets. In 'rir' mode this is the anchor's own
+// reps shifted by the RIR delta (see the maths comment above) — falls back
+// to the routine's plain programmed reps only when there's no anchor at
+// all yet (a brand-new lift with no PR and nothing chained). In 'pct' mode
+// this IS the modifier, independent of any anchor or RIR.
+function progressionTargetReps(exId, reps, step, lwKey){
   if(!step) return reps||8;
   if(step.repsMode==='pct') return Math.max(1, Math.round((reps||8)*((step.repsPct||100)/100)));
+  const anchor=progressionAnchor(exId, lwKey);
+  if(anchor) return Math.max(1, anchor.reps+((anchor.rir||0)-(step.rir||0)));
   return reps||8;
 }
-function progressionTargetWeight(exId, reps, step){
+// Returns a RAW weight in the same convention as everything stored (the
+// anchor's own weight already IS that convention, so — unlike the old
+// Epley version — there's no true-weight/raw-weight round trip needed at
+// all here anymore), or null when there's no anchor to work from.
+function progressionTargetWeight(exId, reps, step, lwKey){
   if(!step || step.allout) return null;      // all-out has no target
   if(isTimeTrackedEx(exId)) return null;
-  const record=progressionSourceRecord(exId);
-  if(!record || !(record.weight>0) || !(record.reps>0)) return null;
-  let w;
-  if(step.repsMode==='rir'){
-    const e1rm=recordToOneRM(exId, record.weight, record.reps);
-    if(!(e1rm>0)) return null;
-    const effReps=Math.max(1, progressionTargetReps(reps,step)+(step.rir||0));
-    w=e1rm/(1+effReps/30);
-  } else {
-    // 'pct' mode has no rep-based formula to anchor a weight on — Load% is
-    // the only thing that can still suggest one here. Without it, there's
-    // nothing to compute and the rep-count instruction stands on its own
-    // (see progressionCueText's noweight variant).
-    if(!step.loadPct || step.loadPct===100) return null;
-    w=getTrueWeight(exId, record.weight);
-  }
+  const anchor=progressionAnchor(exId, lwKey);
+  if(!anchor || !(anchor.weight>0)) return null;
+  // 'pct' mode has no rep-based relationship to weight at all — Load% is
+  // the only thing that can still suggest one here. Without it, there's
+  // nothing to compute and the rep-count instruction stands on its own
+  // (see progressionCueText's noweight variant).
+  if(step.repsMode==='pct' && (!step.loadPct || step.loadPct===100)) return null;
+  let w=anchor.weight;
   if(step.loadPct && step.loadPct!==100) w=w*(step.loadPct/100);
-  // Back out of "true weight" into the number the user actually types for
-  // this exercise (per-side, per-dumbbell, bodyweight-assisted), then round
-  // to something loadable. getFormulaWeight is the forward transform, so
-  // this undoes it via the same helper the PR maths uses.
-  const raw=trueWeightToRaw(exId, w);
-  return raw>0 ? roundToPlate(raw) : null;
+  return w>0 ? roundToPlate(w) : null;
 }
 // Rest is a structural session parameter (how long the countdown starts
 // at when a set is ticked), not a logged value — like Sets, it's safe to
@@ -5544,37 +5571,35 @@ function roundToPlate(rawKg){
   const stepKg = (db.weightPrefs&&db.weightPrefs.units==='lb') ? 2.267962 : 2.5;
   return Math.max(stepKg, Math.round(rawKg/stepKg)*stepKg);
 }
-// Inverse of getFormulaWeight() for the target computation above.
-// getFormulaWeight is affine in the entered number — y = a·x + b, where a is
-// 2 for a per-side barbell or the dumbbell count, and b is the bar weight or
-// the lifter's body weight. Both come from user preferences, so rather than
-// duplicating that branching here (and drifting when it changes) the slope
-// and intercept are measured from two real samples of the function itself.
-// Probing at 0 would NOT work: getTrueWeight short-circuits on a falsy
-// weight and returns 0, which hides the bar-weight intercept entirely.
-function trueWeightToRaw(exId, trueW){
-  const y1=getFormulaWeight(exId,100), y2=getFormulaWeight(exId,200);
-  const a=(y2-y1)/100;
-  if(!(a>0)) return trueW;                  // unknown shape — pass through
-  const b=y1-a*100;
-  return (trueW-b)/a;
-}
 
 // ── Cycle advance ──
 // Called from finishWorkout the moment the rotation wraps to its first
 // workout. Advancing the cycle is what turns "6 workouts" into "one pass".
 //
-// That is the whole mechanism. There is deliberately no end-of-cycle
-// ceremony: no baseline snapshot, no confirmation step, no "new best"
-// screen. Targets are computed from db.allTimePRs as it stands at the
-// moment a session is built (see progressionTargetWeight), so a PR set on
-// ANY day — an RIR 1 pass, not just the all-out one — is what the next
-// session works from. The idea that a cycle "starts from a new max" is a
-// description of what usually happens, not a rule the code enforces.
+// There is still no end-of-cycle ceremony — no confirmation step, no "new
+// best" screen — but 'chain' basis does need ONE quiet snapshot here: what
+// actually got logged this pass, per exercise, at the RIR this pass's own
+// step asked for. That's chainAnchor, read back by progressionAnchor() as
+// the "previous cycle" the NEXT step's Reps/Weight shift from. 'pr' basis
+// is unaffected — it never chains, always the same fixed all-time best,
+// still computed fresh from db.allTimePRs at session-build time exactly as
+// before. finishWorkout() has already updated db.lastWeights for every
+// exercise touched this session by the time this runs, so a snapshot taken
+// here reflects the just-finished pass, not a stale one.
 function advanceProgressionCycle(){
   const rot=activeRotation();
   if(!rot || !progressionOn(rot)) return;
   const p=rotationProgression(rot);
+  const finishedStep=p.cycle[p.cyclePos % p.cycle.length];
+  // All-out has no RIR of its own to chain from — the RIR-0 result it
+  // represents already IS what db.lastWeights holds at this point, so
+  // treating it as rir:0 here is exactly right, not a placeholder guess.
+  const chainRir=finishedStep.allout ? 0 : (finishedStep.rir||0);
+  Object.keys(db.lastWeights||{}).forEach(lwKey=>{
+    const lw=db.lastWeights[lwKey];
+    if(!lw || !(lw.reps>0)) return;
+    p.chainAnchor[lwKey]={weight:lw.weight||0, reps:lw.reps, rir:chainRir};
+  });
   p.cyclePos=(p.cyclePos+1)%p.cycle.length;
   saveDB();
 }
@@ -5880,7 +5905,7 @@ function renderProgression(){
             <div class="settings-row-sub">${t('prog_basis_sub')}</div>
           </div></div>
           <div class="switch" onclick="toggleProgressBasis()">
-            <div class="switch-track ${p.progressBasis==='last'?'on':''}" id="prog-basis-track"><div class="switch-thumb"></div></div>
+            <div class="switch-track ${p.progressBasis==='chain'?'on':''}" id="prog-basis-track"><div class="switch-thumb"></div></div>
           </div>
         </div>
       </div>
@@ -5929,7 +5954,7 @@ function toggleProgression(){
 }
 function toggleProgressBasis(){
   if(!_progDraft) return;
-  _progDraft.progressBasis = _progDraft.progressBasis==='last' ? 'pr' : 'last';
+  _progDraft.progressBasis = _progDraft.progressBasis==='chain' ? 'pr' : 'chain';
   _progDirty=true; renderProgression();
 }
 // Loads the preset's steps into the editable cycle and leaves you there —
@@ -5998,9 +6023,16 @@ function editCycleStep(i){
   renderCycleStepEditor(i);
   document.getElementById('modal-overlay').classList.add('active');
 }
+// Four clear sections, in the order a lifter actually thinks through a set
+// (how many, how many reps, how heavy, how long to recover): Sets, Reps,
+// Weight, Rest. Weight is the only one with no pill choice — it's always a
+// plain % of the calculated weight, nothing else it could mean. The other
+// three get an explicit two-pill choice (not a bare on/off switch) so the
+// mode itself is legible without reading a sentence of sub-label: SETS or
+// PERCENTAGE, RIR or PERCENTAGE, SECONDS or PERCENTAGE.
 function renderCycleStepEditor(i){
   const s=_stepDraft; if(!s) return;
-  const repsPct=s.repsMode==='pct', setsPct=s.setsMode==='pct', restDelta=s.restMode==='delta';
+  const repsPct=s.repsMode==='pct', setsPct=s.setsMode==='pct', restSec=s.restMode==='delta';
   document.getElementById('modal-title').textContent=t('prog_step_title').replace('{n}',i+1);
   document.getElementById('modal-body').innerHTML=`
     <div class="settings-row" style="padding:10px 4px;">
@@ -6009,38 +6041,34 @@ function renderCycleStepEditor(i){
     </div>
     <div id="prog-step-fields" style="${s.allout?'display:none;':''}">
 
-      <div class="settings-row" style="padding:10px 4px;">
-        <div class="settings-row-left"><div>
-          <div class="settings-row-title">${t('prog_field_reps')}</div>
-          <div class="settings-row-sub">${repsPct?t('prog_reps_pct_sub'):t('prog_reps_rir_sub')}</div>
-        </div></div>
-        <div class="switch" onclick="toggleStepMode('repsMode','rir','pct')"><div class="switch-track ${repsPct?'on':''}"><div class="switch-thumb"></div></div></div>
-      </div>
-      ${repsPct
-        ? progStepStepper('repsPct', t('prog_field_amount'), s.repsPct, 50, 150, 5, '%')
-        : progStepStepper('rir', t('prog_field_rir'), s.rir, 0, 6, 1)}
-
-      <div class="settings-row" style="padding:10px 4px;">
-        <div class="settings-row-left"><div>
-          <div class="settings-row-title">${t('prog_field_sets')}</div>
-          <div class="settings-row-sub">${setsPct?t('prog_sets_pct_sub'):t('prog_sets_delta_sub')}</div>
-        </div></div>
-        <div class="switch" onclick="toggleStepMode('setsMode','delta','pct')"><div class="switch-track ${setsPct?'on':''}"><div class="switch-thumb"></div></div></div>
+      <div class="settings-section-label" style="padding:16px 4px 6px;">${t('prog_field_sets')}</div>
+      <div class="progstep-pill-group">
+        <button class="progstep-pill ${!setsPct?'active':''}" onclick="setStepMode('setsMode','delta')">${t('prog_field_sets')}</button>
+        <button class="progstep-pill ${setsPct?'active':''}" onclick="setStepMode('setsMode','pct')">${t('prog_mode_percentage')}</button>
       </div>
       ${setsPct
         ? progStepStepper('setsPct', t('prog_field_amount'), s.setsPct, 50, 150, 5, '%')
         : progStepDeltaStepper('setsDelta', t('prog_field_amount'), s.setsDelta, -3, 3, 1, t('prog_sets_word'))}
 
-      ${progStepStepper('loadPct', t('prog_field_load'), s.loadPct, 50, 110, 5, '%')}
-
-      <div class="settings-row" style="padding:10px 4px;">
-        <div class="settings-row-left"><div>
-          <div class="settings-row-title">${t('prog_field_rest')}</div>
-          <div class="settings-row-sub">${restDelta?t('prog_rest_delta_sub'):t('prog_rest_pct_sub')}</div>
-        </div></div>
-        <div class="switch" onclick="toggleStepMode('restMode','pct','delta')"><div class="switch-track ${restDelta?'on':''}"><div class="switch-thumb"></div></div></div>
+      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_field_reps')}</div>
+      <div class="progstep-pill-group">
+        <button class="progstep-pill ${!repsPct?'active':''}" onclick="setStepMode('repsMode','rir')">${t('prog_field_rir')}</button>
+        <button class="progstep-pill ${repsPct?'active':''}" onclick="setStepMode('repsMode','pct')">${t('prog_mode_percentage')}</button>
       </div>
-      ${restDelta
+      ${repsPct
+        ? progStepStepper('repsPct', t('prog_field_amount'), s.repsPct, 50, 150, 5, '%')
+        : progStepStepper('rir', t('prog_field_rir'), s.rir, 0, 6, 1)}
+      ${repsPct?`<div class="prog-hint-sm">${t('prog_reps_pct_sub')}</div>`:''}
+
+      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_field_load')}</div>
+      ${progStepStepper('loadPct', t('prog_field_amount'), s.loadPct, 50, 110, 5, '%')}
+
+      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_field_rest')}</div>
+      <div class="progstep-pill-group">
+        <button class="progstep-pill ${restSec?'active':''}" onclick="setStepMode('restMode','delta')">${t('prog_mode_seconds')}</button>
+        <button class="progstep-pill ${!restSec?'active':''}" onclick="setStepMode('restMode','pct')">${t('prog_mode_percentage')}</button>
+      </div>
+      ${restSec
         ? progStepDeltaStepper('restDeltaSec', t('prog_field_amount'), s.restDeltaSec, -60, 120, 15, t('prog_seconds_short'))
         : progStepStepper('restPct', t('prog_field_amount'), s.restPct, 50, 200, 5, '%')}
 
@@ -6098,13 +6126,13 @@ function setStepField(field, v, min, max){
   _stepDraft[field]=Math.min(max,Math.max(min,n));
   renderCycleStepEditor(_stepEditIndex);
 }
-// Switches one of Reps/Sets/Rest between its two modes — e.g. Reps between
-// 'rir' (weight math) and 'pct' (plain rep-count adjustment). offMode is
-// whatever defaultCycleStep() ships for that field, so a step that's never
-// touched a mode always reads as "off".
-function toggleStepMode(field, offMode, onMode){
+// Sets one of Reps/Sets/Rest to an explicit mode — e.g. Reps to 'rir'
+// (weight math) or 'pct' (plain rep-count adjustment). A direct set rather
+// than a toggle, since this is driven by two labeled pill buttons
+// (renderCycleStepEditor) rather than a single on/off switch.
+function setStepMode(field, mode){
   if(!_stepDraft) return;
-  _stepDraft[field]=_stepDraft[field]===onMode ? offMode : onMode;
+  _stepDraft[field]=mode;
   renderCycleStepEditor(_stepEditIndex);
 }
 function toggleStepAllout(){
@@ -8837,11 +8865,19 @@ function _startWithRoutine(rt){
     // exactly as they always did (prefilled from history, freely editable);
     // per Alan's explicit ask, progression tells you what to do, it doesn't
     // fill anything in for you.
+    //
+    // All-out is the one deliberate exception. There's no "advisory number"
+    // to tell you on a find-your-max day — but leaving the fields at
+    // whatever a lighter RIR-step day last put there is actively wrong: it
+    // reads as "match your sub-maximal number", not "beat your best". So an
+    // all-out step prefills with the RIR-0 baseline itself (progressionAnchor
+    // — the same PR/chain switch every other progression calc respects) as
+    // a floor to beat, not a ceiling.
     const step=currentProgressionStep();
     const applies=step && progressionAppliesTo(re.id);
     let progTarget=null, progSets=re.sets, progRest=re.rest;
     if(applies){
-      progTarget=progressionTargetWeight(re.id, re.reps, step);
+      progTarget=progressionTargetWeight(re.id, re.reps, step, lwKey);
       // Sets and Rest are structural session parameters, not logged values —
       // safe to actually apply (unlike Weight/Reps above). Skipped for an
       // all-out step: "find your max" shouldn't also silently carry over
@@ -8854,6 +8890,11 @@ function _startWithRoutine(rt){
           progSets=Math.max(1, Math.round(re.sets*(step.setsPct/100)));
         }
         progRest=progressionTargetRest(re.rest, step);
+      } else if(!isTimeTrackedEx(re.id)){
+        const anchor=progressionAnchor(re.id, lwKey);
+        if(anchor && anchor.reps>0){
+          for(let s=0;s<actualWeight.length;s++){ actualWeight[s]=anchor.weight||0; actualReps[s]=anchor.reps; }
+        }
       }
     }
     // lwKey rides along on the session item so finishWorkout() writes back to
@@ -9446,23 +9487,20 @@ const STRINGS = {
     prog_step_title: 'Rotation {n} effort',
     prog_sets_word: 'sets',
     prog_reps_word: 'reps',
-    prog_load_word: 'load',
+    prog_load_word: 'weight',
     prog_rest_word: 'rest',
     prog_seconds_short: 'sec',
     prog_field_allout: 'All out',
-    prog_field_allout_sub: 'No target — find your max, no other fields apply',
+    prog_field_allout_sub: 'No target — train to failure, no other fields apply',
     prog_field_rir: 'RIR',
     prog_field_sets: 'Sets',
     prog_field_reps: 'Reps',
-    prog_field_load: 'Load',
+    prog_field_load: 'Weight',
     prog_field_rest: 'Rest',
     prog_field_amount: 'Amount',
-    prog_reps_rir_sub: 'Weight comes from your RIR against the routine\'s own reps',
-    prog_reps_pct_sub: 'Just changes the rep count — no weight suggestion',
-    prog_sets_delta_sub: 'Add or remove whole sets',
-    prog_sets_pct_sub: 'Percentage of your usual sets',
-    prog_rest_pct_sub: 'Percentage of your usual rest',
-    prog_rest_delta_sub: 'Add or remove seconds',
+    prog_mode_percentage: 'Percentage',
+    prog_mode_seconds: 'Seconds',
+    prog_reps_pct_sub: 'No weight suggestion — just the rep count',
     prog_applies_label: 'Scope',
     prog_applies_row: 'Exercises to Progress',
     prog_applies_title: 'Exercises to Progress',
@@ -9472,8 +9510,8 @@ const STRINGS = {
     prog_applies_all_sub: 'Simplest option',
     prog_applies_intro: 'Most people vary only their main lifts and leave accessories alone. Pick the ones this cycle should drive — or leave it on every exercise.',
     prog_applies_empty: 'Add workouts to this rotation first.',
-    prog_basis: 'Use last logged numbers',
-    prog_basis_sub: 'Instead of all-time PRs — good after time off the gym',
+    prog_basis: 'Progress from last cycle',
+    prog_basis_sub: 'Each cycle builds on the one before it, instead of always anchoring to your all-time PR',
     prog_reset_cycle: 'Restart the cycle',
     prog_reset_done: 'Cycle restarted',
     prog_immediate_label: 'Applies right away',
@@ -10034,20 +10072,17 @@ const STRINGS = {
     prog_load_word: 'peso',
     prog_rest_word: 'descanso',
     prog_seconds_short: 'seg',
-    prog_field_allout: 'A tope',
-    prog_field_allout_sub: 'Sin objetivo — busca tu máximo, los demás campos no aplican',
+    prog_field_allout: 'Al fallo',
+    prog_field_allout_sub: 'Sin objetivo — entrena al fallo, los demás campos no aplican',
     prog_field_rir: 'RIR',
     prog_field_sets: 'Series',
     prog_field_reps: 'Repeticiones',
     prog_field_load: 'Peso',
     prog_field_rest: 'Descanso',
     prog_field_amount: 'Cantidad',
-    prog_reps_rir_sub: 'El peso surge de tu RIR sobre las repeticiones propias de la rutina',
-    prog_reps_pct_sub: 'Solo cambia la cantidad de repeticiones — sin sugerencia de peso',
-    prog_sets_delta_sub: 'Suma o resta series completas',
-    prog_sets_pct_sub: 'Porcentaje de tus series habituales',
-    prog_rest_pct_sub: 'Porcentaje de tu descanso habitual',
-    prog_rest_delta_sub: 'Suma o resta segundos',
+    prog_mode_percentage: 'Porcentaje',
+    prog_mode_seconds: 'Segundos',
+    prog_reps_pct_sub: 'Sin sugerencia de peso — solo la cantidad de repeticiones',
     prog_applies_label: 'Alcance',
     prog_applies_row: 'Ejercicios a Progresar',
     prog_applies_title: 'Ejercicios a Progresar',
@@ -10057,8 +10092,8 @@ const STRINGS = {
     prog_applies_all_sub: 'La opción más simple',
     prog_applies_intro: 'La mayoría solo varía sus ejercicios principales y deja los accesorios igual. Elige cuáles debe manejar este ciclo, o déjalo en todos.',
     prog_applies_empty: 'Primero agrega rutinas a esta rotación.',
-    prog_basis: 'Usar los últimos números registrados',
-    prog_basis_sub: 'En vez de tus récords históricos — útil después de un tiempo sin entrenar',
+    prog_basis: 'Progresar desde el ciclo anterior',
+    prog_basis_sub: 'Cada ciclo se calcula sobre el anterior, en vez de anclarse siempre a tu récord histórico',
     prog_reset_cycle: 'Reiniciar el ciclo',
     prog_reset_done: 'Ciclo reiniciado',
     prog_immediate_label: 'Se aplica de inmediato',
@@ -10073,7 +10108,7 @@ const STRINGS = {
     prog_cue_line_noweight: 'Ciclo {n} RIR {rir}: x {reps}',
     prog_cue_line_pct: 'Ciclo {n}: {pct}% reps: {w} x {reps}',
     prog_cue_line_pct_noweight: 'Ciclo {n}: {pct}% reps: x {reps}',
-    prog_cue_allout: 'Ciclo {n}: Al Máximo',
+    prog_cue_allout: 'Ciclo {n}: Al Fallo',
     ex_info_aria: 'Información del ejercicio',
     ex_info_rir0_label: 'RIR 0',
     ex_info_no_data: 'Sin datos aún',
