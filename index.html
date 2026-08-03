@@ -5249,20 +5249,18 @@ function setActiveRotation(id){
 }
 function createRotation(){
   syncActiveRotation();
-  // Captured BEFORE pushing the new rotation: is there already a rotation
-  // actually running? Alan's correction — building a new one to plan it out
-  // is not the same as committing to it. It only takes over automatically
-  // when there is nothing else active to leave running: the very first
-  // rotation ever created, or one whose activeRotationId no longer resolves
-  // (e.g. its rotation was deleted from elsewhere).
-  const hadActive = !!(db.activeRotationId && db.rotations.some(r=>r.id===db.activeRotationId));
-  const rot={ id:'rot-'+rotationUid(), name:'', schedule:[], pos:0 };
-  db.rotations.push(rot);
-  if(!hadActive){
-    db.activeRotationId=rot.id;
-    db.schedule=rot.schedule; db.schedulePos=0;
-  }
-  saveDB(); openRotationEditor(rot.id);
+  // Nothing is written to db.rotations or saved here — a rotation only
+  // actually exists once its first Save happens (see commitRotationEdit).
+  // Tapping "+ New" then Back with no edits must leave the exact same
+  // state as never having tapped it at all, same as any other unsaved-
+  // changes screen; it used to push+saveDB immediately, so a stray empty
+  // untitled rotation survived even a same-second Back.
+  _editingRotationId='rot-'+rotationUid();
+  _rotEditIsNew=true;
+  _rotEditDraft={name:'', schedule:[], pos:0};
+  _rotEditDirty=false;
+  showScreen('rotation-edit');
+  renderRotationEditor();
 }
 function deleteRotation(id){
   const rot=db.rotations.find(r=>r.id===id); if(!rot) return;
@@ -5297,25 +5295,65 @@ function deleteRotation(id){
 // when the rotation wraps back to its first workout (see finishWorkout), and
 // wrapping the CYCLE is what triggers the re-seed.
 //
-// Step shape (fully open-ended — no more canned "pick one of five" combos;
-// every step is these same four continuous fields, always):
-//   {rir:N, setPct:%, repPct:%, loadPct:%, allout:bool}
-// allout:true means "find your max" and makes the other four fields
-// meaningless (no computed target). A 100/100/100 step with allout:false is
-// a plain RIR step; a lower setPct/loadPct is what used to be a separate
-// "deload" type — there is no type enum left to branch on, just numbers,
-// so any combination the user actually wants to type in is representable.
-function defaultCycleStep(){ return {rir:2, setPct:100, repPct:100, loadPct:100, allout:false}; }
-// Old installs (and the cloud) may still hold the previous discrete-type
-// shape — converted here, once, on read, rather than migrating data in
-// place, so a step never round-trips through JSON in a form nothing can
-// read anymore.
+// Step shape — Reps, Sets, and Rest each pick ONE of two independent modes
+// rather than stacking a percentage on top of RIR the way the previous
+// version of this feature did (shipped, then corrected, within the same
+// session: RIR 2 plus Reps 50% silently combined into one calculation with
+// no visible sign of it — Alan's own catch). Load stays a plain percentage
+// always, since it's a straightforward "X% of the calculated weight" with
+// no such ambiguity.
+//   allout:      bool — "find your max"; true hides/ignores every field below.
+//   repsMode:    'rir' (weight comes from RIR against the routine's own rep
+//                count, unmodified) | 'pct' (just changes the rep count —
+//                no weight math, no PR/RIR involved at all).
+//     rir, repsPct   — the value for whichever mode is active.
+//   setsMode:    'delta' (± whole sets, e.g. −1) | 'pct' (% of usual sets).
+//     setsDelta, setsPct
+//   loadPct:     always a plain % of the calculated weight (only meaningful
+//                in reps:'rir' mode, or in reps:'pct' mode as the one thing
+//                that CAN still suggest a weight — see progressionTargetWeight).
+//   restMode:    'pct' (% of the routine's programmed rest) | 'delta' (± seconds,
+//                same ±15s increment the live rest timer itself already uses).
+//     restPct, restDeltaSec
+// Rest and Sets are structural session parameters (how many rows the card
+// shows, how long the timer starts at) — like Sets already did, Rest is
+// safe to actually apply, unlike Weight/Reps which stay purely advisory.
+function defaultCycleStep(){
+  return {
+    allout:false,
+    repsMode:'rir', rir:2, repsPct:100,
+    setsMode:'delta', setsDelta:0, setsPct:100,
+    loadPct:100,
+    restMode:'pct', restPct:100, restDeltaSec:0
+  };
+}
+// Three generations of this shape exist by now: the original discrete
+// {type:'rir'|'deload'|'allout'} shape, the flat {rir,setPct,repPct,loadPct,
+// allout} shape from earlier this same session, and this one. Repaired here,
+// once, on read, rather than migrating data in place, so a step never
+// round-trips through JSON in a form nothing can read anymore.
 function migrateCycleStep(s){
   if(!s || typeof s!=='object') return defaultCycleStep();
-  if(s.allout!==undefined || s.setPct!==undefined && s.type===undefined) return s; // already new shape
-  if(s.type==='allout') return {rir:0, setPct:100, repPct:100, loadPct:100, allout:true};
-  if(s.type==='deload') return {rir:s.rir||3, setPct:s.setPct||50, repPct:100, loadPct:s.loadPct||90, allout:false};
-  return {rir:(typeof s.rir==='number'?s.rir:2), setPct:100, repPct:100, loadPct:100, allout:false};
+  if(s.repsMode!==undefined) return s; // already current shape
+  // Flat/continuous shape (this session's first pass at this feature): rir
+  // and load carry straight across; an old repPct deviation is dropped
+  // rather than guessed into a mode — it was the exact ambiguity being
+  // fixed, and no real deviating data is expected to exist from a feature
+  // that shipped only hours earlier.
+  if(s.allout!==undefined || (s.setPct!==undefined && s.type===undefined)){
+    return { allout: !!s.allout,
+      repsMode:'rir', rir: typeof s.rir==='number' ? s.rir : 2, repsPct:100,
+      setsMode: (s.setPct && s.setPct!==100) ? 'pct' : 'delta', setsDelta:0, setsPct: s.setPct||100,
+      loadPct: s.loadPct||100,
+      restMode:'pct', restPct:100, restDeltaSec:0 };
+  }
+  // Original discrete-type shape (predates this whole rework)
+  if(s.type==='allout') return { ...defaultCycleStep(), allout:true, rir:0 };
+  if(s.type==='deload') return { ...defaultCycleStep(),
+    rir: s.rir||3,
+    setsMode: (s.setPct && s.setPct!==100) ? 'pct' : 'delta', setsPct: s.setPct||50,
+    loadPct: s.loadPct||90 };
+  return { ...defaultCycleStep(), rir: typeof s.rir==='number' ? s.rir : 2 };
 }
 const PROGRESSION_PRESETS=[
   { id:'alan',   nameKey:'prog_preset_alan',   descKey:'prog_preset_alan_desc',
@@ -5352,7 +5390,7 @@ const PROGRESSION_PRESETS=[
            {rir:1,setPct:100,repPct:100,loadPct:100,allout:false}] },
 ];
 function defaultProgression(){
-  return { mode:'off', cycle:[defaultCycleStep(),{rir:1,setPct:100,repPct:100,loadPct:100,allout:false},{rir:0,setPct:100,repPct:100,loadPct:100,allout:true}],
+  return { mode:'off', cycle:[defaultCycleStep(),{...defaultCycleStep(),rir:1},{...defaultCycleStep(),rir:0,allout:true}],
            cyclePos:0, appliesTo:[], progressBasis:'pr' };
 }
 function rotationProgression(rot){
@@ -5395,34 +5433,45 @@ function progressionAppliesTo(exId){
 function stepSummary(step){
   if(!step) return '';
   if(step.allout) return t('prog_short_max');
-  const bits=['RIR '+step.rir];
-  if(step.setPct && step.setPct!==100) bits.push(step.setPct+'% '+t('prog_sets_word'));
-  if(step.repPct && step.repPct!==100) bits.push(step.repPct+'% '+t('prog_reps_word'));
+  const bits=[ step.repsMode==='pct' ? step.repsPct+'% '+t('prog_reps_word') : 'RIR '+step.rir ];
+  if(step.setsMode==='delta'){ if(step.setsDelta) bits.push((step.setsDelta>0?'+':'')+step.setsDelta+' '+t('prog_sets_word')); }
+  else if(step.setsPct!==100) bits.push(step.setsPct+'% '+t('prog_sets_word'));
   if(step.loadPct && step.loadPct!==100) bits.push(step.loadPct+'% '+t('prog_load_word'));
+  if(step.restMode==='delta'){ if(step.restDeltaSec) bits.push((step.restDeltaSec>0?'+':'')+step.restDeltaSec+' '+t('prog_seconds_short')+' '+t('prog_rest_word')); }
+  else if(step.restPct!==100) bits.push(step.restPct+'% '+t('prog_rest_word'));
   return bits.join(' · ');
 }
 function stepClass(step){
   if(!step) return '';
   if(step.allout) return 'c-max';
-  if((step.setPct && step.setPct<100) || (step.loadPct && step.loadPct<100)) return 'c-easy';
+  const setsEasier = step.setsMode==='delta' ? step.setsDelta<0 : step.setsPct<100;
+  if(setsEasier || (step.loadPct && step.loadPct<100)) return 'c-easy';
+  if(step.repsMode==='pct') return step.repsPct<100 ? 'c-easy' : (step.repsPct>100 ? 'c-hard' : 'c-mod');
   return step.rir<=1?'c-hard':(step.rir>=3?'c-easy':'c-mod');
 }
 // The literal instruction line on a workout-screen exercise card — states
 // what to do, not an abstract effort word. Alan's explicit ask: the chip
 // just says "Progression" (see workout_progression_chip) and this line
-// carries the actual numbers, e.g. "Cycle 2 RIR 1: 45kg x 9". Reps/weight
-// come from the exact same computation buildSessionEx used for item.progTarget
-// (which no longer auto-fills the input fields — see buildSessionEx), so this
-// line and what the fields were prefilled with can never disagree.
+// carries the actual numbers, e.g. "Cycle 2 RIR 1: 45kg x 9" in RIR mode, or
+// "Cycle 2: 75% reps: x 6" in % mode (no weight math applies there — see
+// progressionTargetWeight). Reps/weight come from the exact same computation
+// buildSessionEx used for item.progTarget (which no longer auto-fills the
+// input fields), so this line and what the fields were prefilled with can
+// never disagree.
 function progressionCueText(step,item){
   const rot=activeRotation();
   const p=rot && rotationProgression(rot);
   const cycleNum=(p?p.cyclePos:0)+1;
   if(step.allout) return t('prog_cue_allout').replace('{n}',cycleNum);
   const reps=progressionTargetReps(item.reps,step);
-  const key=(item.progTarget!==null && item.progTarget!==undefined) ? 'prog_cue_line' : 'prog_cue_line_noweight';
-  return t(key).replace('{n}',cycleNum).replace('{rir}',step.rir).replace('{reps}',reps)
-    .replace('{w}', (item.progTarget!==null && item.progTarget!==undefined) ? (toDisplayWeight(item.progTarget)+unitLabel()) : '');
+  const hasWeight=item.progTarget!==null && item.progTarget!==undefined;
+  const w=hasWeight ? (toDisplayWeight(item.progTarget)+unitLabel()) : '';
+  if(step.repsMode==='pct'){
+    const key=hasWeight ? 'prog_cue_line_pct' : 'prog_cue_line_pct_noweight';
+    return t(key).replace('{n}',cycleNum).replace('{pct}',step.repsPct).replace('{w}',w).replace('{reps}',reps);
+  }
+  const key=hasWeight ? 'prog_cue_line' : 'prog_cue_line_noweight';
+  return t(key).replace('{n}',cycleNum).replace('{rir}',step.rir).replace('{w}',w).replace('{reps}',reps);
 }
 
 // ── The maths ──
@@ -5447,21 +5496,33 @@ function progressionSourceRecord(exId){
   }
   return db.allTimePRs && db.allTimePRs[exId];
 }
-// The reps a step actually targets, after its rep% modifier — used both to
-// compute the weight target below and to display the target line (item 5).
+// The reps a step actually targets. In 'rir' mode this is just the
+// routine's own programmed reps, unmodified — RIR alone drives the weight
+// math below. In 'pct' mode this IS the modifier (no RIR involved at all).
 function progressionTargetReps(reps, step){
   if(!step) return reps||8;
-  return Math.max(1, Math.round((reps||8)*((step.repPct||100)/100)));
+  if(step.repsMode==='pct') return Math.max(1, Math.round((reps||8)*((step.repsPct||100)/100)));
+  return reps||8;
 }
 function progressionTargetWeight(exId, reps, step){
   if(!step || step.allout) return null;      // all-out has no target
   if(isTimeTrackedEx(exId)) return null;
   const record=progressionSourceRecord(exId);
   if(!record || !(record.weight>0) || !(record.reps>0)) return null;
-  const e1rm=recordToOneRM(exId, record.weight, record.reps);
-  if(!(e1rm>0)) return null;
-  const effReps=Math.max(1, progressionTargetReps(reps,step)+(step.rir||0));
-  let w=e1rm/(1+effReps/30);
+  let w;
+  if(step.repsMode==='rir'){
+    const e1rm=recordToOneRM(exId, record.weight, record.reps);
+    if(!(e1rm>0)) return null;
+    const effReps=Math.max(1, progressionTargetReps(reps,step)+(step.rir||0));
+    w=e1rm/(1+effReps/30);
+  } else {
+    // 'pct' mode has no rep-based formula to anchor a weight on — Load% is
+    // the only thing that can still suggest one here. Without it, there's
+    // nothing to compute and the rep-count instruction stands on its own
+    // (see progressionCueText's noweight variant).
+    if(!step.loadPct || step.loadPct===100) return null;
+    w=getTrueWeight(exId, record.weight);
+  }
   if(step.loadPct && step.loadPct!==100) w=w*(step.loadPct/100);
   // Back out of "true weight" into the number the user actually types for
   // this exercise (per-side, per-dumbbell, bodyweight-assisted), then round
@@ -5469,6 +5530,14 @@ function progressionTargetWeight(exId, reps, step){
   // this undoes it via the same helper the PR maths uses.
   const raw=trueWeightToRaw(exId, w);
   return raw>0 ? roundToPlate(raw) : null;
+}
+// Rest is a structural session parameter (how long the countdown starts
+// at when a set is ticked), not a logged value — like Sets, it's safe to
+// actually apply rather than stay purely advisory, unlike Weight/Reps.
+function progressionTargetRest(baseRest, step){
+  if(!step) return baseRest;
+  if(step.restMode==='delta') return Math.max(0, Math.round((baseRest||0)+(step.restDeltaSec||0)));
+  return Math.max(0, Math.round((baseRest||0)*((step.restPct||100)/100)));
 }
 // Smallest sensible increment in the user's own unit: 2.5kg or 5lb.
 function roundToPlate(rawKg){
@@ -5547,9 +5616,13 @@ function renderRotations(){
 let _editingRotationId=null;
 let _rotEditDraft=null;
 let _rotEditDirty=false;
+// True only between createRotation() and this new rotation's first Save —
+// _editingRotationId names an id that doesn't exist in db.rotations yet.
+let _rotEditIsNew=false;
 
 function openRotationEditor(id){
   _editingRotationId=id;
+  _rotEditIsNew=false;
   const rot=db.rotations.find(r=>r.id===id);
   _rotEditDraft = rot ? { name:rot.name||'', schedule:JSON.parse(JSON.stringify(rot.schedule||[])), pos:rot.pos||0 } : {name:'',schedule:[],pos:0};
   _rotEditDirty=false;
@@ -5561,7 +5634,19 @@ function backFromRotationEditor(){
 }
 function leaveRotationEditorWithoutSaving(){ showScreen('schedule'); }
 function commitRotationEdit(){
-  const rot=db.rotations.find(r=>r.id===_editingRotationId); if(!rot || !_rotEditDraft) return;
+  if(!_rotEditDraft) return;
+  let rot=db.rotations.find(r=>r.id===_editingRotationId);
+  if(!rot){
+    // First Save of a brand-new rotation — the only place it actually
+    // enters db.rotations. Same "only take over when nothing else is
+    // running" rule createRotation() used to apply up front, checked here
+    // instead since this is now the only path that can actually create one.
+    rot={id:_editingRotationId};
+    const hadActive=!!(db.activeRotationId && db.rotations.some(r=>r.id===db.activeRotationId));
+    db.rotations.push(rot);
+    if(!hadActive) db.activeRotationId=rot.id;
+    _rotEditIsNew=false;
+  }
   rot.name=_rotEditDraft.name;
   rot.schedule=_rotEditDraft.schedule;
   rot.pos=_rotEditDraft.pos;
@@ -5576,9 +5661,9 @@ function renderRotationEditor(){
   const rot=db.rotations.find(r=>r.id===_editingRotationId);
   const el=document.getElementById('rotation-edit-body');
   if(!el) return;
-  if(!rot){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
-  const draft=_rotEditDraft || {name:rot.name||'',schedule:rot.schedule||[],pos:rot.pos||0};
-  const isActive=rot.id===db.activeRotationId;
+  if(!rot && !_rotEditIsNew){ el.innerHTML=`<div class="empty-state"><p>${t('rotation_gone')}</p></div>`; return; }
+  const draft=_rotEditDraft || {name:'',schedule:[],pos:0};
+  const isActive=!!rot && rot.id===db.activeRotationId;
   // NEXT is only meaningful for the active rotation — an inactive one isn't
   // advancing, so badging a row would claim something untrue.
   const cur=(draft.schedule||[]).length ? (draft.pos||0)%draft.schedule.length : -1;
@@ -5612,6 +5697,7 @@ function renderRotationEditor(){
           }).join('')
     }</div>
     <div class="notice-inline">${t('schedule_notice')}</div>
+    ${rot ? `
     <div class="settings-section-label" style="padding:16px 4px 6px;">${t('prog_section_label')}</div>
     <div class="settings-group">
       <div class="settings-row" onclick="openProgressionSettings()" style="cursor:pointer;">
@@ -5627,14 +5713,17 @@ function renderRotationEditor(){
         </div>
         <div class="settings-row-arrow">›</div>
       </div>
-    </div>
-    ${isActive?'':`<div style="padding:14px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="setActiveRotation('${rot.id}')">${t('rotation_make_active')}</button></div>`}
+    </div>` : `
+    <!-- Progression isn't reachable until this rotation exists — save it
+         first, then configure periodization against its real schedule. -->
+    <div class="notice-inline" style="margin:16px 18px 0;">${t('rotation_save_first_for_progression')}</div>`}
+    ${(rot && !isActive)?`<div style="padding:14px 18px 0;"><button class="btn-ghost" style="width:100%;" onclick="setActiveRotation('${rot.id}')">${t('rotation_make_active')}</button></div>`:''}
     <div style="padding:14px 18px 0;">
-      <button class="btn-main" style="width:100%;" onclick="saveRotationEdit()">${t('save')}</button>
+      <button class="btn-main" style="width:100%;max-width:none;" onclick="saveRotationEdit()">${t('save')}</button>
     </div>
-    <div style="padding:10px 18px 0;">
+    ${rot ? `<div style="padding:10px 18px 0;">
       <button class="btn-ghost" style="width:100%;border-color:var(--danger);color:var(--danger);" onclick="deleteRotation('${rot.id}')">${t('rotation_delete')}</button>
-    </div>`;
+    </div>` : ''}`;
 }
 // ── The guide ──
 // Deliberately short. Everything a beginner needs to make a decision, and
@@ -5810,7 +5899,7 @@ function renderProgression(){
       </div>
       <div style="height:1px;background:var(--line);margin:20px 18px 0;"></div>
       <div style="padding:14px 18px 24px;">
-        <button class="btn-main" style="width:100%;" onclick="saveProgressionEdit()">${t('save')}</button>
+        <button class="btn-main" style="width:100%;max-width:none;" onclick="saveProgressionEdit()">${t('save')}</button>
       </div>
     </div>`;
 }
@@ -5821,7 +5910,9 @@ function renderProgression(){
 function stepBarHeight(s){
   if(!s) return 40;
   if(s.allout) return 92;
-  if((s.setPct && s.setPct<100) || (s.loadPct && s.loadPct<100)) return 28;
+  const setsEasier = s.setsMode==='delta' ? s.setsDelta<0 : s.setsPct<100;
+  if(setsEasier || (s.loadPct && s.loadPct<100)) return 28;
+  if(s.repsMode==='pct') return 54; // no RIR to key off in this mode — flat moderate height
   return {0:88,1:72,2:54,3:40}[s.rir] || 54;
 }
 // Two or three characters — the bar is narrow and the full label lives in
@@ -5829,7 +5920,7 @@ function stepBarHeight(s){
 function stepShortLabel(s){
   if(!s) return '';
   if(s.allout) return t('prog_short_max');
-  return 'RIR '+s.rir;
+  return s.repsMode==='pct' ? s.repsPct+'%' : 'RIR '+s.rir;
 }
 function toggleProgression(){
   if(!_progDraft) return;
@@ -5862,7 +5953,11 @@ function openTemplatePicker(){
 }
 function loadProgressionPreset(id){
   const preset=PROGRESSION_PRESETS.find(x=>x.id===id); if(!preset || !_progDraft) return;
-  _progDraft.cycle=JSON.parse(JSON.stringify(preset.cycle));
+  // Presets are still authored in the older flat shape (fewer fields to
+  // write out per preset) — migrateCycleStep promotes them to the current
+  // Reps/Sets/Rest-mode shape on load, same repair path any old saved
+  // rotation's cycle already goes through.
+  _progDraft.cycle=JSON.parse(JSON.stringify(preset.cycle)).map(migrateCycleStep);
   _progDirty=true;
   closeModal(); renderProgression();
   showToast(t('prog_preset_loaded'));
@@ -5887,21 +5982,25 @@ function resetCyclePos(){
   rotationProgression(rot).cyclePos=0; saveDB(); renderProgression();
   showToast(t('prog_reset_done'));
 }
-// One editor for every step — four direct fields (RIR, set/rep/load %) plus
-// an All-out switch, rather than a pick-one-of-five list. Alan's own call:
-// less predetermined, more "I fill in exactly what I want" — a set % of 70
-// with a full-RIR bottom, or an all-out with a rep % tweak, are just as
-// reachable as the old canned combinations, because there is no longer a
-// fixed list of combinations at all.
+// One editor for every step: an All-out switch, then Reps/Sets/Rest, each
+// with its own mode switch (RIR-driven weight math vs a plain % or ± delta
+// adjustment — see the shape comment on defaultCycleStep above for why
+// these are exclusive modes rather than stacked fields), plus Load as a
+// single always-percentage field. Alan's own call, arrived at after the
+// first version let RIR and a Reps% modifier combine into one calculation
+// with no visible sign of it.
 let _stepDraft=null;
+let _stepEditIndex=null;
 function editCycleStep(i){
   if(!_progDraft || !_progDraft.cycle[i]) return;
   _stepDraft=JSON.parse(JSON.stringify(_progDraft.cycle[i]));
+  _stepEditIndex=i;
   renderCycleStepEditor(i);
   document.getElementById('modal-overlay').classList.add('active');
 }
 function renderCycleStepEditor(i){
   const s=_stepDraft; if(!s) return;
+  const repsPct=s.repsMode==='pct', setsPct=s.setsMode==='pct', restDelta=s.restMode==='delta';
   document.getElementById('modal-title').textContent=t('prog_step_title').replace('{n}',i+1);
   document.getElementById('modal-body').innerHTML=`
     <div class="settings-row" style="padding:10px 4px;">
@@ -5909,10 +6008,42 @@ function renderCycleStepEditor(i){
       <div class="switch" onclick="toggleStepAllout()"><div class="switch-track ${s.allout?'on':''}"><div class="switch-thumb"></div></div></div>
     </div>
     <div id="prog-step-fields" style="${s.allout?'display:none;':''}">
-      ${progStepStepper('rir', t('prog_field_rir'), s.rir, 0, 6, 1)}
-      ${progStepStepper('setPct', t('prog_field_sets'), s.setPct, 10, 100, 5, '%')}
-      ${progStepStepper('repPct', t('prog_field_reps'), s.repPct, 50, 150, 5, '%')}
+
+      <div class="settings-row" style="padding:10px 4px;">
+        <div class="settings-row-left"><div>
+          <div class="settings-row-title">${t('prog_field_reps')}</div>
+          <div class="settings-row-sub">${repsPct?t('prog_reps_pct_sub'):t('prog_reps_rir_sub')}</div>
+        </div></div>
+        <div class="switch" onclick="toggleStepMode('repsMode','rir','pct')"><div class="switch-track ${repsPct?'on':''}"><div class="switch-thumb"></div></div></div>
+      </div>
+      ${repsPct
+        ? progStepStepper('repsPct', t('prog_field_amount'), s.repsPct, 50, 150, 5, '%')
+        : progStepStepper('rir', t('prog_field_rir'), s.rir, 0, 6, 1)}
+
+      <div class="settings-row" style="padding:10px 4px;">
+        <div class="settings-row-left"><div>
+          <div class="settings-row-title">${t('prog_field_sets')}</div>
+          <div class="settings-row-sub">${setsPct?t('prog_sets_pct_sub'):t('prog_sets_delta_sub')}</div>
+        </div></div>
+        <div class="switch" onclick="toggleStepMode('setsMode','delta','pct')"><div class="switch-track ${setsPct?'on':''}"><div class="switch-thumb"></div></div></div>
+      </div>
+      ${setsPct
+        ? progStepStepper('setsPct', t('prog_field_amount'), s.setsPct, 50, 150, 5, '%')
+        : progStepDeltaStepper('setsDelta', t('prog_field_amount'), s.setsDelta, -3, 3, 1, t('prog_sets_word'))}
+
       ${progStepStepper('loadPct', t('prog_field_load'), s.loadPct, 50, 110, 5, '%')}
+
+      <div class="settings-row" style="padding:10px 4px;">
+        <div class="settings-row-left"><div>
+          <div class="settings-row-title">${t('prog_field_rest')}</div>
+          <div class="settings-row-sub">${restDelta?t('prog_rest_delta_sub'):t('prog_rest_pct_sub')}</div>
+        </div></div>
+        <div class="switch" onclick="toggleStepMode('restMode','pct','delta')"><div class="switch-track ${restDelta?'on':''}"><div class="switch-thumb"></div></div></div>
+      </div>
+      ${restDelta
+        ? progStepDeltaStepper('restDeltaSec', t('prog_field_amount'), s.restDeltaSec, -60, 120, 15, t('prog_seconds_short'))
+        : progStepStepper('restPct', t('prog_field_amount'), s.restPct, 50, 200, 5, '%')}
+
     </div>
     ${_progDraft.cycle.length>1?`<button class="btn-ghost" style="width:100%;margin-top:18px;border-color:var(--danger);color:var(--danger);"
         onclick="removeCycleStep(${i})">${t('prog_remove_step')}</button>`:''}`;
@@ -5920,16 +6051,38 @@ function renderCycleStepEditor(i){
     <button class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
     <button class="btn-main" style="padding:9px 22px;font-size:12px;width:auto" onclick="saveCycleStep(${i})">${t('save')}</button>`;
 }
-// One shared stepper row layout (−, typed value, +) for every field —
-// same control four times rather than four bespoke inputs, so the "fill
-// in exactly what you want" screen reads as one consistent tool.
+// One shared stepper row layout (−, typed value, +) for every plain field —
+// same control every time rather than a bespoke input per field, so the
+// "fill in exactly what you want" screen reads as one consistent tool. The
+// unit (suffix) sits as its own label beside the stepper rather than baked
+// into the input's value, so it's always visible — a bare "100" reads as
+// an arbitrary count, "100 %" reads as what it actually is.
 function progStepStepper(field, label, val, min, max, step, suffix){
+  return `<div class="form-grp" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;">
+    <label class="form-lbl" style="margin:0;">${label}</label>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="stepper">
+        <button class="stepper-btn" onclick="stepStepField('${field}',${-step},${min},${max})">&#8722;</button>
+        <input class="set-inp" style="width:52px;" type="number" id="step-fld-${field}" value="${val}" min="${min}" max="${max}"
+          onchange="setStepField('${field}',this.value,${min},${max})">
+        <button class="stepper-btn" onclick="stepStepField('${field}',${step},${min},${max})">&#43;</button>
+      </div>
+      ${suffix?`<span style="font-size:12px;color:var(--muted);font-weight:600;min-width:14px;">${suffix}</span>`:''}
+    </div>
+  </div>`;
+}
+// Same stepper, for signed deltas (± sets, ± rest seconds) — read-only text
+// display instead of a raw number input, so "+1 sets" / "−15 sec" can be
+// shown exactly as written rather than fighting a number input's own
+// formatting. The +/− buttons are the only way to change it, which suits a
+// small, bounded range fine.
+function progStepDeltaStepper(field, label, val, min, max, step, unit){
+  const display=(val>0?'+':'')+val+(unit?(' '+unit):'');
   return `<div class="form-grp" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;">
     <label class="form-lbl" style="margin:0;">${label}</label>
     <div class="stepper">
       <button class="stepper-btn" onclick="stepStepField('${field}',${-step},${min},${max})">&#8722;</button>
-      <input class="set-inp" style="width:52px;" type="number" id="step-fld-${field}" value="${val}" min="${min}" max="${max}"
-        onchange="setStepField('${field}',this.value,${min},${max})">
+      <input class="set-inp" style="width:76px;font-size:12px;" type="text" inputmode="numeric" id="step-fld-${field}" value="${escapeHtml(display)}" readonly>
       <button class="stepper-btn" onclick="stepStepField('${field}',${step},${min},${max})">&#43;</button>
     </div>
   </div>`;
@@ -5937,18 +6090,27 @@ function progStepStepper(field, label, val, min, max, step, suffix){
 function stepStepField(field, delta, min, max){
   if(!_stepDraft) return;
   _stepDraft[field]=Math.min(max,Math.max(min,(_stepDraft[field]||0)+delta));
-  document.getElementById('step-fld-'+field).value=_stepDraft[field];
+  renderCycleStepEditor(_stepEditIndex);
 }
 function setStepField(field, v, min, max){
   if(!_stepDraft) return;
   const n=parseInt(v); if(isNaN(n)) return;
   _stepDraft[field]=Math.min(max,Math.max(min,n));
-  document.getElementById('step-fld-'+field).value=_stepDraft[field];
+  renderCycleStepEditor(_stepEditIndex);
+}
+// Switches one of Reps/Sets/Rest between its two modes — e.g. Reps between
+// 'rir' (weight math) and 'pct' (plain rep-count adjustment). offMode is
+// whatever defaultCycleStep() ships for that field, so a step that's never
+// touched a mode always reads as "off".
+function toggleStepMode(field, offMode, onMode){
+  if(!_stepDraft) return;
+  _stepDraft[field]=_stepDraft[field]===onMode ? offMode : onMode;
+  renderCycleStepEditor(_stepEditIndex);
 }
 function toggleStepAllout(){
   if(!_stepDraft) return;
   _stepDraft.allout=!_stepDraft.allout;
-  document.getElementById('prog-step-fields').style.display=_stepDraft.allout?'none':'';
+  renderCycleStepEditor(_stepEditIndex);
 }
 function saveCycleStep(i){
   if(!_progDraft || !_stepDraft) return;
@@ -8677,22 +8839,27 @@ function _startWithRoutine(rt){
     // fill anything in for you.
     const step=currentProgressionStep();
     const applies=step && progressionAppliesTo(re.id);
-    let progTarget=null, progSets=re.sets;
+    let progTarget=null, progSets=re.sets, progRest=re.rest;
     if(applies){
       progTarget=progressionTargetWeight(re.id, re.reps, step);
-      // A lighter-sets step cuts volume, which is the part that actually
-      // sheds fatigue. Any step with setPct<100 qualifies now — "deload" was
-      // a fixed preset type in the old step shape, but steps are fully
-      // continuous fields now (see migrateCycleStep), so there is no more
-      // separate type to check.
-      if(step.setPct && step.setPct<100){
-        progSets=Math.max(1, Math.round(re.sets*(step.setPct/100)));
+      // Sets and Rest are structural session parameters, not logged values —
+      // safe to actually apply (unlike Weight/Reps above). Skipped for an
+      // all-out step: "find your max" shouldn't also silently carry over
+      // whatever Sets/Rest value was left behind from before that toggle
+      // was switched on, since the editor hides those fields once it is.
+      if(!step.allout){
+        if(step.setsMode==='delta'){
+          if(step.setsDelta) progSets=Math.max(1, re.sets+step.setsDelta);
+        } else if(step.setsPct && step.setsPct!==100){
+          progSets=Math.max(1, Math.round(re.sets*(step.setsPct/100)));
+        }
+        progRest=progressionTargetRest(re.rest, step);
       }
     }
     // lwKey rides along on the session item so finishWorkout() writes back to
     // the same slot this was prefilled from, without re-deriving the count.
     return {type:'ex', id:re.id, lwKey, name:ex.name, notes:ex.notes||'',
-      sets:progSets, reps:re.reps, rest:re.rest,
+      sets:progSets, reps:re.reps, rest:progRest,
       tickedSets:[], actualReps:actualReps.slice(0,progSets), actualWeight:actualWeight.slice(0,progSets),
       lastHistory,
       progStep: applies?step:null, progTarget};
@@ -9280,12 +9447,22 @@ const STRINGS = {
     prog_sets_word: 'sets',
     prog_reps_word: 'reps',
     prog_load_word: 'load',
+    prog_rest_word: 'rest',
+    prog_seconds_short: 'sec',
     prog_field_allout: 'All out',
     prog_field_allout_sub: 'No target — find your max, no other fields apply',
     prog_field_rir: 'RIR',
     prog_field_sets: 'Sets',
     prog_field_reps: 'Reps',
     prog_field_load: 'Load',
+    prog_field_rest: 'Rest',
+    prog_field_amount: 'Amount',
+    prog_reps_rir_sub: 'Weight comes from your RIR against the routine\'s own reps',
+    prog_reps_pct_sub: 'Just changes the rep count — no weight suggestion',
+    prog_sets_delta_sub: 'Add or remove whole sets',
+    prog_sets_pct_sub: 'Percentage of your usual sets',
+    prog_rest_pct_sub: 'Percentage of your usual rest',
+    prog_rest_delta_sub: 'Add or remove seconds',
     prog_applies_label: 'Scope',
     prog_applies_row: 'Exercises to Progress',
     prog_applies_title: 'Exercises to Progress',
@@ -9309,6 +9486,8 @@ const STRINGS = {
     workout_progression_chip: 'Progression',
     prog_cue_line: 'Cycle {n} RIR {rir}: {w} x {reps}',
     prog_cue_line_noweight: 'Cycle {n} RIR {rir}: x {reps}',
+    prog_cue_line_pct: 'Cycle {n}: {pct}% reps: {w} x {reps}',
+    prog_cue_line_pct_noweight: 'Cycle {n}: {pct}% reps: x {reps}',
     prog_cue_allout: 'Cycle {n}: All Out',
     ex_info_aria: 'Exercise info',
     ex_info_rir0_label: 'RIR 0',
@@ -9338,6 +9517,7 @@ const STRINGS = {
     rotation_active_label: 'Active',
     rotation_make_active: 'Make active',
     rotation_delete: 'Delete rotation',
+    rotation_save_first_for_progression: 'Save this rotation first, then come back here to set up a training cycle for it.',
     rotation_workout_singular: 'workout',
     rotation_workout_plural: 'workouts',
     rotation_gone: 'This rotation no longer exists.',
@@ -9852,12 +10032,22 @@ const STRINGS = {
     prog_sets_word: 'series',
     prog_reps_word: 'repeticiones',
     prog_load_word: 'peso',
+    prog_rest_word: 'descanso',
+    prog_seconds_short: 'seg',
     prog_field_allout: 'A tope',
     prog_field_allout_sub: 'Sin objetivo — busca tu máximo, los demás campos no aplican',
     prog_field_rir: 'RIR',
     prog_field_sets: 'Series',
     prog_field_reps: 'Repeticiones',
     prog_field_load: 'Peso',
+    prog_field_rest: 'Descanso',
+    prog_field_amount: 'Cantidad',
+    prog_reps_rir_sub: 'El peso surge de tu RIR sobre las repeticiones propias de la rutina',
+    prog_reps_pct_sub: 'Solo cambia la cantidad de repeticiones — sin sugerencia de peso',
+    prog_sets_delta_sub: 'Suma o resta series completas',
+    prog_sets_pct_sub: 'Porcentaje de tus series habituales',
+    prog_rest_pct_sub: 'Porcentaje de tu descanso habitual',
+    prog_rest_delta_sub: 'Suma o resta segundos',
     prog_applies_label: 'Alcance',
     prog_applies_row: 'Ejercicios a Progresar',
     prog_applies_title: 'Ejercicios a Progresar',
@@ -9881,6 +10071,8 @@ const STRINGS = {
     workout_progression_chip: 'Progresión',
     prog_cue_line: 'Ciclo {n} RIR {rir}: {w} x {reps}',
     prog_cue_line_noweight: 'Ciclo {n} RIR {rir}: x {reps}',
+    prog_cue_line_pct: 'Ciclo {n}: {pct}% reps: {w} x {reps}',
+    prog_cue_line_pct_noweight: 'Ciclo {n}: {pct}% reps: x {reps}',
     prog_cue_allout: 'Ciclo {n}: Al Máximo',
     ex_info_aria: 'Información del ejercicio',
     ex_info_rir0_label: 'RIR 0',
@@ -9910,6 +10102,7 @@ const STRINGS = {
     rotation_active_label: 'Activa',
     rotation_make_active: 'Activar',
     rotation_delete: 'Eliminar rotación',
+    rotation_save_first_for_progression: 'Primero guarda esta rotación, luego vuelve aquí para configurar un ciclo de entrenamiento.',
     rotation_workout_singular: 'rutina',
     rotation_workout_plural: 'rutinas',
     rotation_gone: 'Esta rotación ya no existe.',
