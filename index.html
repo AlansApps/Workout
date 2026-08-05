@@ -94,6 +94,8 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .coach-note-eyebrow{font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:6px;}
 body.light-mode .coach-note-eyebrow{color:var(--gold-ink);}
 .coach-note-body{font-size:12.5px;color:var(--soft);line-height:1.5;white-space:pre-wrap;}
+.trainer-status-banner-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.trainer-status-banner-row .trainer-status{justify-content:flex-start;}
 .lc-label{font-size:8px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;font-weight:600;}
 .lc-val{font-size:12px;color:#cccccc;font-weight:500;letter-spacing:1px;}
 
@@ -691,9 +693,18 @@ select.form-inp option{background:var(--panel);}
 .trainer-card-badge svg{width:28px;height:28px;}
 .trainer-card-name{font-size:12.5px;font-weight:700;color:var(--text);line-height:1.25;}
 .trainer-card-handle{font-size:10.5px;color:var(--muted);}
-.trainer-card-status{font-size:9px;letter-spacing:.3px;color:var(--gold);text-transform:uppercase;font-weight:700;}
-body.light-mode .trainer-card-status{color:var(--gold-ink);}
-.trainer-card-status.expired{color:var(--muted);}
+/* ACTIVE/INACTIVE — one accent color everywhere (var(--gold)), varied only
+   by intensity (opacity), never a second hue. Shared by the roster card,
+   the student-detail header, and the student's own home banner
+   (trainerStatusBadgeHtml). The "expiring soon" dot reuses the same color
+   at full strength with a slow pulse — a shape/motion cue, not a new tint. */
+.trainer-status{font-size:9px;letter-spacing:.3px;color:var(--gold);text-transform:uppercase;font-weight:700;opacity:.45;display:flex;align-items:center;justify-content:center;gap:5px;}
+.trainer-status.active{opacity:1;}
+body.light-mode .trainer-status{color:var(--gold-ink);}
+.trainer-status-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;animation:trainerStatusPulse 1.8s ease-in-out infinite;}
+body.light-mode .trainer-status-dot{background:var(--gold-ink);}
+@keyframes trainerStatusPulse{0%,100%{opacity:.35;}50%{opacity:1;}}
+@media (prefers-reduced-motion: reduce){.trainer-status-dot{animation:none;}}
 /* Student detail — same rounded card language for the 4 action tiles. */
 .trainer-tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:2px 16px 18px;}
 .trainer-tile{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:18px 15px;min-height:104px;
@@ -1009,6 +1020,11 @@ body:not(.light-mode) .theme-toggle-thumb{background:var(--soft);box-shadow:0 0 
 .progstep-pill{flex:1;background:none;border:1px solid var(--line2);color:var(--dim);padding:8px 10px;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;cursor:pointer;transition:all .15s;}
 .progstep-pill.active{background:var(--gold);border-color:var(--gold);color:var(--void);}
 .progstep-pill:hover:not(.active){border-color:var(--gold3);color:var(--gold3);}
+/* Compound selector (not a bare class) so this reliably outranks the shared
+   .settings-section-label it's paired with regardless of cascade order —
+   Sets/Reps/Weight/Rest need to read as real section headers here, not the
+   same barely-there 8px label the rest of Settings uses for minor rows. */
+.settings-section-label.progstep-section-label{font-size:13px;letter-spacing:1px;color:var(--text);font-weight:800;}
 .prog-hint-sm{font-size:10.5px;color:var(--muted);padding:2px 4px 0;line-height:1.4;}
 
 /* When light mode */
@@ -1508,11 +1524,20 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
    screen). Carries the same halo frame as the expanded state, just sized to
    the bar: same 1px accent border, same radius language, same glow. Its own
    border rather than a second .timer-halo element because the frame here
-   has to hug the bar itself, not the viewport. */
+   has to hug the bar itself, not the viewport.
+   margin-bottom keeps the panel off the overlay's own bottom edge — with no
+   gap there, the bottom border/shadow sit flush against #rest-overlay's
+   overflow:hidden boundary and read as clipped/missing, while the top
+   border (with room above it) reads fine — hence the "header on top,
+   nothing on bottom" look.
+   #rest-mini-time is the ONLY flex-centered child now, so it lands truly
+   centered against the border rather than sitting high because a stacked
+   chevron hint below it was pulling the group's centroid down; the chevron
+   is pinned near the bottom edge instead, out of the centering calc. */
 #rest-mini{
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:8px;width:calc(100% - 20px);padding:14px 0 12px;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  width:calc(100% - 20px);padding:20px 0;margin-bottom:14px;
   pointer-events:all;
   border:1px solid var(--gold);
   border-radius:18px;
@@ -1530,11 +1555,12 @@ body.light-mode .tip-dim.show{background:rgba(50,50,50,.4);}
 }
 .rest-mini-time{font-family:var(--hd);font-size:72px;font-weight:900;color:var(--gold);letter-spacing:-4px;line-height:1;text-shadow:0 0 30px var(--glow-color,rgba(212,168,67,.4)),0 0 60px var(--glow-color-soft,rgba(212,168,67,.15));transition:color .3s;}
 .rest-mini-chevrons{
-  display:flex;flex-direction:column;align-items:center;gap:1px;
-  opacity:.45;
+  position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  opacity:.35;pointer-events:none;
 }
 .rest-mini-chevrons span{
-  font-size:10px;line-height:1;color:var(--muted);
+  font-size:8px;line-height:.8;color:var(--muted);
 }
 
 /* Slide hint — at bottom of full content */
@@ -1763,6 +1789,7 @@ body.light-mode .auth-choice-title{color:#111;}
       <div style="text-align:right"><div class="lc-label" data-i18n="lc_date">Date</div><div id="last-date" class="lc-val">—</div></div>
     </div>
     <div id="coach-note-banner" style="display:none;"></div>
+    <div id="trainer-status-banner" class="coach-note-banner" style="display:none;"></div>
   </div>
 
   <button id="btn-cta" class="btn-cta" onclick="openWorkoutPicker()" disabled data-i18n="btn_start_workout">Start workout</button>
@@ -3523,6 +3550,49 @@ function renderHome(){
   } else { lc.style.display='none'; }
 
   renderCoachNoteBanner();
+  renderTrainerStatusBanner();
+}
+
+// Fire-and-forget, same pattern as renderCoachNoteBanner right below.
+// Alan's ask: a student today has NO visibility at all into whether their
+// trainer connection is active — this is the only place that ever
+// existed. Deliberately quiet the rest of the time: hidden whenever the
+// connection is healthy (active, >3 days left), so Home stays exactly as
+// uncluttered as it already is for the common case. Only surfaces once
+// there's actually something to act on — expiring soon or already lapsed —
+// and the action is a single tap, no popup, no confirmation step.
+async function renderTrainerStatusBanner(){
+  const el=document.getElementById('trainer-status-banner');
+  if(!el) return;
+  if(!currentUser){ el.style.display='none'; return; }
+  try{
+    const { data:connections } = await supabaseClient.from('trainer_connections')
+      .select('id, status, expires_at, trainer:profiles!trainer_connections_trainer_id_fkey(full_name, username)')
+      .eq('student_id', currentUser.id)
+      .order('connected_at', {ascending:false}).limit(1);
+    const c=connections && connections[0];
+    if(!c){ el.style.display='none'; return; }
+    const info=trainerConnectionStatusInfo(c);
+    if(info.active && !info.expiringSoon){ el.style.display='none'; return; }
+    const trainerName=(c.trainer&&(c.trainer.full_name||c.trainer.username))||t('trainer_status_banner_eyebrow');
+    el.innerHTML=`<div class="coach-note-eyebrow">${escapeHtml(trainerName)}</div>
+      <div class="trainer-status-banner-row">
+        ${trainerStatusBadgeHtml(c)}
+        <button class="btn-ghost" style="padding:6px 14px;font-size:10.5px;" onclick="extendMyTrainerConnection('${c.id}')">${t('trainer_extend_30_days')}</button>
+      </div>`;
+    el.style.display='block';
+  }catch(e){
+    el.style.display='none';
+  }
+}
+async function extendMyTrainerConnection(connectionId){
+  try{
+    await supabaseClient.rpc('extend_own_trainer_connection', {p_connection_id: connectionId});
+    showToast(t('toast_trainer_extended'));
+    renderTrainerStatusBanner();
+  }catch(e){
+    showToast(t('toast_trainer_extend_error'));
+  }
 }
 
 // Fire-and-forget, same pattern as the rest of Home's account-only extras
@@ -5379,11 +5449,6 @@ const PROGRESSION_PRESETS=[
            {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
            {rir:3,setPct:50,repPct:100,loadPct:90,allout:false},
            {rir:0,setPct:100,repPct:100,loadPct:100,allout:true}] },
-  { id:'ramp',   nameKey:'prog_preset_ramp',   descKey:'prog_preset_ramp_desc',
-    cycle:[{rir:3,setPct:100,repPct:100,loadPct:100,allout:false},
-           {rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
-           {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
-           {rir:3,setPct:50,repPct:100,loadPct:90,allout:false}] },
   { id:'simple', nameKey:'prog_preset_simple', descKey:'prog_preset_simple_desc',
     cycle:[{rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
            {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
@@ -5397,15 +5462,38 @@ const PROGRESSION_PRESETS=[
            {rir:1,setPct:100,repPct:100,loadPct:100,allout:false},
            {rir:0,setPct:100,repPct:100,loadPct:100,allout:true},
            {rir:3,setPct:50,repPct:100,loadPct:90,allout:false}] },
-  // No deload, no all-out — five rotations easing deeper toward failure
-  // without ever testing a true max. Built for accumulating volume, not
-  // measuring it.
-  { id:'hypertrophy', nameKey:'prog_preset_hypertrophy', descKey:'prog_preset_hypertrophy_desc',
-    cycle:[{rir:3,setPct:100,repPct:100,loadPct:100,allout:false},
-           {rir:3,setPct:100,repPct:100,loadPct:100,allout:false},
-           {rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
-           {rir:2,setPct:100,repPct:100,loadPct:100,allout:false},
-           {rir:1,setPct:100,repPct:100,loadPct:100,allout:false}] },
+  // Sourced from RPE/RIR periodization research (strength phases target
+  // RPE 8-9 / RIR 1-2, with true failure used only sparingly to recalibrate
+  // — see the chat message this preset was proposed in for citations) and
+  // classic block periodization's intensity-up/volume-down peak week.
+  // Authored directly in the current (not the old flat) shape specifically
+  // to reach restMode/restDeltaSec and setsDelta, which the flat shape
+  // above can't express at all — see migrateCycleStep's comment on why the
+  // flat shape drops rest entirely.
+  { id:'strength_focus', nameKey:'prog_preset_strength_focus', descKey:'prog_preset_strength_focus_desc',
+    cycle:[
+      {allout:false, repsMode:'rir', rir:3, repsPct:100, setsMode:'delta', setsDelta:0,  setsPct:100, loadPct:100, restMode:'delta', restPct:100, restDeltaSec:30},
+      {allout:false, repsMode:'rir', rir:2, repsPct:100, setsMode:'delta', setsDelta:0,  setsPct:100, loadPct:105, restMode:'delta', restPct:100, restDeltaSec:30},
+      {allout:false, repsMode:'rir', rir:1, repsPct:100, setsMode:'delta', setsDelta:-1, setsPct:100, loadPct:110, restMode:'delta', restPct:100, restDeltaSec:45},
+      {allout:false, repsMode:'rir', rir:3, repsPct:100, setsMode:'delta', setsDelta:-2, setsPct:100, loadPct:90,  restMode:'delta', restPct:100, restDeltaSec:15},
+    ] },
+  // Sourced from return-to-training/graded-exposure research: change one
+  // variable at a time (volume, then effort, then load — never together),
+  // stay well clear of failure throughout (RIR floor of 3, roughly RPE≤7),
+  // and end on a consolidation step before the next lap rather than pushing
+  // straight through — see the chat message this preset was proposed in
+  // for citations. This is a general-fitness adaptation of clinical
+  // graded-exposure principles, not a clinical protocol — flagged to Alan
+  // as something to run past an actual trainer/PT before relying on it.
+  { id:'return_rehab', nameKey:'prog_preset_return_rehab', descKey:'prog_preset_return_rehab_desc',
+    cycle:[
+      {allout:false, repsMode:'rir', rir:4, repsPct:100, setsMode:'delta', setsDelta:-1, setsPct:100, loadPct:90,  restMode:'delta', restPct:100, restDeltaSec:30},
+      {allout:false, repsMode:'rir', rir:4, repsPct:100, setsMode:'delta', setsDelta:0,  setsPct:100, loadPct:90,  restMode:'delta', restPct:100, restDeltaSec:30},
+      {allout:false, repsMode:'rir', rir:3, repsPct:100, setsMode:'delta', setsDelta:0,  setsPct:100, loadPct:90,  restMode:'delta', restPct:100, restDeltaSec:15},
+      {allout:false, repsMode:'rir', rir:3, repsPct:100, setsMode:'delta', setsDelta:0,  setsPct:100, loadPct:100, restMode:'delta', restPct:100, restDeltaSec:15},
+      {allout:false, repsMode:'rir', rir:3, repsPct:100, setsMode:'delta', setsDelta:1,  setsPct:100, loadPct:100, restMode:'delta', restPct:100, restDeltaSec:0},
+      {allout:false, repsMode:'rir', rir:4, repsPct:100, setsMode:'delta', setsDelta:-1, setsPct:100, loadPct:95,  restMode:'delta', restPct:100, restDeltaSec:15},
+    ] },
 ];
 function defaultProgression(){
   return { mode:'off', cycle:[defaultCycleStep(),{...defaultCycleStep(),rir:1},{...defaultCycleStep(),rir:0,allout:true}],
@@ -6041,36 +6129,36 @@ function renderCycleStepEditor(i){
     </div>
     <div id="prog-step-fields" style="${s.allout?'display:none;':''}">
 
-      <div class="settings-section-label" style="padding:16px 4px 6px;">${t('prog_field_sets')}</div>
+      <div class="settings-section-label progstep-section-label" style="padding:16px 4px 6px;">${t('prog_field_sets')}</div>
       <div class="progstep-pill-group">
         <button class="progstep-pill ${!setsPct?'active':''}" onclick="setStepMode('setsMode','delta')">${t('prog_field_sets')}</button>
         <button class="progstep-pill ${setsPct?'active':''}" onclick="setStepMode('setsMode','pct')">${t('prog_mode_percentage')}</button>
       </div>
       ${setsPct
-        ? progStepStepper('setsPct', t('prog_field_amount'), s.setsPct, 50, 150, 5, '%')
-        : progStepDeltaStepper('setsDelta', t('prog_field_amount'), s.setsDelta, -3, 3, 1, t('prog_sets_word'))}
+        ? progStepStepper('setsPct', s.setsPct, 50, 150, 5, '%')
+        : progStepDeltaStepper('setsDelta', s.setsDelta, -3, 3, 1, t('prog_sets_word'))}
 
-      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_field_reps')}</div>
+      <div class="settings-section-label progstep-section-label" style="padding:18px 4px 6px;">${t('prog_field_reps')}</div>
       <div class="progstep-pill-group">
         <button class="progstep-pill ${!repsPct?'active':''}" onclick="setStepMode('repsMode','rir')">${t('prog_field_rir')}</button>
         <button class="progstep-pill ${repsPct?'active':''}" onclick="setStepMode('repsMode','pct')">${t('prog_mode_percentage')}</button>
       </div>
       ${repsPct
-        ? progStepStepper('repsPct', t('prog_field_amount'), s.repsPct, 50, 150, 5, '%')
-        : progStepStepper('rir', t('prog_field_rir'), s.rir, 0, 6, 1)}
+        ? progStepStepper('repsPct', s.repsPct, 50, 150, 5, '%')
+        : progStepStepper('rir', s.rir, 0, 6, 1, t('prog_field_rir'))}
       ${repsPct?`<div class="prog-hint-sm">${t('prog_reps_pct_sub')}</div>`:''}
 
-      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_field_load')}</div>
-      ${progStepStepper('loadPct', t('prog_field_amount'), s.loadPct, 50, 110, 5, '%')}
+      <div class="settings-section-label progstep-section-label" style="padding:18px 4px 6px;">${t('prog_field_load')}</div>
+      ${progStepStepper('loadPct', s.loadPct, 50, 110, 5, '%')}
 
-      <div class="settings-section-label" style="padding:18px 4px 6px;">${t('prog_field_rest')}</div>
+      <div class="settings-section-label progstep-section-label" style="padding:18px 4px 6px;">${t('prog_field_rest')}</div>
       <div class="progstep-pill-group">
         <button class="progstep-pill ${restSec?'active':''}" onclick="setStepMode('restMode','delta')">${t('prog_mode_seconds')}</button>
         <button class="progstep-pill ${!restSec?'active':''}" onclick="setStepMode('restMode','pct')">${t('prog_mode_percentage')}</button>
       </div>
       ${restSec
-        ? progStepDeltaStepper('restDeltaSec', t('prog_field_amount'), s.restDeltaSec, -60, 120, 15, t('prog_seconds_short'))
-        : progStepStepper('restPct', t('prog_field_amount'), s.restPct, 50, 200, 5, '%')}
+        ? progStepDeltaStepper('restDeltaSec', s.restDeltaSec, -60, 120, 15, t('prog_seconds_short'))
+        : progStepStepper('restPct', s.restPct, 50, 200, 5, '%')}
 
     </div>
     ${_progDraft.cycle.length>1?`<button class="btn-ghost" style="width:100%;margin-top:18px;border-color:var(--danger);color:var(--danger);"
@@ -6081,13 +6169,14 @@ function renderCycleStepEditor(i){
 }
 // One shared stepper row layout (−, typed value, +) for every plain field —
 // same control every time rather than a bespoke input per field, so the
-// "fill in exactly what you want" screen reads as one consistent tool. The
-// unit (suffix) sits as its own label beside the stepper rather than baked
-// into the input's value, so it's always visible — a bare "100" reads as
-// an arbitrary count, "100 %" reads as what it actually is.
-function progStepStepper(field, label, val, min, max, step, suffix){
-  return `<div class="form-grp" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;">
-    <label class="form-lbl" style="margin:0;">${label}</label>
+// "fill in exactly what you want" screen reads as one consistent tool.
+// Centered rather than a label+control pair: the section header above
+// (Sets/Reps/Weight/Rest) plus the mode pills already say what this
+// controls, so a per-row "Amount" label was pure repetition. The unit
+// (suffix) sits beside the stepper so a bare "100" isn't ambiguous — "100 %"
+// reads as what it actually is.
+function progStepStepper(field, val, min, max, step, suffix){
+  return `<div class="form-grp" style="display:flex;align-items:center;justify-content:center;padding:8px 4px;">
     <div style="display:flex;align-items:center;gap:6px;">
       <div class="stepper">
         <button class="stepper-btn" onclick="stepStepField('${field}',${-step},${min},${max})">&#8722;</button>
@@ -6104,10 +6193,9 @@ function progStepStepper(field, label, val, min, max, step, suffix){
 // shown exactly as written rather than fighting a number input's own
 // formatting. The +/− buttons are the only way to change it, which suits a
 // small, bounded range fine.
-function progStepDeltaStepper(field, label, val, min, max, step, unit){
+function progStepDeltaStepper(field, val, min, max, step, unit){
   const display=(val>0?'+':'')+val+(unit?(' '+unit):'');
-  return `<div class="form-grp" style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;">
-    <label class="form-lbl" style="margin:0;">${label}</label>
+  return `<div class="form-grp" style="display:flex;align-items:center;justify-content:center;padding:8px 4px;">
     <div class="stepper">
       <button class="stepper-btn" onclick="stepStepField('${field}',${-step},${min},${max})">&#8722;</button>
       <input class="set-inp" style="width:76px;font-size:12px;" type="text" inputmode="numeric" id="step-fld-${field}" value="${escapeHtml(display)}" readonly>
@@ -6827,19 +6915,37 @@ async function renderTrainerScreen(){
   el.innerHTML=buildTrainerRosterHtml(connections, tierIcons);
 }
 
+// Shared by every place a trainer_connection's status gets shown (roster
+// card, student-detail header, the student's own home banner) — one place
+// to decide what "active"/"expiring soon" actually mean, instead of the
+// expiry math being copy-pasted at each call site.
+function trainerConnectionStatusInfo(c){
+  const msLeft=new Date(c.expires_at)-Date.now();
+  const daysLeft=Math.ceil(msLeft/86400000);
+  const active=c.status==='active' && msLeft>0;
+  return { active, expiringSoon: active && daysLeft<=3, daysLeft };
+}
+// Alan's explicit ask: no "Active until [date]" countdown reading, no
+// separate color for active vs. inactive — just ACTIVE/INACTIVE in the
+// app's own accent color, at full intensity when active and dimmed when
+// not. "Expiring soon" (≤3 days) gets a small pulsing dot in that same
+// accent color, still no new hue introduced.
+function trainerStatusBadgeHtml(c){
+  const info=trainerConnectionStatusInfo(c);
+  const label=info.active ? t('trainer_status_active') : t('trainer_status_inactive');
+  return `<div class="trainer-status ${info.active?'active':''}">${info.expiringSoon?'<span class="trainer-status-dot"></span>':''}${label}</div>`;
+}
 function buildTrainerRosterHtml(connections, tierIcons){
   const cards=connections.map(c=>{
-    const expired = c.status!=='active' || new Date(c.expires_at)<new Date();
     const displayName=(c.student&&(c.student.full_name||c.student.username))||'—';
     const name=escapeHtml(displayName);
     const handle=c.student&&c.student.username ? '@'+escapeHtml(c.student.username) : '';
-    const statusLabel = expired ? t('trainer_access_expired') : (t('trainer_active_until')+' '+new Date(c.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
     const icon=(c.student && tierIcons[c.student.id]) || untieredIconHtml();
     return `<div class="trainer-roster-card" onclick="openTrainerStudentDetail('${c.id}')">
       <div class="trainer-card-badge">${icon}</div>
       <div class="trainer-card-name">${name}</div>
       ${handle?`<div class="trainer-card-handle">${handle}</div>`:''}
-      <div class="trainer-card-status ${expired?'expired':''}">${statusLabel}</div>
+      ${trainerStatusBadgeHtml(c)}
     </div>`;
   }).join('');
   return `
@@ -6918,14 +7024,12 @@ function buildTrainerStudentHeaderHtml(connection){
   const displayName=(connection.student&&(connection.student.full_name||connection.student.username))||'—';
   const name=escapeHtml(displayName);
   const handle=connection.student&&connection.student.username ? '@'+escapeHtml(connection.student.username) : '';
-  const expired = connection.status!=='active' || new Date(connection.expires_at)<new Date();
-  const statusLine = expired ? t('trainer_access_expired') : (t('trainer_active_until')+' '+new Date(connection.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}));
   return `<div class="trainer-detail-hd">
     <div class="trainer-card-badge" style="width:52px;height:52px;">${connection.tierIcon}</div>
     <div>
       <div class="trainer-detail-name">${name}</div>
       ${handle?`<div class="trainer-detail-handle">${handle}</div>`:''}
-      <div class="trainer-roster-status ${expired?'expired':''}">${statusLine}</div>
+      ${trainerStatusBadgeHtml(connection)}
     </div>
   </div>`;
 }
@@ -8436,8 +8540,10 @@ function buildExerciseVideoBtnHtml(exId, size){
   size = size || 34;
   const ex = db.exercises.find(e=>e.id===exId);
   const has = !!(ex && ex.video);
+  // Triangle bbox is centered on the 24x24 viewBox (x:6.5-17.5, y:5-19) so
+  // it sits dead-center in the round button with no ad-hoc margin nudge.
   return `<button class="ex-video-btn${has?'':' disabled'}" style="width:${size}px;height:${size}px;" ${has?`onclick="event.stopPropagation();openExerciseVideo('${exId}')"`:'disabled'} aria-label="Play exercise video">
-    <svg viewBox="0 0 24 24" style="width:${Math.round(size*0.4)}px;height:${Math.round(size*0.4)}px;fill:currentColor;stroke:none;margin-left:2px;"><path d="M8 5v14l11-7z"/></svg>
+    <svg viewBox="0 0 24 24" style="width:${Math.round(size*0.4)}px;height:${Math.round(size*0.4)}px;fill:currentColor;stroke:none;"><path d="M6.5 5v14l11-7z"/></svg>
   </button>`;
 }
 
@@ -8451,7 +8557,7 @@ function buildExerciseVideoIcoHtml(exId, domId){
   const ex = db.exercises.find(e=>e.id===exId);
   const has = !!(ex && ex.video);
   return `<button class="btn-ico${has?' ex-video-has':''}" id="${domId}" ${has?`onclick="openExerciseVideo('${exId}')"`:'disabled'} aria-label="Play exercise video">
-    <svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none;width:12px;height:12px;"><path d="M8 5v14l11-7z"/></svg>
+    <svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none;width:12px;height:12px;"><path d="M6.5 5v14l11-7z"/></svg>
   </button>`;
 }
 // Called from the routine builder's exercise <select> onchange, since that
@@ -8478,15 +8584,18 @@ function closeExerciseVideo(){
   document.getElementById('exercise-video-img').src=''; // stop decoding/animating the GIF while the popup is closed
 }
 
-// Circular outline "i" button, same size/shape as buildExerciseVideoBtnHtml's
-// play button so the two sit evenly side by side. Opens the info popup for
+// Same round button as buildExerciseVideoBtnHtml's play button (.ex-video-btn
+// gives it its own circular border) so the two sit evenly side by side. The
+// glyph itself is just the "i" mark, no circle of its own — an SVG "info"
+// icon conventionally draws its own ring, which doubled up with the button's
+// CSS ring and read as two concentric circles. Opens the info popup for
 // session.exercises[ei] — the Last/RIR-0/Notes detail that used to sit
 // directly on the card, moved here per Alan's explicit ask to keep the
 // default card view to just the name and the progression line.
 function buildExerciseInfoBtnHtml(ei, size){
   size = size || 26;
   return `<button class="ex-video-btn" style="width:${size}px;height:${size}px;" onclick="event.stopPropagation();openExerciseInfo(${ei})" aria-label="${t('ex_info_aria')}">
-    <svg viewBox="0 0 24 24" style="width:${Math.round(size*0.42)}px;height:${Math.round(size*0.42)}px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+    <svg viewBox="0 0 24 24" style="width:${Math.round(size*0.4)}px;height:${Math.round(size*0.4)}px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;"><line x1="12" y1="10.5" x2="12" y2="17"/><circle cx="12" cy="6.3" r="1.3" fill="currentColor" stroke="none"/></svg>
   </button>`;
 }
 function openExerciseInfo(ei){
@@ -9466,16 +9575,16 @@ const STRINGS = {
     prog_enable_sub: 'Vary how hard you push across rotations',
     prog_presets_label: 'Start from a template',
     prog_preset_loaded: 'Template loaded — edit it below',
-    prog_preset_alan: 'Build up, back off, then test',
+    prog_preset_alan: 'Test Cycle',
     prog_preset_alan_desc: 'Two harder rotations, an easy one, then an all-out rotation.',
-    prog_preset_ramp: 'Steady build with a rest week',
-    prog_preset_ramp_desc: 'Get gradually closer to failure across three rotations, then recover.',
-    prog_preset_simple: 'Simple: two efforts and a test',
+    prog_preset_simple: 'Quick Start',
     prog_preset_simple_desc: 'The shortest cycle worth running. Good place to start.',
-    prog_preset_strength_peak: 'Climb to a max, then recover',
+    prog_preset_strength_peak: 'Peak & Recover',
     prog_preset_strength_peak_desc: 'Four rotations climbing to a true max attempt, then a full recovery week before the next block.',
-    prog_preset_hypertrophy: 'Volume without maxing out',
-    prog_preset_hypertrophy_desc: 'Five rotations easing deeper without ever testing a true max — built for volume, not testing.',
+    prog_preset_strength_focus: 'Strength Focus',
+    prog_preset_strength_focus_desc: 'Heavier loads, more rest, never to true failure — a classic strength block.',
+    prog_preset_return_rehab: 'Return / Rehab',
+    prog_preset_return_rehab_desc: 'Very gradual, one change at a time. Stays far from failure throughout.',
     prog_rotations_word: 'rotations',
     prog_cycle_label: 'Your cycle',
     prog_add_step: '+ Rotation',
@@ -9497,7 +9606,6 @@ const STRINGS = {
     prog_field_reps: 'Reps',
     prog_field_load: 'Weight',
     prog_field_rest: 'Rest',
-    prog_field_amount: 'Amount',
     prog_mode_percentage: 'Percentage',
     prog_mode_seconds: 'Seconds',
     prog_reps_pct_sub: 'No weight suggestion — just the rep count',
@@ -9749,8 +9857,12 @@ const STRINGS = {
     error_username_maybe_taken: 'That username may already be taken.',
     error_sync_failed: 'Something went wrong syncing your data. Check your connection and try again.',
     trainer_roster_load_error: 'Could not load your roster.',
-    trainer_access_expired: 'Access expired',
-    trainer_active_until: 'Active until',
+    trainer_status_active: 'Active',
+    trainer_status_inactive: 'Inactive',
+    trainer_status_banner_eyebrow: 'Your Trainer',
+    trainer_extend_30_days: 'Extend 30 days',
+    toast_trainer_extended: 'Extended 30 days',
+    toast_trainer_extend_error: 'Could not extend — try again',
     trainer_your_students: 'Your Students',
     trainer_add_student: 'Add Student',
     trainer_no_students_1: 'No students yet.',
@@ -10048,16 +10160,16 @@ const STRINGS = {
     prog_enable_sub: 'Varía la exigencia entre rotaciones',
     prog_presets_label: 'Empezar desde una plantilla',
     prog_preset_loaded: 'Plantilla cargada — edítala abajo',
-    prog_preset_alan: 'Subir, aflojar y luego medir',
-    prog_preset_alan_desc: 'Dos rotaciones más exigentes, una suave, y una rotación a tope.',
-    prog_preset_ramp: 'Subida progresiva con semana de descarga',
-    prog_preset_ramp_desc: 'Acércate al fallo gradualmente durante tres rotaciones y después recupera.',
-    prog_preset_simple: 'Simple: dos esfuerzos y una medición',
+    prog_preset_alan: 'Ciclo de Prueba',
+    prog_preset_alan_desc: 'Dos rotaciones más exigentes, una suave, y una rotación al fallo.',
+    prog_preset_simple: 'Inicio Rápido',
     prog_preset_simple_desc: 'El ciclo más corto que vale la pena. Buen punto de partida.',
-    prog_preset_strength_peak: 'Subir hasta el máximo, luego recuperar',
+    prog_preset_strength_peak: 'Pico y Recuperación',
     prog_preset_strength_peak_desc: 'Cuatro rotaciones subiendo hasta un intento de máximo real, luego una semana completa de recuperación antes del siguiente bloque.',
-    prog_preset_hypertrophy: 'Volumen sin llegar al máximo',
-    prog_preset_hypertrophy_desc: 'Cinco rotaciones profundizando sin nunca medir un máximo real — pensado para volumen, no para medición.',
+    prog_preset_strength_focus: 'Enfoque en Fuerza',
+    prog_preset_strength_focus_desc: 'Cargas más pesadas, más descanso, nunca al fallo real — un bloque de fuerza clásico.',
+    prog_preset_return_rehab: 'Retorno / Rehab',
+    prog_preset_return_rehab_desc: 'Muy gradual, un cambio a la vez. Se mantiene lejos del fallo durante todo el ciclo.',
     prog_rotations_word: 'rotaciones',
     prog_cycle_label: 'Tu ciclo',
     prog_add_step: '+ Rotación',
@@ -10079,7 +10191,6 @@ const STRINGS = {
     prog_field_reps: 'Repeticiones',
     prog_field_load: 'Peso',
     prog_field_rest: 'Descanso',
-    prog_field_amount: 'Cantidad',
     prog_mode_percentage: 'Porcentaje',
     prog_mode_seconds: 'Segundos',
     prog_reps_pct_sub: 'Sin sugerencia de peso — solo la cantidad de repeticiones',
@@ -10119,11 +10230,11 @@ const STRINGS = {
     guide_rir_t: '¿Qué es el RIR?',
     guide_rir_b: '<b>Repeticiones en reserva: cuántas más te quedaban.</b><br><br><em>RIR 2</em> significa que paraste con dos repeticiones de margen. <em>RIR 0</em> significa que no podías hacer ni una más.<br><br>Mide el esfuerzo, no el peso, y por eso funciona mejor que un número fijo: en un mal día RIR 2 es simplemente una barra más liviana, y aun así entrenas bien.<br><br>Referencia rápida: <b>RIR 3</b> cómodo, <b>RIR 2</b> trabajando, <b>RIR 1</b> exigente, <b>RIR 0</b> todo lo que tienes.',
     guide_cycle_t: 'Cómo funciona un ciclo acá',
-    guide_cycle_b: 'Una vuelta completa a todas las rutinas de tu rotación = <b>un paso</b> del ciclo. Cuando terminas la última rutina, la app avanza sola al paso siguiente.<br><br>Un ciclo puede tener la cantidad de pasos que quieras. Cuatro es lo habitual; con tres alcanza para empezar.<br><br>Si terminas el ciclo con una rotación <em>a tope</em>, la app lee tus mejores series, actualiza tu base y calcula el ciclo siguiente con los números nuevos. De ahí sale la progresión.',
+    guide_cycle_b: 'Una vuelta completa a todas las rutinas de tu rotación = <b>un paso</b> del ciclo. Cuando terminas la última rutina, la app avanza sola al paso siguiente.<br><br>Un ciclo puede tener la cantidad de pasos que quieras. Cuatro es lo habitual; con tres alcanza para empezar.<br><br>Si terminas el ciclo con una rotación <em>al fallo</em>, la app lee tus mejores series, actualiza tu base y calcula el ciclo siguiente con los números nuevos. De ahí sale la progresión.',
     guide_who_t: '¿Qué elijo?',
     guide_who_b: '<b>Primer año entrenando</b> — déjalo desactivado. Sube el peso cuando se sienta fácil.<br><br><b>De uno a tres años</b> — «Simple: dos esfuerzos y una medición». Tres rotaciones, fácil de seguir, y vas a notar la diferencia en la tercera.<br><br><b>Con experiencia</b> — «Subir, aflojar y luego medir», aplicándolo solo a tus ejercicios principales.<br><br><b>Volviendo de un parate o durmiendo poco</b> — usa un ciclo que incluya una descarga y no te saltees esa rotación.',
     guide_safe_t: 'Llegar al fallo — lee esto',
-    guide_safe_b: 'Una rotación <em>a tope</em> es realmente exigente y tiene un costo. Dos cosas que conviene saber:<br><br><b>No lleves todo al fallo.</b> Elige tus ejercicios principales. Los accesorios casi no aportan nada extra para la fatiga que generan.<br><br><b>Cuidado con el peso muerto.</b> Llegar al fallo real en un tirón pesado es donde la técnica se rompe bajo carga, y es de lo que más cuesta recuperarse. La mayoría de los entrenadores nunca lo programa. Déjalo afuera salvo que sepas exactamente por qué lo quieres adentro.',
+    guide_safe_b: 'Una rotación <em>al fallo</em> es realmente exigente y tiene un costo. Dos cosas que conviene saber:<br><br><b>No lleves todo al fallo.</b> Elige tus ejercicios principales. Los accesorios casi no aportan nada extra para la fatiga que generan.<br><br><b>Cuidado con el peso muerto.</b> Llegar al fallo real en un tirón pesado es donde la técnica se rompe bajo carga, y es de lo que más cuesta recuperarse. La mayoría de los entrenadores nunca lo programa. Déjalo afuera salvo que sepas exactamente por qué lo quieres adentro.',
     guide_foot: 'Nada de esto es una regla. La app solo sugiere un peso: lo que escribes es lo que se guarda.',
     schedule_rotations_label: 'Rotaciones',
     rotations_notice: 'Solo se ejecuta la rotación marcada · Se repite automáticamente',
@@ -10331,8 +10442,12 @@ const STRINGS = {
     error_username_maybe_taken: 'Ese nombre de usuario ya puede estar en uso.',
     error_sync_failed: 'Algo salió mal al sincronizar tus datos. Verifica tu conexión e inténtalo de nuevo.',
     trainer_roster_load_error: 'No se pudo cargar tu lista de alumnos.',
-    trainer_access_expired: 'Acceso vencido',
-    trainer_active_until: 'Activo hasta',
+    trainer_status_active: 'Activo',
+    trainer_status_inactive: 'Inactivo',
+    trainer_status_banner_eyebrow: 'Tu Entrenador',
+    trainer_extend_30_days: 'Extender 30 días',
+    toast_trainer_extended: 'Extendido 30 días',
+    toast_trainer_extend_error: 'No se pudo extender — intenta de nuevo',
     trainer_your_students: 'Tus Alumnos',
     trainer_add_student: 'Agregar Alumno',
     trainer_no_students_1: 'Todavía no tienes alumnos.',
